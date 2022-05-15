@@ -23,8 +23,8 @@
     如果发现某个文件大小/文件内容hash和以前的记录相相等,则认为这个文件是以前下载的文件, 跳过
     此次下载.
 ## 二次开发操作手册:
-    * 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
-    * 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的
+* 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
+* 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的
 `m3u8-qt/m3u8.h`,`m3u8-qt/m3u8.cpp`, `m3u8-qt/m3u8-impl.a`. 然后使用QtCreator进行打包
 ## 发布协议
 * m3u8-qt/ 目录采用 [GPL协议 v3](m3u8d-qt/LICENSE) 发布
