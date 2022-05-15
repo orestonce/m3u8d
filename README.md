@@ -2,7 +2,7 @@
 * 提供windows图形界面(Qt), mac\linux命令行 
 * 可选使用ffmpeg转换格式为mp4
 * windows界面(m3u8d_qt_v1.0_windows_amd64.exe):
-    ![](m3u8d-qt/screenshot.png)
+    * ![](m3u8d-qt/screenshot.png)
 * 下载: https://github.com/orestonce/m3u8d/releases    
 
 ## 实现说明
