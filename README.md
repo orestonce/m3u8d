@@ -3,6 +3,7 @@
 * 可选使用ffmpeg转换格式为mp4
 * windows界面:
     ![](m3u8d-qt/screenshot.png)
+* 下载: https://github.com/orestonce/m3u8d/releases    
 
 ## 实现说明
 * download.go 大部分抄自 https://github.com/llychao/m3u8-downloader
