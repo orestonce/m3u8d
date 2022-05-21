@@ -1,8 +1,10 @@
 ## m3u8d 一款m3u8下载工具
 * 提供windows图形界面(Qt), mac\linux命令行 
 * 可选使用ffmpeg转换格式为mp4
-* windows界面:
+* windows自带GUI界面的版本下载: [m3u8d_qt_v1.0_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.0/m3u8d_qt_v1.0_windows_amd64.exe):
+
     ![](m3u8d-qt/screenshot.png)
+* 全部版本下载, 包括windows命令行/windows图形界面/linux命令行/mac命令行: https://github.com/orestonce/m3u8d/releases    
 
 ## 实现说明
 * download.go 大部分抄自 https://github.com/llychao/m3u8-downloader
@@ -21,8 +23,8 @@
     如果发现某个文件大小/文件内容hash和以前的记录相相等,则认为这个文件是以前下载的文件, 跳过
     此次下载.
 ## 二次开发操作手册:
-    * 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
-    * 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的
+* 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
+* 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的
 `m3u8-qt/m3u8.h`,`m3u8-qt/m3u8.cpp`, `m3u8-qt/m3u8-impl.a`. 然后使用QtCreator进行打包
 ## 发布协议
 * m3u8-qt/ 目录采用 [GPL协议 v3](m3u8d-qt/LICENSE) 发布
