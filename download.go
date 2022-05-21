@@ -15,9 +15,11 @@ import (
 	"github.com/orestonce/gopool"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -75,6 +77,12 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 	}
 	if req.SkipTsCountFromHead < 0 {
 		req.SkipTsCountFromHead = 0
+	}
+	var err error
+	req.M3u8Url, err = sniffM3u8(req.M3u8Url)
+	if err != nil {
+		resp.ErrMsg = "sniffM3u8: " + err.Error()
+		return resp
 	}
 	id, err := req.getVideoId()
 	if err != nil {
@@ -510,7 +518,23 @@ func getFileSha256(targetFile string) (v string) {
 	return hex.EncodeToString(tmp[:])
 }
 
-func getStringSha256(s string) (v string) {
-	tmp := sha256.Sum256([]byte(s))
-	return hex.EncodeToString(tmp[:])
+func sniffM3u8(urlS string) (afterUrl string, err error) {
+	if strings.HasSuffix(strings.ToLower(urlS), ".m3u8") {
+		return urlS, nil
+	}
+	resp, err := http.DefaultClient.Get(urlS)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	groups := regexp.MustCompile(`http[s]://[a-zA-Z0-9/\\.%_-]+.m3u8`).FindSubmatch(content)
+	if len(groups) == 0 {
+		return "", errors.New("未发现m3u8资源")
+	}
+	return string(groups[0]), nil
 }
