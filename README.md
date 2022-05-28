@@ -24,7 +24,7 @@
     此次下载.
 ## TODO:
   * [x] 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
-  * [ ] windows、linux、mac都支持ffmpeg合并ts列表为mp4
+  * [x] windows、linux、mac都支持ffmpeg合并ts列表为mp4
   * [ ] 增加linux的图形界面支持
   * [ ] 支持保存为mp3格式
 ## 二次开发操作手册:

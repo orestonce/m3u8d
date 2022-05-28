@@ -7,8 +7,14 @@ github.com/levigross/grequests v0.0.0-20190908174114-253788527a1a h1:DGFy/362j92
 github.com/levigross/grequests v0.0.0-20190908174114-253788527a1a/go.mod h1:jVntzcUU+2BtVohZBQmSHWUmh8B55LCNfPhcNCIvvIg=
 github.com/orestonce/cdb v0.0.0-20210317131130-99d93d11de21 h1:kFAgzquHOv3dmVU2HoUUzu1586bd1DKHfAz6dd5do+I=
 github.com/orestonce/cdb v0.0.0-20210317131130-99d93d11de21/go.mod h1:HMNNdA1LMQFJRwobtCzVevWcInFSo9rfs1fYeVYwU+c=
+github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2 h1:AmGkuxSIOW0gA/jetY8d1DVV0cyQ08FMCxa1arkI6HQ=
+github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2/go.mod h1:HMNNdA1LMQFJRwobtCzVevWcInFSo9rfs1fYeVYwU+c=
 github.com/orestonce/go2cpp v0.0.0-20220507123906-b66d3600c123 h1:AyAKqO7kC68OKiZk9GV4bUG+xMe1VQCy2CPbS9hvdY4=
 github.com/orestonce/go2cpp v0.0.0-20220507123906-b66d3600c123/go.mod h1:1fsOAZftk08/dOTRqlp6f/MVwaEKOhrnPUg0RtWiSdY=
+github.com/orestonce/goffmpeg v0.0.0-20220519233347-2266c9b171d9 h1:ki+QkZANpELM4WJjjcFwwFmt6r9ni53QxIYeS6OX77Y=
+github.com/orestonce/goffmpeg v0.0.0-20220519233347-2266c9b171d9/go.mod h1:QHZrzI4ewo7pYfEo8+QzrPxsCixua/TS0aE505m/nBU=
+github.com/orestonce/goffmpeg v0.0.0-20220528011920-92f3449b6c15 h1:Ix2AmnSHlA2hrI1NkpmXnFeOcxtdCj66fj1KoGFq9tI=
+github.com/orestonce/goffmpeg v0.0.0-20220528011920-92f3449b6c15/go.mod h1:QHZrzI4ewo7pYfEo8+QzrPxsCixua/TS0aE505m/nBU=
 github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171 h1:NnOl6HTrhrlTT7aaAybVOtq+fEztGFMoQtegckgwLdk=
 github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171/go.mod h1:MCQUrAPiG9/PTjHJuGqWLasKbIaG6z62KO6kfp90byM=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

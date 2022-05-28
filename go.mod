@@ -4,8 +4,9 @@ go 1.17
 
 require (
 	github.com/levigross/grequests v0.0.0-20190908174114-253788527a1a
-	github.com/orestonce/cdb v0.0.0-20210317131130-99d93d11de21
+	github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2
 	github.com/orestonce/go2cpp v0.0.0-20220507123906-b66d3600c123
+	github.com/orestonce/goffmpeg v0.0.0-20220528011920-92f3449b6c15
 	github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171
 	github.com/saracen/go7z v0.0.0-20191010121135-9c09b6bd7fda
 	github.com/spf13/cobra v1.4.0

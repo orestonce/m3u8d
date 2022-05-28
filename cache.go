@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 )
 
 type DbVideoInfo struct {
@@ -28,15 +27,15 @@ func (this *RunDownload_Req) getVideoId() (id string, err error) {
 }
 
 func cacheRead(dir string, id string) (info *DbVideoInfo, err error) {
-	value, err := dbRead(dir, id)
+	value, err := cdb.FileGetValueString(filepath.Join(dir, "m3u8d_cache.cdb"), id)
 	if err != nil {
+		if err == cdb.ErrNoData {
+			return nil, nil
+		}
 		return nil, err
 	}
-	if len(value) == 0 {
-		return nil, nil
-	}
 	var obj DbVideoInfo
-	err = json.Unmarshal(value, &obj)
+	err = json.Unmarshal([]byte(value), &obj)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +76,7 @@ func cacheWrite(dir string, id string, originReq RunDownload_Req, videoNameFullP
 	if err != nil {
 		return err
 	}
-	return dbWrite(dir, id, content)
+	return cdb.FileRewriteKeyValue(filepath.Join(dir, "m3u8d_cache.cdb"), id, string(content))
 }
 
 func dbRead(dir string, key string) (content []byte, err error) {
@@ -97,57 +96,4 @@ func dbRead(dir string, key string) (content []byte, err error) {
 		return nil, err
 	}
 	return content, nil
-}
-
-func dbWrite(dir string, key string, value []byte) (err error) {
-	cdbFileName := filepath.Join(dir, "m3u8d_cache.cdb")
-
-	reader, err := cdb.OpenFile(cdbFileName)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	tmpCdbFileName := cdbFileName + "." + strconv.Itoa(os.Getpid()) + ".tmp"
-	writer, err := cdb.NewFileWriter(tmpCdbFileName)
-	if err != nil {
-		if reader != nil {
-			reader.Close()
-		}
-		return err
-	}
-
-	if reader != nil {
-		for it := reader.BeginIterator(); it != nil; {
-			tmpKey, tmpValue, err := it.ReadNextKeyValue()
-			if err != nil {
-				if err == cdb.ErrNoData {
-					break
-				}
-				reader.Close()
-				writer.Close()
-				os.Remove(tmpCdbFileName)
-				return err
-			}
-			if string(tmpKey) == key {
-				continue
-			}
-			err = writer.WriteKeyValue(tmpKey, tmpValue)
-			if err != nil {
-				reader.Close()
-				writer.Close()
-				os.Remove(tmpCdbFileName)
-				return err
-			}
-		}
-		reader.Close()
-	}
-	err = writer.WriteKeyValue([]byte(key), value)
-	if err != nil {
-		writer.Close()
-		return err
-	}
-	err = writer.Close()
-	if err != nil {
-		return err
-	}
-	return os.Rename(tmpCdbFileName, cdbFileName)
 }

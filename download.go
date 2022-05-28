@@ -1,7 +1,3 @@
-//@author:llychao<lychao_vip@163.com>
-//@contributor: Junyi<me@junyi.pw>
-//@date:2020-02-18
-//@功能:golang m3u8 video Downloader
 package m3u8d
 
 import (
@@ -12,6 +8,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/levigross/grequests"
+	"github.com/orestonce/goffmpeg"
 	"github.com/orestonce/gopool"
 	"io"
 	"io/ioutil"
@@ -24,8 +22,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/levigross/grequests"
 )
 
 // TsInfo 用于保存 ts 文件的下载地址和文件名
@@ -104,7 +100,7 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 	}
 	var ffmpegExe string
 	if req.UserFfmpegMerge {
-		ffmpegExe, err = SetupFfmpeg()
+		ffmpegExe, err = goffmpeg.SetupFfmpeg()
 		if err != nil {
 			resp.ErrMsg = "SetupFfmpeg error: " + err.Error()
 			return resp
@@ -177,14 +173,28 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 	var contentHash string
 	if req.UserFfmpegMerge {
 		tmpOutputName = filepath.Join(downloadDir, "all.merge.mp4")
-		contentHash, err = mergeTsFileList_Ffmpeg(ffmpegExe, tsFileList, tmpOutputName)
+		err = goffmpeg.MergeMultiToSingleMp4(goffmpeg.MergeMultiToSingleMp4_Req{
+			FfmpegExePath: ffmpegExe,
+			TsFileList:    tsFileList,
+			OutputMp4:     tmpOutputName,
+			ProgressCh:    nil,
+		})
+		if err != nil {
+			resp.ErrMsg = "合并错误: " + err.Error()
+			return resp
+		}
+		contentHash = getFileSha256(tmpOutputName)
+		if contentHash == "" {
+			resp.ErrMsg = "无法计算摘要信息: " + tmpOutputName
+			return resp
+		}
 	} else {
 		tmpOutputName = filepath.Join(downloadDir, "all.merge.ts")
 		contentHash, err = mergeTsFileList_Raw(tsFileList, tmpOutputName)
-	}
-	if err != nil {
-		resp.ErrMsg = "合并错误: " + err.Error()
-		return resp
+		if err != nil {
+			resp.ErrMsg = "合并错误: " + err.Error()
+			return resp
+		}
 	}
 	var name string
 	for idx := 0; ; idx++ {
