@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	//BuildCliBinary()	// 编译二进制
-	CreateLibForQtUi()	// 创建Qt需要使用的.a库文件
+	BuildCliBinary()   // 编译二进制
+	CreateLibForQtUi() // 创建Qt需要使用的.a库文件
 }
 
 func BuildCliBinary() {
@@ -26,21 +26,8 @@ func BuildCliBinary() {
 	}
 	var list = []buildCfg{
 		{
-			GOOS:   "windows",
-			GOARCH: "amd64",
-			Ext:    ".exe",
-		},
-		{
-			GOOS:   "linux",
-			GOARCH: "amd64",
-		},
-		{
 			GOOS:   "linux",
 			GOARCH: "386",
-		},
-		{
-			GOOS:   "linux",
-			GOARCH: "arm64",
 		},
 		{
 			GOOS:   "linux",
@@ -52,7 +39,7 @@ func BuildCliBinary() {
 		},
 	}
 	for _, cfg := range list {
-		name := "m3u8d_cli_v1.0_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
+		name := "m3u8d_cli_v1.1_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
 		cmd := exec.Command("go", "build", "-o", filepath.Join(wd, "bin", name))
 		cmd.Dir = filepath.Join(wd, "cmd")
 		cmd.Env = append(os.Environ(), "GOOS="+cfg.GOOS)

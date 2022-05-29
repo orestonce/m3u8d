@@ -12,7 +12,6 @@ struct RunDownload_Req{
 	bool Insecure;
 	std::string SaveDir;
 	std::string FileName;
-	bool UserFfmpegMerge;
 	int32_t SkipTsCountFromHead;
 };
 struct RunDownload_Resp{

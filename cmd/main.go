@@ -32,7 +32,6 @@ func init() {
 	rootCmd.Flags().BoolVarP(&gRunReq.Insecure, "Insecure", "", false, "是否允许不安全的请求")
 	rootCmd.Flags().StringVarP(&gRunReq.SaveDir, "SaveDir", "d", "", "文件保存路径(默认为当前路径)")
 	rootCmd.Flags().StringVarP(&gRunReq.FileName, "FileName", "f", "", "文件名")
-	rootCmd.Flags().BoolVarP(&gRunReq.UserFfmpegMerge, "UserFfmpegMerge", "", true, "使用ffmpeg合并分段视频")
 	rootCmd.Flags().IntVarP(&gRunReq.SkipTsCountFromHead, "SkipTsCountFromHead", "", 0, "跳过前面几个ts")
 }
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>735</width>
-    <height>282</height>
+    <width>747</width>
+    <height>247</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,25 +17,12 @@
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>m3u8的url</string>
+         <string>HostType</string>
         </property>
        </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLineEdit" name="lineEdit_M3u8Url"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>保存位置</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLineEdit" name="lineEdit_SaveDir"/>
       </item>
       <item row="1" column="3">
        <widget class="QPushButton" name="pushButton_SaveDir">
@@ -43,6 +30,9 @@
          <string>...</string>
         </property>
        </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QLineEdit" name="lineEdit_SkipTsCountFromHead"/>
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_4">
@@ -58,24 +48,27 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="2">
-       <widget class="QLineEdit" name="lineEdit_SkipTsCountFromHead"/>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_7">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>输出文件格式</string>
+         <string>保存位置</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_6">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
         <property name="text">
-         <string>HostType</string>
+         <string>m3u8的url</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="2">
+      <item row="0" column="2">
+       <widget class="QLineEdit" name="lineEdit_M3u8Url"/>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLineEdit" name="lineEdit_SaveDir"/>
+      </item>
+      <item row="4" column="2">
        <widget class="QComboBox" name="comboBox_HostType">
         <item>
          <property name="text">
@@ -85,20 +78,6 @@
         <item>
          <property name="text">
           <string>apiv2</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QComboBox" name="comboBox_OutputFormat">
-        <item>
-         <property name="text">
-          <string>mp4格式(使用ffmpeg合并分段视频)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>ts格式(直接拼接分段视频)</string>
          </property>
         </item>
        </widget>

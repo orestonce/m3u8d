@@ -52,7 +52,6 @@ type RunDownload_Req struct {
 	Insecure            bool   `json:"-"`          // "是否允许不安全的请求(默认为false)"
 	SaveDir             string `json:"-"`          // "文件保存路径(默认为当前路径)"
 	FileName            string `json:"-"`          // 文件名
-	UserFfmpegMerge     bool   `json:",omitempty"` // 使用ffmpeg合并分段视频
 	SkipTsCountFromHead int    `json:",omitempty"` // 跳过前面几个ts
 }
 
@@ -99,12 +98,10 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 		}
 	}
 	var ffmpegExe string
-	if req.UserFfmpegMerge {
-		ffmpegExe, err = goffmpeg.SetupFfmpeg()
-		if err != nil {
-			resp.ErrMsg = "SetupFfmpeg error: " + err.Error()
-			return resp
-		}
+	ffmpegExe, err = goffmpeg.SetupFfmpeg()
+	if err != nil {
+		resp.ErrMsg = "SetupFfmpeg error: " + err.Error()
+		return resp
 	}
 	host, err := getHost(req.M3u8Url, "apiv2")
 	if err != nil {
@@ -171,30 +168,21 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 	}
 	var tmpOutputName string
 	var contentHash string
-	if req.UserFfmpegMerge {
-		tmpOutputName = filepath.Join(downloadDir, "all.merge.mp4")
-		err = goffmpeg.MergeMultiToSingleMp4(goffmpeg.MergeMultiToSingleMp4_Req{
-			FfmpegExePath: ffmpegExe,
-			TsFileList:    tsFileList,
-			OutputMp4:     tmpOutputName,
-			ProgressCh:    nil,
-		})
-		if err != nil {
-			resp.ErrMsg = "合并错误: " + err.Error()
-			return resp
-		}
-		contentHash = getFileSha256(tmpOutputName)
-		if contentHash == "" {
-			resp.ErrMsg = "无法计算摘要信息: " + tmpOutputName
-			return resp
-		}
-	} else {
-		tmpOutputName = filepath.Join(downloadDir, "all.merge.ts")
-		contentHash, err = mergeTsFileList_Raw(tsFileList, tmpOutputName)
-		if err != nil {
-			resp.ErrMsg = "合并错误: " + err.Error()
-			return resp
-		}
+	tmpOutputName = filepath.Join(downloadDir, "all.merge.mp4")
+	err = goffmpeg.MergeMultiToSingleMp4(goffmpeg.MergeMultiToSingleMp4_Req{
+		FfmpegExePath: ffmpegExe,
+		TsFileList:    tsFileList,
+		OutputMp4:     tmpOutputName,
+		ProgressCh:    nil,
+	})
+	if err != nil {
+		resp.ErrMsg = "合并错误: " + err.Error()
+		return resp
+	}
+	contentHash = getFileSha256(tmpOutputName)
+	if contentHash == "" {
+		resp.ErrMsg = "无法计算摘要信息: " + tmpOutputName
+		return resp
 	}
 	var name string
 	for idx := 0; ; idx++ {
@@ -203,18 +191,10 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 			idxS = strings.Repeat("0", 4-len(idxS)) + idxS
 		}
 		idxS = "_" + idxS
-		if req.UserFfmpegMerge {
-			if idx == 0 {
-				name = filepath.Join(req.SaveDir, req.FileName+".mp4")
-			} else {
-				name = filepath.Join(req.SaveDir, req.FileName+idxS+".mp4")
-			}
-		} else { // 直接合并的就是ts,不是mp4
-			if idx == 0 {
-				name = filepath.Join(req.SaveDir, req.FileName+".ts")
-			} else {
-				name = filepath.Join(req.SaveDir, req.FileName+idxS+".ts")
-			}
+		if idx == 0 {
+			name = filepath.Join(req.SaveDir, req.FileName+".mp4")
+		} else {
+			name = filepath.Join(req.SaveDir, req.FileName+idxS+".mp4")
 		}
 		if !isFileExists(name) {
 			resp.SaveFileTo = name

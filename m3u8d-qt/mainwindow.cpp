@@ -31,7 +31,6 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     ui->lineEdit_FileName->setEnabled(false);
     ui->lineEdit_SkipTsCountFromHead->setEnabled(false);
     ui->comboBox_HostType->setEnabled(false);
-    ui->comboBox_OutputFormat->setEnabled(false);
     ui->pushButton_RunDownload->setEnabled(false);
     ui->checkBox_Insecure->setEnabled(false);
     ui->progressBar->setValue(0);
@@ -59,7 +58,6 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.Insecure = ui->checkBox_Insecure->isChecked();
     req.SaveDir = ui->lineEdit_SaveDir->text().toStdString();
     req.FileName = ui->lineEdit_FileName->text().toStdString();
-    req.UserFfmpegMerge = ui->comboBox_OutputFormat->currentIndex() == 0;
     req.SkipTsCountFromHead = ui->lineEdit_SkipTsCountFromHead->text().toInt();
 
     m_syncUi.AddRunFnOn_OtherThread([req, this](){
@@ -71,7 +69,6 @@ void MainWindow::on_pushButton_RunDownload_clicked()
             ui->lineEdit_FileName->setEnabled(true);
             ui->lineEdit_SkipTsCountFromHead->setEnabled(true);
             ui->comboBox_HostType->setEnabled(true);
-            ui->comboBox_OutputFormat->setEnabled(true);
             ui->pushButton_RunDownload->setEnabled(true);
             ui->checkBox_Insecure->setEnabled(false);
             ui->pushButton_RunDownload->setText("开始下载");
