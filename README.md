@@ -1,18 +1,15 @@
 ## m3u8d 一款m3u8下载工具
-* 提供windows图形界面(Qt), mac\linux命令行 
-* 可选使用ffmpeg转换格式为mp4
-* windows自带GUI界面的版本下载: [m3u8d_qt_v1.0_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.0/m3u8d_qt_v1.0_windows_amd64.exe):
-
+* 提供windows图形界面(Qt), mac\linux命令行, linux支持arm和386 
+* 使用ffmpeg转换格式为mp4
+* windows自带GUI界面的版本下载: [m3u8d-qt_v1.1_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.1/m3u8d-qt_v1.1_windows_amd64.exe):
     ![](m3u8d-qt/screenshot.png)
-* 全部版本下载, 包括windows命令行/windows图形界面/linux命令行/mac命令行: https://github.com/orestonce/m3u8d/releases    
+* 全部版本下载, 包括windows图形界面/linux命令行/mac命令行: https://github.com/orestonce/m3u8d/releases    
 
 ## 实现说明
 * download.go 大部分抄自 https://github.com/llychao/m3u8-downloader
-* 将ffmpeg直接编译进windows的二进制了,如果在PATH里没有找到ffmpeg.exe
-  又需要使用ffmpeg进行转码, 则自动将二进制里的ffmpeg解压到系统临时目录,然后使用.
-  因此windows版本的可执行文件达到了32MB, 带Qt ui的可执行文件达到了惊人的 50MB
-* linux/mac的二进制没有内置ffmpeg, 可执行文件小很多,约为 8.6MB
-* 支持不使用ffmpeg合并,直接将ts文件拼接起来
+* 将ffmpeg直接编译进windows/linux-arm/linux-386/darwin的二进制了.
+  转换mp4时,会自动将二进制里的ffmpeg解压到系统临时目录,然后使用.
+  因此linux/mac版本的可执行文件达到了32MB, 带Qt ui的可执行文件达到了惊人的 50MB
 * 支持跳过前面几个ts文件(一般是广告, 嘿嘿)
 * 程序会在下载保存目录创建:
     * downloading/ 目录, 用于存放正在下载的分段ts视频, 按照m3u8的url进行划分
