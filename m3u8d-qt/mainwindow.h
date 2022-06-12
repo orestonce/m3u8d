@@ -21,6 +21,8 @@ private slots:
 
     void on_pushButton_SaveDir_clicked();
 
+    void on_pushButton_StopDownload_clicked();
+
 private:
     Ui::MainWindow *ui;
     RunOnUiThread m_syncUi;

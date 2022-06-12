@@ -39,7 +39,7 @@ func BuildCliBinary() {
 		},
 	}
 	for _, cfg := range list {
-		name := "m3u8d_cli_v1.1_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
+		name := "m3u8d_cli_v1.2_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
 		cmd := exec.Command("go", "build", "-o", filepath.Join(wd, "bin", name))
 		cmd.Dir = filepath.Join(wd, "cmd")
 		cmd.Env = append(os.Environ(), "GOOS="+cfg.GOOS)
@@ -62,6 +62,7 @@ func CreateLibForQtUi() {
 		EnableQtClass_Toast:         true,
 	})
 	ctx.Generate1(m3u8d.RunDownload)
+	ctx.Generate1(m3u8d.CloseOldEnv)
 	ctx.Generate1(m3u8d.GetProgress)
 	ctx.Generate1(m3u8d.GetWd)
 	ctx.MustCreateAmd64LibraryInDir("m3u8d-qt")

@@ -112,7 +112,7 @@
      </spacer>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,0">
       <item>
        <widget class="QLabel" name="label_3">
         <property name="text">
@@ -131,6 +131,16 @@
        <widget class="QPushButton" name="pushButton_RunDownload">
         <property name="text">
          <string>开始下载</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_StopDownload">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>停止下载</string>
         </property>
        </widget>
       </item>

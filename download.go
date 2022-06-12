@@ -1,14 +1,14 @@
 package m3u8d
 
 import (
-	"bytes"
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/levigross/grequests"
 	"github.com/orestonce/goffmpeg"
 	"github.com/orestonce/gopool"
 	"io"
@@ -43,6 +43,7 @@ func GetProgress() int {
 type RunDownload_Resp struct {
 	ErrMsg     string
 	IsSkipped  bool
+	IsCancel   bool
 	SaveFileTo string
 }
 
@@ -55,7 +56,15 @@ type RunDownload_Req struct {
 	SkipTsCountFromHead int    `json:",omitempty"` // 跳过前面几个ts
 }
 
-func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
+type downloadEnv struct {
+	cancelFn func()
+	ctx      context.Context
+	client   *http.Client
+	header   http.Header
+}
+
+func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
+
 	if req.HostType == "" {
 		req.HostType = "apiv1"
 	}
@@ -73,10 +82,23 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 	if req.SkipTsCountFromHead < 0 {
 		req.SkipTsCountFromHead = 0
 	}
-	var err error
-	req.M3u8Url, err = sniffM3u8(req.M3u8Url)
+	host, err := getHost(req.M3u8Url, "apiv2")
+	if err != nil {
+		resp.ErrMsg = "getHost0: " + err.Error()
+		return resp
+	}
+	this.header = http.Header{
+		"User-Agent":      []string{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36"},
+		"Connection":      []string{"keep-alive"},
+		"Accept":          []string{"*/*"},
+		"Accept-Encoding": []string{"*"},
+		"Accept-Language": []string{"zh-CN,zh;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5"},
+		"Referer":         []string{host},
+	}
+	req.M3u8Url, err = this.sniffM3u8(req.M3u8Url)
 	if err != nil {
 		resp.ErrMsg = "sniffM3u8: " + err.Error()
+		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
 	id, err := req.getVideoId()
@@ -103,23 +125,6 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 		resp.ErrMsg = "SetupFfmpeg error: " + err.Error()
 		return resp
 	}
-	host, err := getHost(req.M3u8Url, "apiv2")
-	if err != nil {
-		resp.ErrMsg = "getHost0: " + err.Error()
-		return resp
-	}
-	ro := &grequests.RequestOptions{
-		UserAgent:      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
-		RequestTimeout: 10 * time.Second, //请求头超时时间
-		Headers: map[string]string{
-			"Connection":      "keep-alive",
-			"Accept":          "*/*",
-			"Accept-Encoding": "*",
-			"Accept-Language": "zh-CN,zh;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5",
-		},
-	}
-	ro.Headers["Referer"] = host
-	ro.InsecureSkipVerify = req.Insecure
 	if !strings.HasPrefix(req.M3u8Url, "http") || req.M3u8Url == "" {
 		resp.ErrMsg = "M3u8Url not valid " + strconv.Quote(req.M3u8Url)
 		return resp
@@ -135,35 +140,38 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 	m3u8Host, err := getHost(req.M3u8Url, req.HostType)
 	if err != nil {
 		resp.ErrMsg = "getHost1: " + err.Error()
+		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
 	// 获取m3u8地址的内容体
-	r, err := grequests.Get(req.M3u8Url, ro)
+	m3u8Body, err := this.doGetRequest(req.M3u8Url)
 	if err != nil {
 		resp.ErrMsg = "getM3u8Body: " + err.Error()
+		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
-	m3u8Body := r.String()
-	ts_key, err := getM3u8Key(ro, m3u8Host, m3u8Body)
+	ts_key, err := this.getM3u8Key(m3u8Host, string(m3u8Body))
 	if err != nil {
 		resp.ErrMsg = "getM3u8Key: " + err.Error()
+		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
-	ts_list := getTsList(m3u8Host, m3u8Body)
-	if len(ts_list) <= req.SkipTsCountFromHead {
+	tsList := getTsList(m3u8Host, string(m3u8Body))
+	if len(tsList) <= req.SkipTsCountFromHead {
 		resp.ErrMsg = "需要下载的文件为空"
 		return resp
 	}
-	ts_list = ts_list[req.SkipTsCountFromHead:]
+	tsList = tsList[req.SkipTsCountFromHead:]
 	// 下载ts
-	err = downloader(ro, ts_list, downloadDir, ts_key)
+	err = this.downloader(tsList, downloadDir, ts_key)
 	if err != nil {
 		resp.ErrMsg = "下载ts文件错误: " + err.Error()
+		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
 	DrawProgressBar(1)
 	var tsFileList []string
-	for _, one := range ts_list {
+	for _, one := range tsList {
 		tsFileList = append(tsFileList, filepath.Join(downloadDir, one.Name))
 	}
 	var tmpOutputName string
@@ -223,6 +231,40 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 	return resp
 }
 
+var gOldEnv *downloadEnv
+var gOldEnvLocker sync.Mutex
+
+func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
+	env := &downloadEnv{
+		client: &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: req.Insecure,
+				},
+			},
+			Timeout: time.Second * 10,
+		},
+	}
+	env.ctx, env.cancelFn = context.WithCancel(context.Background())
+
+	gOldEnvLocker.Lock()
+	if gOldEnv != nil {
+		gOldEnv.cancelFn()
+	}
+	gOldEnv = env
+	gOldEnvLocker.Unlock()
+	return env.RunDownload(req)
+}
+
+func CloseOldEnv() {
+	gOldEnvLocker.Lock()
+	defer gOldEnvLocker.Unlock()
+	if gOldEnv != nil {
+		gOldEnv.cancelFn()
+	}
+	gOldEnv = nil
+}
+
 // 获取m3u8地址的host
 func getHost(Url, ht string) (host string, err error) {
 	u, err := url.Parse(Url)
@@ -245,7 +287,7 @@ func GetWd() string {
 }
 
 // 获取m3u8加密的密钥
-func getM3u8Key(ro *grequests.RequestOptions, host, html string) (key string, err error) {
+func (this *downloadEnv) getM3u8Key(host, html string) (key string, err error) {
 	lines := strings.Split(html, "\n")
 	key = ""
 	for _, line := range lines {
@@ -256,16 +298,14 @@ func getM3u8Key(ro *grequests.RequestOptions, host, html string) (key string, er
 			if !strings.Contains(line, "http") {
 				key_url = fmt.Sprintf("%s/%s", host, key_url)
 			}
-			res, err := grequests.Get(key_url, ro)
+			res, err := this.doGetRequest(key_url)
 			if err != nil {
 				return "", err
 			}
-			if res.StatusCode == 200 {
-				key = res.String()
-			}
+			return string(res), nil
 		}
 	}
-	return key, nil
+	return "", nil
 }
 
 func getTsList(host, body string) (tsList []TsInfo) {
@@ -300,33 +340,18 @@ func getTsList(host, body string) (tsList []TsInfo) {
 
 // 下载ts文件
 // @modify: 2020-08-13 修复ts格式SyncByte合并不能播放问题
-func downloadTsFile(ro *grequests.RequestOptions, ts TsInfo, download_dir, key string) (err error) {
+func (this *downloadEnv) downloadTsFile(ts TsInfo, download_dir, key string) (err error) {
 	currPath := fmt.Sprintf("%s/%s", download_dir, ts.Name)
 	if isFileExists(currPath) {
 		return nil
 	}
-	res, err := grequests.Get(ts.Url, ro)
+	data, err := this.doGetRequest(ts.Url)
 	if err != nil {
 		return err
 	}
-	if !res.Ok {
-		return errors.New("!res.Ok")
-	}
 	// 校验长度是否合法
 	var origData []byte
-	origData = res.Bytes()
-	contentLen := 0
-	contentLenStr := res.Header.Get("Content-Length")
-	if contentLenStr != "" {
-		contentLen, _ = strconv.Atoi(contentLenStr)
-	}
-	if len(origData) == 0 || (contentLen > 0 && len(origData) < contentLen) || res.Error != nil {
-		msg := ""
-		if res.Error != nil {
-			msg = res.Error.Error()
-		}
-		return errors.New("[warn] File: " + ts.Name + "res origData invalid or err：" + msg)
-	}
+	origData = data
 	// 解密出视频 ts 源文件
 	if key != "" {
 		//解密 ts 文件，算法：aes 128 cbc pack5
@@ -354,7 +379,14 @@ func downloadTsFile(ro *grequests.RequestOptions, ts TsInfo, download_dir, key s
 	return os.Rename(tmpPath, currPath)
 }
 
-func downloader(ro *grequests.RequestOptions, tsList []TsInfo, downloadDir string, key string) (err error) {
+func (this *downloadEnv) SleepDur(d time.Duration) {
+	select {
+	case <-time.After(d):
+	case <-this.ctx.Done():
+	}
+}
+
+func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key string) (err error) {
 	task := gopool.NewThreadPool(8)
 	tsLen := len(tsList)
 	downloadCount := 0
@@ -371,8 +403,14 @@ func downloader(ro *grequests.RequestOptions, tsList []TsInfo, downloadDir strin
 					return
 				}
 				locker.Unlock()
-				lastErr = downloadTsFile(ro, ts, downloadDir, key)
+				if i > 0 {
+					this.SleepDur(time.Second * time.Duration(i))
+				}
+				lastErr = this.downloadTsFile(ts, downloadDir, key)
 				if lastErr == nil {
+					break
+				}
+				if this.GetIsCancel() {
 					break
 				}
 			}
@@ -428,25 +466,7 @@ func isDirExists(path string) bool {
 	return err == nil && stat.IsDir()
 }
 
-// 判断文件是否存在
-func pathExists(path string) bool {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
-		return false
-	}
-	return false
-}
-
 // ============================== 加解密相关 ==============================
-
-func PKCS7Padding(ciphertext []byte, blockSize int) []byte {
-	padding := blockSize - len(ciphertext)%blockSize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(ciphertext, padtext...)
-}
 
 func PKCS7UnPadding(origData []byte) []byte {
 	length := len(origData)
@@ -454,38 +474,13 @@ func PKCS7UnPadding(origData []byte) []byte {
 	return origData[:(length - unpadding)]
 }
 
-func AesEncrypt(origData, key []byte, ivs ...[]byte) ([]byte, error) {
+func AesDecrypt(crypted, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
 	blockSize := block.BlockSize()
-	var iv []byte
-	if len(ivs) == 0 {
-		iv = key
-	} else {
-		iv = ivs[0]
-	}
-	origData = PKCS7Padding(origData, blockSize)
-	blockMode := cipher.NewCBCEncrypter(block, iv[:blockSize])
-	crypted := make([]byte, len(origData))
-	blockMode.CryptBlocks(crypted, origData)
-	return crypted, nil
-}
-
-func AesDecrypt(crypted, key []byte, ivs ...[]byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	blockSize := block.BlockSize()
-	var iv []byte
-	if len(ivs) == 0 {
-		iv = key
-	} else {
-		iv = ivs[0]
-	}
-	blockMode := cipher.NewCBCDecrypter(block, iv[:blockSize])
+	blockMode := cipher.NewCBCDecrypter(block, key[:blockSize])
 	origData := make([]byte, len(crypted))
 	blockMode.CryptBlocks(origData, crypted)
 	origData = PKCS7UnPadding(origData)
@@ -508,17 +503,11 @@ func getFileSha256(targetFile string) (v string) {
 	return hex.EncodeToString(tmp[:])
 }
 
-func sniffM3u8(urlS string) (afterUrl string, err error) {
+func (this *downloadEnv) sniffM3u8(urlS string) (afterUrl string, err error) {
 	if strings.HasSuffix(strings.ToLower(urlS), ".m3u8") {
 		return urlS, nil
 	}
-	resp, err := http.DefaultClient.Get(urlS)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	content, err := io.ReadAll(resp.Body)
+	content, err := this.doGetRequest(urlS)
 	if err != nil {
 		return "", err
 	}
@@ -527,4 +516,33 @@ func sniffM3u8(urlS string) (afterUrl string, err error) {
 		return "", errors.New("未发现m3u8资源")
 	}
 	return string(groups[0]), nil
+}
+
+func (this *downloadEnv) doGetRequest(urlS string) (data []byte, err error) {
+	req, err := http.NewRequest(http.MethodGet, urlS, nil)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(this.ctx)
+	req.Header = this.header
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return content, nil
+}
+
+func (this *downloadEnv) GetIsCancel() bool {
+	select {
+	case <-this.ctx.Done():
+		return true
+	default:
+		return false
+	}
 }

@@ -1,7 +1,7 @@
 ## m3u8d 一款m3u8下载工具
 * 提供windows图形界面(Qt), mac\linux命令行, linux支持arm和386 
 * 使用ffmpeg转换格式为mp4
-* windows自带GUI界面的版本下载: [m3u8d-qt_v1.1_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.1/m3u8d-qt_v1.1_windows_amd64.exe):
+* windows自带GUI界面的版本下载: [m3u8d-qt_v1.2_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.2/m3u8d-qt_v1.2_windows_amd64.exe):
     ![](m3u8d-qt/screenshot.png)
 * 全部版本下载, 包括windows图形界面/linux命令行/mac命令行: https://github.com/orestonce/m3u8d/releases    
 

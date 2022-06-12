@@ -17,9 +17,11 @@ struct RunDownload_Req{
 struct RunDownload_Resp{
 	std::string ErrMsg;
 	bool IsSkipped;
+	bool IsCancel;
 	std::string SaveFileTo;
 };
 RunDownload_Resp RunDownload(RunDownload_Req in0);
+void CloseOldEnv();
 int32_t GetProgress();
 std::string GetWd();
 

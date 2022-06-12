@@ -70,6 +70,7 @@ extern "C" {
 #endif
 
 extern __declspec(dllexport) void Go2cppFn_RunDownload(char* in, int inLen, char** out, int* outLen);
+extern __declspec(dllexport) void Go2cppFn_CloseOldEnv(char* in, int inLen, char** out, int* outLen);
 extern __declspec(dllexport) void Go2cppFn_GetProgress(char* in, int inLen, char** out, int* outLen);
 extern __declspec(dllexport) void Go2cppFn_GetWd(char* in, int inLen, char** out, int* outLen);
 
@@ -82,53 +83,53 @@ RunDownload_Resp RunDownload(RunDownload_Req in0){
 	std::string in;
 	{
 		{
-			uint32_t tmp18 = in0.M3u8Url.length();
-			char tmp19[4];
-			tmp19[0] = (uint32_t(tmp18) >> 24) & 0xFF;
-			tmp19[1] = (uint32_t(tmp18) >> 16) & 0xFF;
-			tmp19[2] = (uint32_t(tmp18) >> 8) & 0xFF;
-			tmp19[3] = (uint32_t(tmp18) >> 0) & 0xFF;
-			in.append(tmp19, 4);
+			uint32_t tmp19 = in0.M3u8Url.length();
+			char tmp20[4];
+			tmp20[0] = (uint32_t(tmp19) >> 24) & 0xFF;
+			tmp20[1] = (uint32_t(tmp19) >> 16) & 0xFF;
+			tmp20[2] = (uint32_t(tmp19) >> 8) & 0xFF;
+			tmp20[3] = (uint32_t(tmp19) >> 0) & 0xFF;
+			in.append(tmp20, 4);
 			in.append(in0.M3u8Url);
 		}
 		{
-			uint32_t tmp20 = in0.HostType.length();
-			char tmp21[4];
-			tmp21[0] = (uint32_t(tmp20) >> 24) & 0xFF;
-			tmp21[1] = (uint32_t(tmp20) >> 16) & 0xFF;
-			tmp21[2] = (uint32_t(tmp20) >> 8) & 0xFF;
-			tmp21[3] = (uint32_t(tmp20) >> 0) & 0xFF;
-			in.append(tmp21, 4);
+			uint32_t tmp21 = in0.HostType.length();
+			char tmp22[4];
+			tmp22[0] = (uint32_t(tmp21) >> 24) & 0xFF;
+			tmp22[1] = (uint32_t(tmp21) >> 16) & 0xFF;
+			tmp22[2] = (uint32_t(tmp21) >> 8) & 0xFF;
+			tmp22[3] = (uint32_t(tmp21) >> 0) & 0xFF;
+			in.append(tmp22, 4);
 			in.append(in0.HostType);
 		}
 		in.append((char*)(&in0.Insecure), 1);
 		{
-			uint32_t tmp22 = in0.SaveDir.length();
-			char tmp23[4];
-			tmp23[0] = (uint32_t(tmp22) >> 24) & 0xFF;
-			tmp23[1] = (uint32_t(tmp22) >> 16) & 0xFF;
-			tmp23[2] = (uint32_t(tmp22) >> 8) & 0xFF;
-			tmp23[3] = (uint32_t(tmp22) >> 0) & 0xFF;
-			in.append(tmp23, 4);
+			uint32_t tmp23 = in0.SaveDir.length();
+			char tmp24[4];
+			tmp24[0] = (uint32_t(tmp23) >> 24) & 0xFF;
+			tmp24[1] = (uint32_t(tmp23) >> 16) & 0xFF;
+			tmp24[2] = (uint32_t(tmp23) >> 8) & 0xFF;
+			tmp24[3] = (uint32_t(tmp23) >> 0) & 0xFF;
+			in.append(tmp24, 4);
 			in.append(in0.SaveDir);
 		}
 		{
-			uint32_t tmp24 = in0.FileName.length();
-			char tmp25[4];
-			tmp25[0] = (uint32_t(tmp24) >> 24) & 0xFF;
-			tmp25[1] = (uint32_t(tmp24) >> 16) & 0xFF;
-			tmp25[2] = (uint32_t(tmp24) >> 8) & 0xFF;
-			tmp25[3] = (uint32_t(tmp24) >> 0) & 0xFF;
-			in.append(tmp25, 4);
+			uint32_t tmp25 = in0.FileName.length();
+			char tmp26[4];
+			tmp26[0] = (uint32_t(tmp25) >> 24) & 0xFF;
+			tmp26[1] = (uint32_t(tmp25) >> 16) & 0xFF;
+			tmp26[2] = (uint32_t(tmp25) >> 8) & 0xFF;
+			tmp26[3] = (uint32_t(tmp25) >> 0) & 0xFF;
+			in.append(tmp26, 4);
 			in.append(in0.FileName);
 		}
 		{
-			char tmp26[4];
-			tmp26[0] = (uint32_t(in0.SkipTsCountFromHead) >> 24) & 0xFF;
-			tmp26[1] = (uint32_t(in0.SkipTsCountFromHead) >> 16) & 0xFF;
-			tmp26[2] = (uint32_t(in0.SkipTsCountFromHead) >> 8) & 0xFF;
-			tmp26[3] = (uint32_t(in0.SkipTsCountFromHead) >> 0) & 0xFF;
-			in.append(tmp26, 4);
+			char tmp27[4];
+			tmp27[0] = (uint32_t(in0.SkipTsCountFromHead) >> 24) & 0xFF;
+			tmp27[1] = (uint32_t(in0.SkipTsCountFromHead) >> 16) & 0xFF;
+			tmp27[2] = (uint32_t(in0.SkipTsCountFromHead) >> 8) & 0xFF;
+			tmp27[3] = (uint32_t(in0.SkipTsCountFromHead) >> 0) & 0xFF;
+			in.append(tmp27, 4);
 		}
 	}
 	char *out = NULL;
@@ -138,34 +139,46 @@ RunDownload_Resp RunDownload(RunDownload_Req in0){
 	int outIdx = 0;
 	{
 		{
-			uint32_t tmp27 = 0;
-			uint32_t tmp28 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp29 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp30 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp31 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp27 = tmp28 | tmp29 | tmp30 | tmp31;
+			uint32_t tmp28 = 0;
+			uint32_t tmp29 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp30 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp31 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp32 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp28 = tmp29 | tmp30 | tmp31 | tmp32;
 			outIdx+=4;
-			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp27);
-			outIdx+=tmp27;
+			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp28);
+			outIdx+=tmp28;
 		}
 		retValue.IsSkipped = (bool) out[outIdx];
 		outIdx++;
+		retValue.IsCancel = (bool) out[outIdx];
+		outIdx++;
 		{
-			uint32_t tmp32 = 0;
-			uint32_t tmp33 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp34 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp35 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp36 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp32 = tmp33 | tmp34 | tmp35 | tmp36;
+			uint32_t tmp33 = 0;
+			uint32_t tmp34 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp35 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp36 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp37 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp33 = tmp34 | tmp35 | tmp36 | tmp37;
 			outIdx+=4;
-			retValue.SaveFileTo = std::string(out+outIdx, out+outIdx+tmp32);
-			outIdx+=tmp32;
+			retValue.SaveFileTo = std::string(out+outIdx, out+outIdx+tmp33);
+			outIdx+=tmp33;
 		}
 	}
 	if (out != NULL) {
 		free(out);
 	}
 	return retValue;
+}
+
+void CloseOldEnv(){
+	std::string in;
+	char *out = NULL;
+	int outLen = 0;
+	Go2cppFn_CloseOldEnv((char *)in.data(), in.length(), &out, &outLen);
+	if (out != NULL) {
+		free(out);
+	}
 }
 
 int32_t GetProgress(){

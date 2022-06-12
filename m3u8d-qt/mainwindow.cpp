@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    CloseOldEnv();
     delete ui;
 }
 
@@ -35,6 +36,8 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     ui->checkBox_Insecure->setEnabled(false);
     ui->progressBar->setValue(0);
     ui->pushButton_RunDownload->setText("正在下载...");
+    ui->pushButton_StopDownload->setEnabled(true);
+
     m_syncUi.AddRunFnOn_OtherThread([this](){
         // isFinished被 other thread 和 ui thread共享
         std::shared_ptr<std::atomic_bool> isFinished = std::make_shared<std::atomic_bool>(false);
@@ -72,6 +75,10 @@ void MainWindow::on_pushButton_RunDownload_clicked()
             ui->pushButton_RunDownload->setEnabled(true);
             ui->checkBox_Insecure->setEnabled(false);
             ui->pushButton_RunDownload->setText("开始下载");
+            ui->pushButton_StopDownload->setEnabled(false);
+            if (resp.IsCancel) {
+                return;
+            }
 
             if (!resp.ErrMsg.empty()) {
                 Toast::Instance()->SetError(QString::fromStdString(resp.ErrMsg));
@@ -90,4 +97,9 @@ void MainWindow::on_pushButton_SaveDir_clicked()
 {
     QString dir = QFileDialog::getExistingDirectory(this);
     ui->lineEdit_SaveDir->setText(dir);
+}
+
+void MainWindow::on_pushButton_StopDownload_clicked()
+{
+    CloseOldEnv();
 }
