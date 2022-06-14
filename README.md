@@ -22,6 +22,8 @@
 ## TODO:
   * [x] 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
   * [x] windows、linux、mac都支持ffmpeg合并ts列表为mp4
+  * [ ] 支持嵌套m3u8的url
+  * [ ] 支持设置代理
   * [ ] 支持从curl命令解析出需要的header、auth-basic、cookie等信息，正如 https://github.com/cxjava/m3u8-downloader 一样
   * [ ] 充分测试后，使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
 ## 二次开发操作手册:
