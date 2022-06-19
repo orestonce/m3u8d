@@ -1,15 +1,16 @@
 ## m3u8d 一款m3u8下载工具
 * 提供windows图形界面(Qt), mac\linux命令行, linux支持arm和386 
 * 使用ffmpeg转换格式为mp4
-* windows自带GUI界面的版本下载: [m3u8d_qt_v1.2_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.2/m3u8d_qt_v1.2_windows_amd64.exe):
+* windows自带GUI界面的版本下载: [m3u8d_qt_v1.3_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.2/m3u8d_qt_v1.3_windows_amd64.exe):
     ![](m3u8d-qt/screenshot.png)
 * 全部版本下载, 包括windows图形界面/linux命令行/mac命令行: https://github.com/orestonce/m3u8d/releases    
 
 ## 实现说明
 * download.go 大部分抄自 https://github.com/llychao/m3u8-downloader
-* 将ffmpeg直接编译进windows/linux-arm/linux-386/darwin的二进制了.
+* <del>将ffmpeg直接编译进windows/linux-arm/linux-386/darwin的二进制了.
   转换mp4时,会自动将二进制里的ffmpeg解压到系统临时目录,然后使用.
-  因此linux/mac版本的可执行文件达到了32MB, 带Qt ui的可执行文件达到了惊人的 50MB
+  因此linux/mac版本的可执行文件达到了32MB, 带Qt ui的可执行文件达到了惊人的 50MB</del>
+* 使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
 * 支持跳过前面几个ts文件(一般是广告, 嘿嘿)
 * 程序会在下载保存目录创建:
     * downloading/ 目录, 用于存放正在下载的分段ts视频, 按照m3u8的url进行划分
@@ -22,10 +23,10 @@
 ## TODO:
   * [x] 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
   * [x] windows、linux、mac都支持ffmpeg合并ts列表为mp4
+  * [x] 充分测试后，使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
   * [ ] 支持嵌套m3u8的url
   * [ ] 支持设置代理
   * [ ] 支持从curl命令解析出需要的header、auth-basic、cookie等信息，正如 https://github.com/cxjava/m3u8-downloader 一样
-  * [ ] 充分测试后，使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
 ## 二次开发操作手册:
 * 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
 * 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的

@@ -3,3 +3,4 @@
 /cmd/m3u8d_cache.cdb
 /.idea
 /bin
+/m3u8d-qt/m3u8d-impl.a

@@ -463,13 +463,14 @@ func DrawProgressBar(total int, current int) {
 	proportion := float32(current) / float32(total)
 	gProgressPercentLocker.Lock()
 	gProgressPercent = int(proportion * 100)
+	title := gProgressBarTitle
 	gProgressPercentLocker.Unlock()
 
 	gShowProgressBarLocker.Lock()
 	if gShowProgressBar {
 		width := 50
 		pos := int(proportion * float32(width))
-		fmt.Printf("[下载进度] %s%*s %6.2f%%\r", strings.Repeat("■", pos), width-pos, "", proportion*100)
+		fmt.Printf("["+title+"] %s%*s %6.2f%%\r", strings.Repeat("■", pos), width-pos, "", proportion*100)
 	}
 	gShowProgressBarLocker.Unlock()
 }

@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	//BuildCliBinary()   // 编译二进制
+	BuildCliBinary()   // 编译二进制
 	CreateLibForQtUi() // 创建Qt需要使用的.a库文件
 }
 
