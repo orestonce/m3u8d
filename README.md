@@ -22,8 +22,10 @@
 ## TODO:
   * [x] 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
   * [x] windows、linux、mac都支持ffmpeg合并ts列表为mp4
-  * [ ] 增加linux的图形界面支持
-  * [ ] 支持保存为mp3格式
+  * [ ] 支持嵌套m3u8的url
+  * [ ] 支持设置代理
+  * [ ] 支持从curl命令解析出需要的header、auth-basic、cookie等信息，正如 https://github.com/cxjava/m3u8-downloader 一样
+  * [ ] 充分测试后，使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
 ## 二次开发操作手册:
 * 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
 * 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的
