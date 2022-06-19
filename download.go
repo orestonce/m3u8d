@@ -9,7 +9,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/orestonce/goffmpeg"
 	"github.com/orestonce/gopool"
 	"io"
 	"io/ioutil"
@@ -30,14 +29,30 @@ type TsInfo struct {
 	Url  string
 }
 
+var gProgressBarTitle string
 var gProgressPercent int
 var gProgressPercentLocker sync.Mutex
 
-func GetProgress() int {
+type GetProgress_Resp struct {
+	Percent int
+	Title   string
+}
+
+func GetProgress() (resp GetProgress_Resp) {
 	gProgressPercentLocker.Lock()
-	tmp := gProgressPercent
+	resp.Percent = gProgressPercent
+	resp.Title = gProgressBarTitle
 	gProgressPercentLocker.Unlock()
-	return tmp
+	if resp.Title == "" {
+		resp.Title = "正在下载"
+	}
+	return resp
+}
+
+func SetProgressBarTitle(title string) {
+	gProgressPercentLocker.Lock()
+	defer gProgressPercentLocker.Unlock()
+	gProgressBarTitle = title
 }
 
 type RunDownload_Resp struct {
@@ -48,12 +63,12 @@ type RunDownload_Resp struct {
 }
 
 type RunDownload_Req struct {
-	M3u8Url             string `json:",omitempty"`
-	HostType            string `json:",omitempty"` // "设置getHost的方式(apiv1: `http(s):// + url.Host + filepath.Dir(url.Path)`; apiv2: `http(s)://+ u.Host`"
-	Insecure            bool   `json:"-"`          // "是否允许不安全的请求(默认为false)"
-	SaveDir             string `json:"-"`          // "文件保存路径(默认为当前路径)"
-	FileName            string `json:"-"`          // 文件名
-	SkipTsCountFromHead int    `json:",omitempty"` // 跳过前面几个ts
+	M3u8Url             string
+	HostType            string // "设置getHost的方式(apiv1: `http(s):// + url.Host + filepath.Dir(url.Path)`; apiv2: `http(s)://+ u.Host`"
+	Insecure            bool   // "是否允许不安全的请求(默认为false)"
+	SaveDir             string // "文件保存路径(默认为当前路径)"
+	FileName            string // 文件名
+	SkipTsCountFromHead int    // 跳过前面几个ts
 }
 
 type downloadEnv struct {
@@ -64,7 +79,6 @@ type downloadEnv struct {
 }
 
 func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
-
 	if req.HostType == "" {
 		req.HostType = "apiv1"
 	}
@@ -95,6 +109,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		"Accept-Language": []string{"zh-CN,zh;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5"},
 		"Referer":         []string{host},
 	}
+	SetProgressBarTitle("嗅探m3u8")
 	req.M3u8Url, err = this.sniffM3u8(req.M3u8Url)
 	if err != nil {
 		resp.ErrMsg = "sniffM3u8: " + err.Error()
@@ -112,18 +127,13 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		return resp
 	}
 	if info != nil {
+		SetProgressBarTitle("检查是否已下载")
 		latestNameFullPath, found := info.SearchVideoInDir(req.SaveDir)
 		if found {
 			resp.IsSkipped = true
 			resp.SaveFileTo = latestNameFullPath
 			return resp
 		}
-	}
-	var ffmpegExe string
-	ffmpegExe, err = goffmpeg.SetupFfmpeg()
-	if err != nil {
-		resp.ErrMsg = "SetupFfmpeg error: " + err.Error()
-		return resp
 	}
 	if !strings.HasPrefix(req.M3u8Url, "http") || req.M3u8Url == "" {
 		resp.ErrMsg = "M3u8Url not valid " + strconv.Quote(req.M3u8Url)
@@ -156,6 +166,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
+	SetProgressBarTitle("获取ts列表")
 	tsList := getTsList(m3u8Host, string(m3u8Body))
 	if len(tsList) <= req.SkipTsCountFromHead {
 		resp.ErrMsg = "需要下载的文件为空"
@@ -163,13 +174,14 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	}
 	tsList = tsList[req.SkipTsCountFromHead:]
 	// 下载ts
+	SetProgressBarTitle("下载ts")
 	err = this.downloader(tsList, downloadDir, ts_key)
 	if err != nil {
 		resp.ErrMsg = "下载ts文件错误: " + err.Error()
 		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
-	DrawProgressBar(1)
+	DrawProgressBar(1, 1)
 	var tsFileList []string
 	for _, one := range tsList {
 		tsFileList = append(tsFileList, filepath.Join(downloadDir, one.Name))
@@ -177,16 +189,17 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	var tmpOutputName string
 	var contentHash string
 	tmpOutputName = filepath.Join(downloadDir, "all.merge.mp4")
-	err = goffmpeg.MergeMultiToSingleMp4(goffmpeg.MergeMultiToSingleMp4_Req{
-		FfmpegExePath: ffmpegExe,
-		TsFileList:    tsFileList,
-		OutputMp4:     tmpOutputName,
-		ProgressCh:    nil,
+
+	SetProgressBarTitle("合并ts为mp4")
+	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
+		TsFileList: tsFileList,
+		OutputMp4:  tmpOutputName,
 	})
 	if err != nil {
 		resp.ErrMsg = "合并错误: " + err.Error()
 		return resp
 	}
+	SetProgressBarTitle("计算文件hash")
 	contentHash = getFileSha256(tmpOutputName)
 	if contentHash == "" {
 		resp.ErrMsg = "无法计算摘要信息: " + tmpOutputName
@@ -228,6 +241,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		resp.ErrMsg = "删除下载目录失败: " + err.Error()
 		return resp
 	}
+	SetProgressBarTitle("下载进度")
 	return resp
 }
 
@@ -423,7 +437,7 @@ func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key str
 			}
 			locker.Lock()
 			downloadCount++
-			DrawProgressBar(float32(downloadCount) / float32(tsLen))
+			DrawProgressBar(tsLen, downloadCount)
 			locker.Unlock()
 		})
 	}
@@ -442,7 +456,11 @@ func SetShowProgressBar() {
 }
 
 // 进度条
-func DrawProgressBar(proportion float32) {
+func DrawProgressBar(total int, current int) {
+	if total == 0 {
+		return
+	}
+	proportion := float32(current) / float32(total)
 	gProgressPercentLocker.Lock()
 	gProgressPercent = int(proportion * 100)
 	gProgressPercentLocker.Unlock()

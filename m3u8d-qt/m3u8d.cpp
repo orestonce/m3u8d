@@ -181,20 +181,33 @@ void CloseOldEnv(){
 	}
 }
 
-int32_t GetProgress(){
+GetProgress_Resp GetProgress(){
 	std::string in;
 	char *out = NULL;
 	int outLen = 0;
 	Go2cppFn_GetProgress((char *)in.data(), in.length(), &out, &outLen);
-	int32_t retValue;
+	GetProgress_Resp retValue;
 	int outIdx = 0;
 	{
-		uint32_t tmp2 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-		uint32_t tmp3 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-		uint32_t tmp4 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-		uint32_t tmp5 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-		retValue = tmp2 | tmp3 | tmp4 | tmp5;
-		outIdx+=4;
+		{
+			uint32_t tmp3 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp4 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp5 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp6 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			retValue.Percent = tmp3 | tmp4 | tmp5 | tmp6;
+			outIdx+=4;
+		}
+		{
+			uint32_t tmp7 = 0;
+			uint32_t tmp8 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp9 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp10 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp11 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp7 = tmp8 | tmp9 | tmp10 | tmp11;
+			outIdx+=4;
+			retValue.Title = std::string(out+outIdx, out+outIdx+tmp7);
+			outIdx+=tmp7;
+		}
 	}
 	if (out != NULL) {
 		free(out);

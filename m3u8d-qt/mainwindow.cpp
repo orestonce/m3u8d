@@ -35,7 +35,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     ui->pushButton_RunDownload->setEnabled(false);
     ui->checkBox_Insecure->setEnabled(false);
     ui->progressBar->setValue(0);
-    ui->pushButton_RunDownload->setText("正在下载...");
+//    ui->pushButton_RunDownload->setText("正在下载...");
     ui->pushButton_StopDownload->setEnabled(true);
 
     m_syncUi.AddRunFnOn_OtherThread([this](){
@@ -45,10 +45,11 @@ void MainWindow::on_pushButton_RunDownload_clicked()
         while(isFinished->load() == false)
         {
             QThread::msleep(50);
-            int value = GetProgress();
+            GetProgress_Resp resp = GetProgress();
             // 可能以下闭包在运行前, other thread已经退出了, 所以isFinished需要使用shared_ptr
-            m_syncUi.AddRunFnOn_UiThread([value, this, isFinished](){
-                ui->progressBar->setValue(value);
+            m_syncUi.AddRunFnOn_UiThread([resp, this, isFinished](){
+                ui->progressBar->setValue(resp.Percent);
+                ui->label_progressBar->setText(QString::fromStdString(resp.Title));
                 if (ui->pushButton_RunDownload->isEnabled()) {
                     isFinished->store(true);
                 }
@@ -73,7 +74,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
             ui->lineEdit_SkipTsCountFromHead->setEnabled(true);
             ui->comboBox_HostType->setEnabled(true);
             ui->pushButton_RunDownload->setEnabled(true);
-            ui->checkBox_Insecure->setEnabled(false);
+            ui->checkBox_Insecure->setEnabled(true);
             ui->pushButton_RunDownload->setText("开始下载");
             ui->pushButton_StopDownload->setEnabled(false);
             if (resp.IsCancel) {

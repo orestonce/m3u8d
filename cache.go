@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type DbVideoInfo struct {
@@ -18,7 +19,7 @@ type DbVideoInfo struct {
 }
 
 func (this *RunDownload_Req) getVideoId() (id string, err error) {
-	b, err := json.Marshal(this)
+	b, err := json.Marshal([]string{this.M3u8Url, strconv.Itoa(this.SkipTsCountFromHead)})
 	if err != nil {
 		return "", err
 	}
@@ -77,23 +78,4 @@ func cacheWrite(dir string, id string, originReq RunDownload_Req, videoNameFullP
 		return err
 	}
 	return cdb.FileRewriteKeyValue(filepath.Join(dir, "m3u8d_cache.cdb"), id, string(content))
-}
-
-func dbRead(dir string, key string) (content []byte, err error) {
-	db, err := cdb.OpenFile(filepath.Join(dir, "m3u8d_cache.cdb"))
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	defer db.Close()
-	content, err = db.GetValue([]byte(key))
-	if err != nil {
-		if err == cdb.ErrNoData {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return content, nil
 }

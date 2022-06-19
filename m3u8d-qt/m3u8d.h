@@ -22,7 +22,11 @@ struct RunDownload_Resp{
 };
 RunDownload_Resp RunDownload(RunDownload_Req in0);
 void CloseOldEnv();
-int32_t GetProgress();
+struct GetProgress_Resp{
+	int32_t Percent;
+	std::string Title;
+};
+GetProgress_Resp GetProgress();
 std::string GetWd();
 
 #include <QObject>
