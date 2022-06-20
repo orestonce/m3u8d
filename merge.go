@@ -2,6 +2,7 @@ package m3u8d
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"github.com/yapingcat/gomedia/mp4"
 	"github.com/yapingcat/gomedia/mpeg2"
@@ -13,6 +14,7 @@ import (
 type MergeTsFileListToSingleMp4_Req struct {
 	TsFileList []string
 	OutputMp4  string
+	ctx        context.Context
 }
 
 func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) {
@@ -42,6 +44,11 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 	}
 
 	for idx, tsFile := range req.TsFileList {
+		select {
+		case <-req.ctx.Done():
+			return req.ctx.Err()
+		default:
+		}
 		DrawProgressBar(len(req.TsFileList), idx)
 		var buf []byte
 		buf, err = ioutil.ReadFile(tsFile)

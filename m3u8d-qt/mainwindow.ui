@@ -63,7 +63,11 @@
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QLineEdit" name="lineEdit_M3u8Url"/>
+       <widget class="QLineEdit" name="lineEdit_M3u8Url">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
       </item>
       <item row="1" column="2">
        <widget class="QLineEdit" name="lineEdit_SaveDir"/>

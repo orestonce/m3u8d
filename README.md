@@ -7,9 +7,6 @@
 
 ## 实现说明
 * download.go 大部分抄自 https://github.com/llychao/m3u8-downloader
-* <del>将ffmpeg直接编译进windows/linux-arm/linux-386/darwin的二进制了.
-  转换mp4时,会自动将二进制里的ffmpeg解压到系统临时目录,然后使用.
-  因此linux/mac版本的可执行文件达到了32MB, 带Qt ui的可执行文件达到了惊人的 50MB</del>
 * 使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
 * 支持跳过前面几个ts文件(一般是广告, 嘿嘿)
 * 程序会在下载保存目录创建:
@@ -24,7 +21,7 @@
   * [x] 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
   * [x] windows、linux、mac都支持ffmpeg合并ts列表为mp4
   * [x] 充分测试后，使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
-  * [ ] 支持嵌套m3u8的url
+  * [x] 支持嵌套m3u8的url
   * [ ] 支持设置代理
   * [ ] 支持从curl命令解析出需要的header、auth-basic、cookie等信息，正如 https://github.com/cxjava/m3u8-downloader 一样
 ## 二次开发操作手册:
