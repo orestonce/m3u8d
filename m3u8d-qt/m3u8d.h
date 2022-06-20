@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <map>
 //Qt Creator 需要在xxx.pro 内部增加静态库的链接声明
 //LIBS += -L$$PWD -lm3u8d-impl
 
@@ -13,18 +14,22 @@ struct RunDownload_Req{
 	std::string SaveDir;
 	std::string FileName;
 	int32_t SkipTsCountFromHead;
+	std::string SetProxy;
+	RunDownload_Req(): Insecure(false),SkipTsCountFromHead(0){}
 };
 struct RunDownload_Resp{
 	std::string ErrMsg;
 	bool IsSkipped;
 	bool IsCancel;
 	std::string SaveFileTo;
+	RunDownload_Resp(): IsSkipped(false),IsCancel(false){}
 };
 RunDownload_Resp RunDownload(RunDownload_Req in0);
 void CloseOldEnv();
 struct GetProgress_Resp{
 	int32_t Percent;
 	std::string Title;
+	GetProgress_Resp(): Percent(0){}
 };
 GetProgress_Resp GetProgress();
 std::string GetWd();

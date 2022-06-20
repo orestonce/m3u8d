@@ -69,6 +69,7 @@ type RunDownload_Req struct {
 	SaveDir             string // "文件保存路径(默认为当前路径)"
 	FileName            string // 文件名
 	SkipTsCountFromHead int    // 跳过前面几个ts
+	SetProxy            string
 }
 
 type downloadEnv struct {
@@ -246,12 +247,14 @@ var gOldEnv *downloadEnv
 var gOldEnvLocker sync.Mutex
 
 func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
+	req.SetProxy = strings.ToLower(req.SetProxy)
 	env := &downloadEnv{
 		client: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify: req.Insecure,
 				},
+				DialContext: newDialContext(req.SetProxy),
 			},
 			Timeout: time.Second * 10,
 		},
@@ -577,7 +580,7 @@ func (this *downloadEnv) doGetRequest(urlS string) (data []byte, err error) {
 	}
 	req = req.WithContext(this.ctx)
 	req.Header = this.header
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := this.client.Do(req)
 	if err != nil {
 		return nil, err
 	}

@@ -35,6 +35,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     ui->pushButton_RunDownload->setEnabled(false);
     ui->checkBox_Insecure->setEnabled(false);
     ui->progressBar->setValue(0);
+    ui->lineEdit_SetProxy->setEnabled(false);
     ui->pushButton_StopDownload->setEnabled(true);
 
     m_syncUi.AddRunFnOn_OtherThread([this](){
@@ -62,6 +63,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.SaveDir = ui->lineEdit_SaveDir->text().toStdString();
     req.FileName = ui->lineEdit_FileName->text().toStdString();
     req.SkipTsCountFromHead = ui->lineEdit_SkipTsCountFromHead->text().toInt();
+    req.SetProxy = ui->lineEdit_SetProxy->text().toStdString();
 
     m_syncUi.AddRunFnOn_OtherThread([req, this](){
         RunDownload_Resp resp = RunDownload(req);
@@ -75,6 +77,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
             ui->pushButton_RunDownload->setEnabled(true);
             ui->checkBox_Insecure->setEnabled(true);
             ui->pushButton_RunDownload->setText("开始下载");
+            ui->lineEdit_SetProxy->setEnabled(true);
             ui->pushButton_StopDownload->setEnabled(false);
             if (resp.IsCancel) {
                 return;

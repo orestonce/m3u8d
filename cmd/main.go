@@ -33,6 +33,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&gRunReq.SaveDir, "SaveDir", "d", "", "文件保存路径(默认为当前路径)")
 	rootCmd.Flags().StringVarP(&gRunReq.FileName, "FileName", "f", "", "文件名")
 	rootCmd.Flags().IntVarP(&gRunReq.SkipTsCountFromHead, "SkipTsCountFromHead", "", 0, "跳过前面几个ts")
+	rootCmd.Flags().StringVarP(&gRunReq.SetProxy, "SetProxy", "", "", "代理设置, http://127.0.0.1:8080, socks")
 }
 
 func main() {
