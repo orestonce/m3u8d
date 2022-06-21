@@ -7,7 +7,7 @@ require (
 	github.com/orestonce/go2cpp v0.0.0-20220605110533-c77a8dd7fdfd
 	github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171
 	github.com/spf13/cobra v1.4.0
-	github.com/yapingcat/gomedia v0.0.0-20220620123656-68841d124bcd
+	github.com/yapingcat/gomedia v0.0.0-20220621113316-0cd64b0770ac
 	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9
 )
 
