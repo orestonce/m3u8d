@@ -1,8 +1,4 @@
 github.com/cpuguy83/go-md2man/v2 v2.0.1/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
-github.com/elazarl/goproxy v0.0.0-20220529153421-8ea89ba92021 h1:EbF0UihnxWRcIMOwoVtqnAylsqcjzqpSvMdjF2Ud4rA=
-github.com/elazarl/goproxy v0.0.0-20220529153421-8ea89ba92021/go.mod h1:Ro8st/ElPeALwNFlcTpWmkr6IoMFfkjXAvTHpevnDsM=
-github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 h1:dWB6v3RcOy03t/bUadywsbyrQwCqZeNIEX6M1OtSZOM=
-github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2/go.mod h1:gNh8nYJoAm43RfaxurUnxr+N1PwuFV3ZMl/efxlIlY8=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2 h1:AmGkuxSIOW0gA/jetY8d1DVV0cyQ08FMCxa1arkI6HQ=
@@ -11,7 +7,6 @@ github.com/orestonce/go2cpp v0.0.0-20220605110533-c77a8dd7fdfd h1:q4MMzJG2Zdh9OL
 github.com/orestonce/go2cpp v0.0.0-20220605110533-c77a8dd7fdfd/go.mod h1:1fsOAZftk08/dOTRqlp6f/MVwaEKOhrnPUg0RtWiSdY=
 github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171 h1:NnOl6HTrhrlTT7aaAybVOtq+fEztGFMoQtegckgwLdk=
 github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171/go.mod h1:MCQUrAPiG9/PTjHJuGqWLasKbIaG6z62KO6kfp90byM=
-github.com/rogpeppe/go-charset v0.0.0-20180617210344-2471d30d28b4/go.mod h1:qgYeAmZ5ZIpBWTGllZSQnw97Dj+woV0toclVaRGI8pc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/spf13/cobra v1.4.0 h1:y+wJpx64xcgO1V+RcnwW0LEHxTKRi2ZDPSBjWnrg88Q=
 github.com/spf13/cobra v1.4.0/go.mod h1:Wo4iy3BUC+X2Fybo0PDqwJIv3dNRiZLHQymsfxlB84g=
@@ -19,6 +14,8 @@ github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
 github.com/yapingcat/gomedia v0.0.0-20220619163023-5a5544262ef6 h1:d9MplS5tlYkVzS20zFz47Hg82wvTnTk4Oafwo6j9Eb0=
 github.com/yapingcat/gomedia v0.0.0-20220619163023-5a5544262ef6/go.mod h1:WSZ59bidJOO40JSJmLqlkBJrjZCtjbKKkygEMfzY/kc=
+github.com/yapingcat/gomedia v0.0.0-20220620123656-68841d124bcd h1:wqX3Uh/t30bA9hV8dedL8YkYP4LrrUjGMullElHnP/Y=
+github.com/yapingcat/gomedia v0.0.0-20220620123656-68841d124bcd/go.mod h1:WSZ59bidJOO40JSJmLqlkBJrjZCtjbKKkygEMfzY/kc=
 golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 h1:Yqz/iviulwKwAREEeUd3nbBFn0XuyJqkoft2IlrvOhc=
 golang.org/x/net v0.0.0-20220617184016-355a448f1bc9/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

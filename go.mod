@@ -3,12 +3,11 @@ module m3u8d
 go 1.17
 
 require (
-	github.com/elazarl/goproxy v0.0.0-20220529153421-8ea89ba92021
 	github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2
 	github.com/orestonce/go2cpp v0.0.0-20220605110533-c77a8dd7fdfd
 	github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171
 	github.com/spf13/cobra v1.4.0
-	github.com/yapingcat/gomedia v0.0.0-20220619163023-5a5544262ef6
+	github.com/yapingcat/gomedia v0.0.0-20220620123656-68841d124bcd
 	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9
 )
 
