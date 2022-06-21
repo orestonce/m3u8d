@@ -1,5 +1,5 @@
 ## m3u8d 一款m3u8下载工具
-* 提供windows图形界面(Qt), mac\linux命令行, linux支持arm和386 
+* 提供windows图形界面(Qt), mac、linux命令行, linux支持arm和386 
 * 使用gomedia转换、合并ts格式为mp4
 * windows自带GUI界面的版本下载: [m3u8d_qt_v1.4_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.4/m3u8d_qt_v1.4_windows_amd64.exe):
     ![](m3u8d-qt/screenshot.png)
@@ -23,6 +23,7 @@
   * [x] 充分测试后，使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
   * [x] 支持嵌套m3u8的url
   * [x] 支持设置代理
+  * [ ] 增加openwrt路由器的mipsle二进制
   * [ ] 支持从curl命令解析出需要的header、auth-basic、cookie等信息，正如 https://github.com/cxjava/m3u8-downloader 一样
 ## 二次开发操作手册:
 * 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
