@@ -9,6 +9,10 @@ import (
 var rootCmd = cobra.Command{
 	Use: "m3u8下载工具",
 	Run: func(cmd *cobra.Command, args []string) {
+		if gRunReq.M3u8Url == "" {
+			cmd.Help()
+			return
+		}
 		m3u8d.SetShowProgressBar()
 		resp := m3u8d.RunDownload(gRunReq)
 		fmt.Println()	// 有进度条,所以需要换行

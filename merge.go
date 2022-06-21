@@ -24,7 +24,10 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 	}
 	defer mp4file.Close()
 
-	muxer := mp4.CreateMp4Muxer(mp4file)
+	muxer, err := mp4.CreateMp4Muxer(mp4file)
+	if err != nil {
+		return err
+	}
 	vtid := muxer.AddVideoTrack(mp4.MP4_CODEC_H264)
 	atid := muxer.AddAudioTrack(mp4.MP4_CODEC_AAC, 0, 16, 44100)
 
@@ -68,6 +71,10 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 	if err != nil {
 		return err
 	}
+	err = mp4file.Sync()
+	if err != nil {
+		return err
+	}
 	DrawProgressBar(1, 1)
-	return err
+	return nil
 }

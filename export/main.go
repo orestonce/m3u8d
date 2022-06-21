@@ -11,7 +11,7 @@ import (
 
 func main() {
 	BuildCliBinary()   // 编译二进制
-	//CreateLibForQtUi() // 创建Qt需要使用的.a库文件
+	CreateLibForQtUi() // 创建Qt需要使用的.a库文件
 }
 
 func BuildCliBinary() {
@@ -43,7 +43,7 @@ func BuildCliBinary() {
 		},
 	}
 	for _, cfg := range list {
-		name := "m3u8d_cli_v1.4.1_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
+		name := "m3u8d_cli_v1.4.2_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
 		cmd := exec.Command("go", "build", "-ldflags", "-s -w", "-o", filepath.Join(wd, "bin", name))
 		cmd.Dir = filepath.Join(wd, "cmd")
 		cmd.Env = append(os.Environ(), "GOOS="+cfg.GOOS)
