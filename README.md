@@ -1,13 +1,13 @@
-## m3u8d 一款m3u8下载工具
-* 提供windows图形界面(Qt), mac、linux命令行, linux支持arm和386 
-* 使用gomedia转换、合并ts格式为mp4
-* windows自带GUI界面的版本下载: [m3u8d_qt_v1.4.2_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.4.2/m3u8d_qt_v1.4.2_windows_amd64.exe):
+## m3u8视频下载工具
+* 提供windows图形界面(Qt), mac、linux命令行, linux支持arm、386、mipsle 
+* 程序会自动将下载的ts文件合并转换格式为mp4
+* windows自带GUI界面的版本下载: [m3u8d_qt_v1.4.3_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.4.3/m3u8d_qt_v1.4.3_windows_amd64.exe):
     ![](m3u8d-qt/screenshot.png)
 * 全部版本下载, 包括windows图形界面/linux命令行/mac命令行: https://github.com/orestonce/m3u8d/releases    
 
 ## 实现说明
 * download.go 大部分抄自 https://github.com/llychao/m3u8-downloader
-* 使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
+* 使用[gomedia](https://github.com/yapingcat/gomedia) 代替ffmpeg进行格式转换
 * 支持跳过前面几个ts文件(一般是广告, 嘿嘿)
 * 程序会在下载保存目录创建:
     * downloading/ 目录, 用于存放正在下载的分段ts视频, 按照m3u8的url进行划分

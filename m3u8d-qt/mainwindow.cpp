@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QIntValidator* vd = new QIntValidator;
+    QIntValidator* vd = new QIntValidator(this);
     vd->setRange(0, 9999);
     ui->lineEdit_SkipTsCountFromHead->setValidator(vd);
     ui->lineEdit_SkipTsCountFromHead->setPlaceholderText("[0,9999]");
