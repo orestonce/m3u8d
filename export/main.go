@@ -43,7 +43,7 @@ func BuildCliBinary() {
 		},
 	}
 	for _, cfg := range list {
-		name := "m3u8d_cli_v1.4.2_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
+		name := "m3u8d_cli_v1.4.3_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
 		cmd := exec.Command("go", "build", "-ldflags", "-s -w", "-o", filepath.Join(wd, "bin", name))
 		cmd.Dir = filepath.Join(wd, "cmd")
 		cmd.Env = append(os.Environ(), "GOOS="+cfg.GOOS)
