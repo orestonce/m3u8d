@@ -29,5 +29,5 @@
 * 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的
 `m3u8-qt/m3u8.h`,`m3u8-qt/m3u8.cpp`, `m3u8-qt/m3u8-impl.a`. 然后使用QtCreator进行打包
 ## 发布协议
-* m3u8-qt/ 目录采用 [GPL协议 v3](m3u8d-qt/LICENSE) 发布
-* 除 m3u8-qt/ 以外的代码, 采用[MIT协议](LICENSE)发布 
+* m3u8d-qt/ 目录采用 [GPL协议 v3](m3u8d-qt/LICENSE) 发布
+* 除 m3u8d-qt/ 以外的代码, 采用[MIT协议](LICENSE)发布 
