@@ -3,6 +3,7 @@
 #include "m3u8d.h"
 #include <atomic>
 #include <QFileDialog>
+#include "curldialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -64,6 +65,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.FileName = ui->lineEdit_FileName->text().toStdString();
     req.SkipTsCountFromHead = ui->lineEdit_SkipTsCountFromHead->text().toInt();
     req.SetProxy = ui->lineEdit_SetProxy->text().toStdString();
+    req.HeaderMap = m_HeaderMap;
 
     m_syncUi.AddRunFnOn_OtherThread([req, this](){
         RunDownload_Resp resp = RunDownload(req);
@@ -105,4 +107,22 @@ void MainWindow::on_pushButton_SaveDir_clicked()
 void MainWindow::on_pushButton_StopDownload_clicked()
 {
     CloseOldEnv();
+}
+
+void MainWindow::on_pushButton_curlMode_clicked()
+{
+    RunDownload_Req req;
+    req.M3u8Url = ui->lineEdit_M3u8Url->text().toStdString();
+    req.Insecure = ui->checkBox_Insecure->isChecked();
+    req.HeaderMap = m_HeaderMap;
+    CurlDialog dlg(this);
+    dlg.SetText(QString::fromStdString(RunDownload_Req_ToCurlStr(req)));
+    dlg.show();
+    if (dlg.exec() != QDialog::Accepted) {
+        return;
+    }
+    ParseCurl_Resp resp= dlg.Resp;
+    ui->lineEdit_M3u8Url->setText(QString::fromStdString(resp.DownloadReq.M3u8Url));
+    ui->checkBox_Insecure->setChecked(resp.DownloadReq.Insecure);
+    this->m_HeaderMap = resp.DownloadReq.HeaderMap;
 }

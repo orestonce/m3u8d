@@ -22,7 +22,6 @@ func BuildCliBinary() {
 	type buildCfg struct {
 		GOOS   string
 		GOARCH string
-		Ext    string
 	}
 	var list = []buildCfg{
 		{
@@ -43,8 +42,8 @@ func BuildCliBinary() {
 		},
 	}
 	for _, cfg := range list {
-		name := "m3u8d_cli_v1.4.3_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
-		cmd := exec.Command("go", "build", "-ldflags", "-s -w", "-o", filepath.Join(wd, "bin", name))
+		name := "m3u8d_cli_v1.5.0_" + cfg.GOOS + "_" + cfg.GOARCH
+		cmd := exec.Command("go", "build", "-trimpath", "-ldflags", "-s -w", "-o", filepath.Join(wd, "bin", name))
 		cmd.Dir = filepath.Join(wd, "cmd")
 		cmd.Env = append(os.Environ(), "GOOS="+cfg.GOOS)
 		cmd.Env = append(cmd.Env, "GOARCH="+cfg.GOARCH)
@@ -69,5 +68,7 @@ func CreateLibForQtUi() {
 	ctx.Generate1(m3u8d.CloseOldEnv)
 	ctx.Generate1(m3u8d.GetProgress)
 	ctx.Generate1(m3u8d.GetWd)
+	ctx.Generate1(m3u8d.ParseCurlStr)
+	ctx.Generate1(m3u8d.RunDownload_Req_ToCurlStr)
 	ctx.MustCreateAmd64LibraryInDir("m3u8d-qt")
 }

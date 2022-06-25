@@ -23,9 +23,12 @@ private slots:
 
     void on_pushButton_StopDownload_clicked();
 
+    void on_pushButton_curlMode_clicked();
+
 private:
     Ui::MainWindow *ui;
     RunOnUiThread m_syncUi;
+    std::map<std::string, std::vector<std::string>> m_HeaderMap;
 };
 
 #endif // MAINWINDOW_H

@@ -26,13 +26,17 @@ RC_FILE += version.rc
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    m3u8d.cpp
+    m3u8d.cpp \
+    curldialog.cpp
 
 HEADERS += \
         mainwindow.h \
-    m3u8d.h
+    m3u8d.h \
+    curldialog.h \
+    version.rc
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    curldialog.ui
 
 LIBS += -L$$PWD -lm3u8d-impl

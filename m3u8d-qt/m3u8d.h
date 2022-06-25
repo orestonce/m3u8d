@@ -15,6 +15,7 @@ struct RunDownload_Req{
 	std::string FileName;
 	int32_t SkipTsCountFromHead;
 	std::string SetProxy;
+	std::map<std::string, std::vector<std::string>> HeaderMap;
 	RunDownload_Req(): Insecure(false),SkipTsCountFromHead(0){}
 };
 struct RunDownload_Resp{
@@ -33,6 +34,12 @@ struct GetProgress_Resp{
 };
 GetProgress_Resp GetProgress();
 std::string GetWd();
+struct ParseCurl_Resp{
+	std::string ErrMsg;
+	RunDownload_Req DownloadReq;
+};
+ParseCurl_Resp ParseCurlStr(std::string in0);
+std::string RunDownload_Req_ToCurlStr(RunDownload_Req in0);
 
 #include <QObject>
 #include <QVector>

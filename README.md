@@ -1,7 +1,7 @@
 ## m3u8视频下载工具
 * 提供windows图形界面(Qt), mac、linux命令行, linux支持arm、386、mipsle 
 * 程序会自动将下载的ts文件合并转换格式为mp4
-* windows自带GUI界面的版本下载: [m3u8d_qt_v1.4.3_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.4.3/m3u8d_qt_v1.4.3_windows_amd64.exe):
+* windows自带GUI界面的版本下载: [m3u8d_qt_v1.5.0_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.5.0/m3u8d_qt_v1.5.0_windows_amd64.exe):
     ![](m3u8d-qt/screenshot.png)
 * 全部版本下载, 包括windows图形界面/linux命令行/mac命令行: https://github.com/orestonce/m3u8d/releases    
 
@@ -24,7 +24,7 @@
   * [x] 支持嵌套m3u8的url
   * [x] 支持设置代理
   * [x] 增加openwrt路由器的mipsle二进制
-  * [ ] 支持从curl命令解析出需要的header、auth-basic、cookie等信息，正如 https://github.com/cxjava/m3u8-downloader 一样
+  * [x] 支持从curl命令解析出需要的信息，正如 https://github.com/cxjava/m3u8-downloader 一样
 ## 二次开发操作手册:
 * 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
 * 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的

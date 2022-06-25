@@ -70,6 +70,7 @@ type RunDownload_Req struct {
 	FileName            string // 文件名
 	SkipTsCountFromHead int    // 跳过前面几个ts
 	SetProxy            string
+	HeaderMap           map[string][]string
 }
 
 type downloadEnv struct {
@@ -109,6 +110,9 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		"Accept-Encoding": []string{"*"},
 		"Accept-Language": []string{"zh-CN,zh;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5"},
 		"Referer":         []string{host},
+	}
+	for key, valueList := range req.HeaderMap {
+		this.header[key] = valueList
 	}
 	SetProgressBarTitle("嗅探m3u8")
 	var m3u8Body []byte
