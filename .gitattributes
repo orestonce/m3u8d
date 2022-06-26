@@ -1,3 +1,0 @@
-*.cpp linguist-language=go
-*.go linguist-language=go
-*.h linguist-language=go
