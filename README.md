@@ -25,6 +25,7 @@
   * [x] 增加openwrt路由器的mipsle二进制
   * [x] 支持从curl命令解析出需要的信息，正如 https://github.com/cxjava/m3u8-downloader 一样
   * [ ] 增加linux/mac命令行版本的使用教程
+  * [ ] url识别错误，http://example.com/index.m3u8?arg1=v1 也是正常的m3u8的url
 ## 二次开发操作手册:
 * 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
 * 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的
