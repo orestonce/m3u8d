@@ -535,18 +535,21 @@ func (this *downloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte
 		if err != nil {
 			return "", nil, err
 		}
-		if strings.HasSuffix(strings.ToLower(urlS), ".m3u8") {
+		if UrlHasSuffix(urlS, ".m3u8") {
 			// 看这个是不是嵌套的m3u8
 			var m3u8Url string
 			containsTs := false
 			for _, line := range strings.Split(string(content), "\n") {
 				lineOrigin := strings.TrimSpace(line)
+				if strings.HasPrefix(lineOrigin, "#") {
+					continue
+				}
 				line = strings.ToLower(lineOrigin)
-				if strings.HasSuffix(line, ".m3u8") {
+				if UrlHasSuffix(line, ".m3u8") {
 					m3u8Url = lineOrigin
 					break
 				}
-				if strings.HasSuffix(line, ".ts") {
+				if UrlHasSuffix(line, ".ts") {
 					containsTs = true
 					break
 				}
@@ -575,6 +578,14 @@ func (this *downloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte
 		urlS = string(groups[0])
 	}
 	return "", nil, errors.New("未发现m3u8资源_3")
+}
+
+func UrlHasSuffix(urlS string, suff string) bool {
+	urlObj, err := url.Parse(urlS)
+	if err != nil {
+		return false
+	}
+	return strings.HasSuffix(strings.ToLower(urlObj.Path), suff)
 }
 
 func (this *downloadEnv) doGetRequest(urlS string) (data []byte, err error) {

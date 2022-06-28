@@ -37,6 +37,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     ui->checkBox_Insecure->setEnabled(false);
     ui->progressBar->setValue(0);
     ui->lineEdit_SetProxy->setEnabled(false);
+    ui->pushButton_curlMode->setEnabled(false);
     ui->pushButton_StopDownload->setEnabled(true);
 
     m_syncUi.AddRunFnOn_OtherThread([this](){
@@ -81,6 +82,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
             ui->pushButton_RunDownload->setText("开始下载");
             ui->lineEdit_SetProxy->setEnabled(true);
             ui->pushButton_StopDownload->setEnabled(false);
+            ui->pushButton_curlMode->setEnabled(true);
             if (resp.IsCancel) {
                 return;
             }

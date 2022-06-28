@@ -9,6 +9,7 @@ require (
 	github.com/spf13/cobra v1.4.0
 	github.com/yapingcat/gomedia v0.0.0-20220623101430-02bb90c39484
 	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9
+	golang.org/x/text v0.3.7
 )
 
 require (
