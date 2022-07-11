@@ -32,3 +32,4 @@
 ## 发布协议
 * m3u8d-qt/ 目录采用 [GPL协议 v3](m3u8d-qt/LICENSE) 发布
 * 除 m3u8d-qt/ 以外的代码, 采用[MIT协议](LICENSE)发布 
+## 本项目由 jetbrains 开源开发许可证-社区版([Licenses for Open Source Development](https://jb.gg/OpenSourceSupport)) 提供goland开发支持
