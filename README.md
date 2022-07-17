@@ -53,7 +53,7 @@
 3. 如果使用内嵌 静态编译的ffmpeg二进制, 使用的时候释放到 临时目录再调用命令行
     * 最终二进制体积会更大, 可以看[以前的v1.1版本](https://github.com/orestonce/m3u8d/releases/tag/v1.1) , 每个最终二进制都比现在大25MB左右
     * 没找到mipsle路由器版本的静态编译的ffmpeg
-4. 如果直接调用ffmpeg命令, 必定依赖于用户必须首先安装ffmpeg到操作系统, 难用
+4. 如果直接调用ffmpeg命令, 用户则必须首先安装ffmpeg到操作系统, 难用
 ### 引入MIT协议的gomedia解决ts转换成mp4好处
 1. gomedia是纯go代码, 跨平台编译容易
 2. 本项目也可以使用MIT协议进行开源, 无需限定为GPL/LGPL
