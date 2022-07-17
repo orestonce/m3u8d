@@ -41,3 +41,21 @@
 * 除 m3u8d-qt/ 以外的代码, 采用[MIT协议](LICENSE)发布 
 ## 开发支持
  * 本项目由 jetbrains 开源开发许可证-社区版([Licenses for Open Source Development](https://jb.gg/OpenSourceSupport)) 提供goland开发支持
+ * 感谢 [gomedia](https://github.com/yapingcat/gomedia) 开发者提供的ts转mp4逻辑
+ 
+----------------------------------
+## 关于为什么使用 gomedia 替代 ffmpeg
+### 引入ffmpeg很麻烦, 原因列表:
+1. ffmpeg开源协议是 GPL的,具有传染性, 这个项目的主要逻辑就不能使用 MIT 开源了
+2. 如果使用cgo调用的形式引入ffmpeg
+    * 最终二进制体积特别大
+    * 编译mac/linux/路由器 版本的时候必然要依赖对应的跨平台编译器, 编译难度提升
+3. 如果使用内嵌 静态编译的ffmpeg二进制, 使用的时候释放到 临时目录再调用命令行
+    * 最终二进制体积会更大, 可以看[以前的v1.1版本](https://github.com/orestonce/m3u8d/releases/tag/v1.1) , 每个最终二进制都比现在大25MB左右
+    * 没找到mipsle路由器版本的静态编译的ffmpeg
+4. 如果直接调用ffmpeg命令, 必定依赖于用户必须首先安装ffmpeg到操作系统, 难用
+### 引入MIT协议的gomedia解决ts转换成mp4好处
+1. gomedia是纯go代码, 跨平台编译容易
+2. 本项目也可以使用MIT协议进行开源, 无需限定为GPL/LGPL
+3. 最终二进制体积特别小, linux/mac 版本的命令行版本才 5-7MB, windows由于有静态编译进来的qt界面, 现在体积有26MB
+4. 用户无需预先安装ffmpeg, 降低用户的使用难度
