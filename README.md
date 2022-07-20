@@ -1,10 +1,14 @@
+
 ## m3u8视频下载工具
+* 没有ffmpeg依赖, 不需要单独配置任何环境
 * 提供windows图形界面(Qt), mac、linux命令行, linux支持arm、386、mipsle 
 * 程序会自动将下载的ts文件合并转换格式为mp4
-* windows自带GUI界面的版本下载: [m3u8d_qt_v1.5.0_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.5.0/m3u8d_qt_v1.5.0_windows_amd64.exe):
+* windows自带GUI界面的版本下载: [m3u8d_qt_v1.5.1_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.5.1/m3u8d_qt_v1.5.1_windows_amd64.exe):
     ![](m3u8d-qt/screenshot.png)
 * 全部版本下载, 包括windows图形界面/linux命令行/mac命令行: https://github.com/orestonce/m3u8d/releases    
-
+* linux/mac版的命令行使用教程
+  * 普通下载命令 `./m3u8d download -u https://example.com/index.m3u8`
+  * curl模式： `./m3u8d curl 'https://example.com/index.m3u8' -H 'cookie: CONSENT=YES'`
 ## 实现说明
 * download.go 大部分抄自 https://github.com/llychao/m3u8-downloader
 * 使用[gomedia](https://github.com/yapingcat/gomedia) 代替ffmpeg进行格式转换
@@ -16,6 +20,7 @@
     * 将M3u8Url+SkipTsCountFromHead进行hash, 得到文件下载id
     * 将文件下载id/文件大小/文件内容hash 储存在 m3u8_cache.cdb里面, 下载前搜索下载目录
     如果发现某个文件大小/文件内容hash和以前的记录相等,则认为这个文件是以前下载的文件, 跳过此次下载.
+
 ## TODO:
   * [x] 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
   * [x] windows、linux、mac都支持转换、合并ts格式为mp4
@@ -24,8 +29,9 @@
   * [x] 支持设置代理
   * [x] 增加openwrt路由器的mipsle二进制
   * [x] 支持从curl命令解析出需要的信息，正如 https://github.com/cxjava/m3u8-downloader 一样
-  * [ ] 增加linux/mac命令行版本的使用教程
-  * [ ] url识别错误，http://example.com/index.m3u8?arg1=v1 也是正常的m3u8的url
+  * [ ] 支持从一个txt里读取下载列表，批量下载
+  * [ ] 显示下载速度、合并ts的速度
+  * [ ] 支持多国语言
 ## 二次开发操作手册:
 * 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
 * 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的
@@ -33,3 +39,23 @@
 ## 发布协议
 * m3u8d-qt/ 目录采用 [GPL协议 v3](m3u8d-qt/LICENSE) 发布
 * 除 m3u8d-qt/ 以外的代码, 采用[MIT协议](LICENSE)发布 
+## 开发支持
+ * 本项目由 jetbrains 开源开发许可证-社区版([Licenses for Open Source Development](https://jb.gg/OpenSourceSupport)) 提供goland开发支持
+ * 感谢 [gomedia](https://github.com/yapingcat/gomedia) 开发者提供的ts转mp4逻辑
+ 
+----------------------------------
+## 关于为什么使用 gomedia 替代 ffmpeg
+### 引入ffmpeg很麻烦, 原因列表:
+1. ffmpeg开源协议是 GPL的,具有传染性, 这个项目的主要逻辑就不能使用 MIT 开源了
+2. 如果使用cgo调用的形式引入ffmpeg
+    * 最终二进制体积特别大
+    * 编译mac/linux/路由器 版本的时候必然要依赖对应的跨平台编译器, 编译难度提升
+3. 如果使用内嵌 静态编译的ffmpeg二进制, 使用的时候释放到 临时目录再调用命令行
+    * 最终二进制体积会更大, 可以看[以前的v1.1版本](https://github.com/orestonce/m3u8d/releases/tag/v1.1) , 每个最终二进制都比现在大25MB左右
+    * 没找到mipsle路由器版本的静态编译的ffmpeg
+4. 如果直接调用ffmpeg命令, 用户则必须首先安装ffmpeg到操作系统, 难用
+### 引入MIT协议的gomedia解决ts转换成mp4好处
+1. gomedia是纯go代码, 跨平台编译容易
+2. 本项目也可以使用MIT协议进行开源, 无需限定为GPL/LGPL
+3. 最终二进制体积特别小, linux/mac 版本的命令行版本才 5-7MB, windows由于有静态编译进来的qt界面, 现在体积有26MB
+4. 用户无需预先安装ffmpeg, 降低用户的使用难度
