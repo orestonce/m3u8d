@@ -17,6 +17,21 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lineEdit_SkipTsCountFromHead->setValidator(vd);
     ui->lineEdit_SkipTsCountFromHead->setPlaceholderText("[0,9999]");
     ui->lineEdit_SaveDir->setPlaceholderText(QString::fromStdString(GetWd()));
+    m_syncUi.AddRunFnOn_OtherThread([this](){
+        while(true)
+        {
+            QThread::msleep(50);
+            if (this->m_syncUi.Get_Done()) {
+                break;
+            }
+            m_syncUi.AddRunFnOn_UiThread([this](){
+                GetProgress_Resp resp = GetProgress();
+                ui->progressBar->setValue(resp.Percent);
+                ui->label_progressBar->setText(QString::fromStdString(resp.Title));
+                ui->statusBar->showMessage(QString::fromStdString(resp.SleepTh), 5*1000);
+            });
+        }
+    });
 }
 
 MainWindow::~MainWindow()
@@ -27,6 +42,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_RunDownload_clicked()
 {
+    if (ui->lineEdit_M3u8Url->isEnabled()==false) {
+        return;
+    }
     ui->lineEdit_M3u8Url->setEnabled(false);
     ui->lineEdit_SaveDir->setEnabled(false);
     ui->pushButton_SaveDir->setEnabled(false);
@@ -40,24 +58,6 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     ui->pushButton_curlMode->setEnabled(false);
     ui->pushButton_StopDownload->setEnabled(true);
 
-    m_syncUi.AddRunFnOn_OtherThread([this](){
-        // isFinished被 other thread 和 ui thread共享
-        std::shared_ptr<std::atomic_bool> isFinished = std::make_shared<std::atomic_bool>(false);
-
-        while(isFinished->load() == false)
-        {
-            QThread::msleep(50);
-            // 可能以下闭包在运行前, other thread已经退出了, 所以isFinished需要使用shared_ptr
-            m_syncUi.AddRunFnOn_UiThread([this, isFinished](){
-                GetProgress_Resp resp = GetProgress();
-                ui->progressBar->setValue(resp.Percent);
-                ui->label_progressBar->setText(QString::fromStdString(resp.Title));
-                if (ui->pushButton_RunDownload->isEnabled()) {
-                    isFinished->store(true);
-                }
-            });
-        }
-    });
     RunDownload_Req req;
     req.M3u8Url = ui->lineEdit_M3u8Url->text().toStdString();
     req.HostType = ui->comboBox_HostType->currentText().toStdString();

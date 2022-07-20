@@ -15,11 +15,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -36,6 +38,7 @@ var gProgressPercentLocker sync.Mutex
 type GetProgress_Resp struct {
 	Percent int
 	Title   string
+	SleepTh string
 }
 
 func GetProgress() (resp GetProgress_Resp) {
@@ -45,6 +48,15 @@ func GetProgress() (resp GetProgress_Resp) {
 	gProgressPercentLocker.Unlock()
 	if resp.Title == "" {
 		resp.Title = "正在下载"
+	}
+	var sleepTh int32
+	gOldEnvLocker.Lock()
+	if gOldEnv != nil {
+		sleepTh = atomic.LoadInt32(&gOldEnv.sleepTh)
+	}
+	gOldEnvLocker.Unlock()
+	if sleepTh > 0 {
+		resp.SleepTh = "有 " + strconv.Itoa(int(sleepTh)) + "个线程正在休眠."
 	}
 	return resp
 }
@@ -78,6 +90,7 @@ type downloadEnv struct {
 	ctx      context.Context
 	client   *http.Client
 	header   http.Header
+	sleepTh  int32
 }
 
 func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
@@ -114,7 +127,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	for key, valueList := range req.HeaderMap {
 		this.header[key] = valueList
 	}
-	SetProgressBarTitle("嗅探m3u8")
+	SetProgressBarTitle("[1/6]嗅探m3u8")
 	var m3u8Body []byte
 	req.M3u8Url, m3u8Body, err = this.sniffM3u8(req.M3u8Url)
 	if err != nil {
@@ -133,7 +146,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		return resp
 	}
 	if info != nil {
-		SetProgressBarTitle("检查是否已下载")
+		SetProgressBarTitle("[2/6]检查是否已下载")
 		latestNameFullPath, found := info.SearchVideoInDir(req.SaveDir)
 		if found {
 			resp.IsSkipped = true
@@ -166,15 +179,19 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
-	SetProgressBarTitle("获取ts列表")
-	tsList := getTsList(m3u8Host, string(m3u8Body))
+	SetProgressBarTitle("[3/6]获取ts列表")
+	tsList, errMsg := getTsList(m3u8Host, string(m3u8Body))
+	if errMsg != "" {
+		resp.ErrMsg = "获取ts列表错误: " + strconv.Quote(m3u8Host)
+		return resp
+	}
 	if len(tsList) <= req.SkipTsCountFromHead {
 		resp.ErrMsg = "需要下载的文件为空"
 		return resp
 	}
 	tsList = tsList[req.SkipTsCountFromHead:]
 	// 下载ts
-	SetProgressBarTitle("下载ts")
+	SetProgressBarTitle("[4/6]下载ts")
 	err = this.downloader(tsList, downloadDir, ts_key)
 	if err != nil {
 		resp.ErrMsg = "下载ts文件错误: " + err.Error()
@@ -190,7 +207,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	var contentHash string
 	tmpOutputName = filepath.Join(downloadDir, "all.merge.mp4")
 
-	SetProgressBarTitle("合并ts为mp4")
+	SetProgressBarTitle("[5/6]合并ts为mp4")
 	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
 		TsFileList: tsFileList,
 		OutputMp4:  tmpOutputName,
@@ -200,7 +217,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		resp.ErrMsg = "合并错误: " + err.Error()
 		return resp
 	}
-	SetProgressBarTitle("计算文件hash")
+	SetProgressBarTitle("[6/6]计算文件hash")
 	contentHash = getFileSha256(tmpOutputName)
 	if contentHash == "" {
 		resp.ErrMsg = "无法计算摘要信息: " + tmpOutputName
@@ -243,7 +260,6 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		return resp
 	}
 	_ = os.Remove(filepath.Join(req.SaveDir, "downloading"))
-	SetProgressBarTitle("下载进度")
 	return resp
 }
 
@@ -294,7 +310,7 @@ func getHost(Url, ht string) (host string, err error) {
 	}
 	switch ht {
 	case "apiv1":
-		return u.Scheme + "://" + u.Host + filepath.Dir(u.EscapedPath()), nil
+		return u.Scheme + "://" + u.Host + path.Dir(u.EscapedPath()), nil
 	case "apiv2":
 		return u.Scheme + "://" + u.Host, nil
 	default:
@@ -329,34 +345,27 @@ func (this *downloadEnv) getM3u8Key(host, html string) (key string, err error) {
 	return "", nil
 }
 
-func getTsList(host, body string) (tsList []TsInfo) {
+func getTsList(host, body string) (tsList []TsInfo, errMsg string) {
 	lines := strings.Split(body, "\n")
 	index := 0
 
 	const TS_NAME_TEMPLATE = "%05d.ts" // ts视频片段命名规则
 
-	var ts TsInfo
 	for _, line := range lines {
 		if !strings.HasPrefix(line, "#") && line != "" {
-			//有可能出现的二级嵌套格式的m3u8,请自行转换！
 			index++
-			if strings.HasPrefix(line, "http") {
-				ts = TsInfo{
-					Name: fmt.Sprintf(TS_NAME_TEMPLATE, index),
-					Url:  line,
-				}
-				tsList = append(tsList, ts)
-			} else {
-				ts = TsInfo{
-					Name: fmt.Sprintf(TS_NAME_TEMPLATE, index),
-					Url:  fmt.Sprintf("%s/%s", host, line),
-				}
-				ts.Url = strings.ReplaceAll(ts.Url, `\`, `/`)
-				tsList = append(tsList, ts)
+			var after string
+			after, errMsg = resolveRefUrl(host, line)
+			if errMsg != "" {
+				return nil, errMsg
 			}
+			tsList = append(tsList, TsInfo{
+				Name: fmt.Sprintf(TS_NAME_TEMPLATE, index),
+				Url:  after,
+			})
 		}
 	}
-	return
+	return tsList, ""
 }
 
 // 下载ts文件
@@ -408,7 +417,7 @@ func (this *downloadEnv) SleepDur(d time.Duration) {
 }
 
 func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key string) (err error) {
-	task := gopool.NewThreadPool(8)
+	task := gopool.NewThreadPool(1)
 	tsLen := len(tsList)
 	downloadCount := 0
 	var locker sync.Mutex
@@ -425,7 +434,9 @@ func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key str
 				}
 				locker.Unlock()
 				if i > 0 {
+					atomic.AddInt32(&this.sleepTh, 1)
 					this.SleepDur(time.Second * time.Duration(i))
+					atomic.AddInt32(&this.sleepTh, -1)
 				}
 				lastErr = this.downloadTsFile(ts, downloadDir, key)
 				if lastErr == nil {
@@ -560,15 +571,11 @@ func (this *downloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte
 			if m3u8Url == "" {
 				return "", nil, errors.New("未发现m3u8资源_1")
 			}
-			urlObj, err := url.Parse(urlS)
-			if err != nil {
-				return "", nil, err
+			var errMsg string
+			urlS, errMsg = resolveRefUrl(urlS, m3u8Url)
+			if errMsg != "" {
+				return "", nil, errors.New(errMsg)
 			}
-			lineObj, err := url.Parse(m3u8Url)
-			if err != nil {
-				return "", nil, err
-			}
-			urlS = urlObj.ResolveReference(lineObj).String()
 			continue
 		}
 		groups := regexp.MustCompile(`http[s]://[a-zA-Z0-9/\\.%_-]+.m3u8`).FindSubmatch(content)
@@ -578,6 +585,18 @@ func (this *downloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte
 		urlS = string(groups[0])
 	}
 	return "", nil, errors.New("未发现m3u8资源_3")
+}
+
+func resolveRefUrl(baseUrl string, extUrl string) (after string, errMsg string) {
+	urlObj, err := url.Parse(baseUrl)
+	if err != nil {
+		return "", err.Error()
+	}
+	lineObj, err := url.Parse(extUrl)
+	if err != nil {
+		return "", err.Error()
+	}
+	return urlObj.ResolveReference(lineObj).String(), ""
 }
 
 func UrlHasSuffix(urlS string, suff string) bool {
@@ -604,6 +623,9 @@ func (this *downloadEnv) doGetRequest(urlS string) (data []byte, err error) {
 	content, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return content, errors.New("resp.Status: " + resp.Status)
 	}
 	return content, nil
 }
