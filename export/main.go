@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-const version = "1.5.3"
+const version = "1.5.4"
 
 func main() {
 	BuildCliBinary()   // 编译二进制

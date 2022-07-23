@@ -3,6 +3,7 @@
 #include "m3u8d.h"
 #include <atomic>
 #include <QFileDialog>
+#include <QIntValidator>
 #include "curldialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -50,7 +51,6 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     ui->pushButton_SaveDir->setEnabled(false);
     ui->lineEdit_FileName->setEnabled(false);
     ui->lineEdit_SkipTsCountFromHead->setEnabled(false);
-    ui->comboBox_HostType->setEnabled(false);
     ui->pushButton_RunDownload->setEnabled(false);
     ui->checkBox_Insecure->setEnabled(false);
     ui->progressBar->setValue(0);
@@ -60,7 +60,6 @@ void MainWindow::on_pushButton_RunDownload_clicked()
 
     RunDownload_Req req;
     req.M3u8Url = ui->lineEdit_M3u8Url->text().toStdString();
-    req.HostType = ui->comboBox_HostType->currentText().toStdString();
     req.Insecure = ui->checkBox_Insecure->isChecked();
     req.SaveDir = ui->lineEdit_SaveDir->text().toStdString();
     req.FileName = ui->lineEdit_FileName->text().toStdString();
@@ -76,7 +75,6 @@ void MainWindow::on_pushButton_RunDownload_clicked()
             ui->pushButton_SaveDir->setEnabled(true);
             ui->lineEdit_FileName->setEnabled(true);
             ui->lineEdit_SkipTsCountFromHead->setEnabled(true);
-            ui->comboBox_HostType->setEnabled(true);
             ui->pushButton_RunDownload->setEnabled(true);
             ui->checkBox_Insecure->setEnabled(true);
             ui->pushButton_RunDownload->setText("开始下载");

@@ -1,6 +1,12 @@
 package m3u8d
 
 import (
+	"embed"
+	"io/fs"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -28,22 +34,69 @@ func TestUrlHasSuffix(t *testing.T) {
 }
 
 func TestGetTsList(t *testing.T) {
-	v, err := getHost(`https://example.com:65/3kb/hls/index.m3u8`, `apiv1`)
+	v, err := getHost(`https://example.com:65/3kb/hls/index.m3u8`)
 	if err != nil {
 		panic(err)
 	}
-	if v != `https://example.com:65/3kb/hls` {
+	if v != `https://example.com:65` {
 		panic(v)
 	}
-	list, errMsg := getTsList(`https://example.com:65/3kb/hls`, `#EXTINF:3.753,
-/3kb/hls/JJG.ts`)
+	// 相对根目录
+	tGetTsList(`https://example.com:65/3kb/hls/index.m3u8`, `/3kb/hls/JJG.ts`, "https://example.com:65/3kb/hls/JJG.ts")
+	// 相对自己
+	tGetTsList("https://example.xyz/k/data1/SD/index.m3u8", `0.ts`, `https://example.xyz/k/data1/SD/0.ts`)
+	// 绝对路径
+	tGetTsList("https://example.xyz/k/data1/SD/index.m3u8", `https://exampe2.com/0.ts`, `https://exampe2.com/0.ts`)
+}
+
+func tGetTsList(m3u8Url string, m3u8Content string, expectTs0Url string) {
+	list, errMsg := getTsList(m3u8Url, m3u8Content)
 	if errMsg != "" {
 		panic(errMsg)
 	}
-	if len(list) != 1 {
-		panic(len(list))
-	}
-	if list[0].Url != "https://example.com:65/3kb/hls/JJG.ts" {
+	if list[0].Url != expectTs0Url {
 		panic(list[0].Url)
+	}
+}
+
+//go:embed testdata/TestFull
+var sDataTestFull embed.FS
+
+func TestFull(t *testing.T) {
+	subFs, err := fs.Sub(sDataTestFull, "testdata/TestFull")
+	if err != nil {
+		panic(err)
+	}
+	mux := http.NewServeMux()
+	mux.Handle("/", http.FileServer(http.FS(subFs)))
+	server := httptest.NewServer(mux)
+	m3u8Url := server.URL + "/jhxy.01.m3u8"
+	resp, err := http.Get(m3u8Url)
+	if err != nil {
+		panic(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != 200 {
+		panic(resp.Status + " " + m3u8Url)
+	}
+	saveDir := filepath.Join(GetWd(), "testdata/save_dir")
+	err = os.RemoveAll(saveDir)
+	if err != nil {
+		panic(err)
+	}
+	resp2 := RunDownload(RunDownload_Req{
+		M3u8Url:  m3u8Url,
+		SaveDir:  saveDir,
+		FileName: "all",
+	})
+	if resp2.ErrMsg != "" {
+		panic(resp2.ErrMsg)
+	}
+	fState, err := os.Stat(filepath.Join(saveDir, "all.mp4"))
+	if err != nil {
+		panic(err)
+	}
+	if fState.Size() <= 100*1000 { // 100KB
+		panic("state error")
 	}
 }

@@ -9,7 +9,6 @@
 
 struct RunDownload_Req{
 	std::string M3u8Url;
-	std::string HostType;
 	bool Insecure;
 	std::string SaveDir;
 	std::string FileName;

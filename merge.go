@@ -29,7 +29,7 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 		return err
 	}
 	vtid := muxer.AddVideoTrack(mp4.MP4_CODEC_H264)
-	atid := muxer.AddAudioTrack(mp4.MP4_CODEC_AAC, 0, 16, 44100)
+	atid := muxer.AddAudioTrack(mp4.MP4_CODEC_AAC)
 
 	demuxer := mpeg2.NewTSDemuxer()
 	var OnFrameErr error
