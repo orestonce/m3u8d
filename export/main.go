@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-const version = "1.5.4"
+const version = "1.5.5"
 
 func main() {
 	BuildCliBinary()   // 编译二进制
@@ -29,6 +29,7 @@ func BuildCliBinary() {
 	type buildCfg struct {
 		GOOS   string
 		GOARCH string
+		Ext    string
 	}
 	var list = []buildCfg{
 		{
@@ -47,9 +48,14 @@ func BuildCliBinary() {
 			GOOS:   "darwin",
 			GOARCH: "amd64",
 		},
+		{
+			GOOS:   "windows",
+			GOARCH: "386",
+			Ext:    ".exe",
+		},
 	}
 	for _, cfg := range list {
-		name := "m3u8d_cli_v" + version + "_" + cfg.GOOS + "_" + cfg.GOARCH
+		name := "m3u8d_cli_v" + version + "_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
 		cmd := exec.Command("go", "build", "-trimpath", "-ldflags", "-s -w", "-o", filepath.Join(wd, "bin", name))
 		cmd.Dir = filepath.Join(wd, "cmd")
 		cmd.Env = append(os.Environ(), "GOOS="+cfg.GOOS)

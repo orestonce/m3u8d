@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/yapingcat/gomedia/codec"
 	"github.com/yapingcat/gomedia/mp4"
 	"github.com/yapingcat/gomedia/mpeg2"
 	"io/ioutil"
@@ -14,7 +15,7 @@ import (
 type MergeTsFileListToSingleMp4_Req struct {
 	TsFileList []string
 	OutputMp4  string
-	ctx        context.Context
+	Ctx        context.Context
 }
 
 func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) {
@@ -33,23 +34,42 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 
 	demuxer := mpeg2.NewTSDemuxer()
 	var OnFrameErr error
+	var audioTimestamp uint64 = 0
+	aacSampleRate := -1
 	demuxer.OnFrame = func(cid mpeg2.TS_STREAM_TYPE, frame []byte, pts uint64, dts uint64) {
 		if OnFrameErr != nil {
 			return
 		}
 		if cid == mpeg2.TS_STREAM_AAC {
-			OnFrameErr = muxer.Write(atid, frame, pts, dts)
+			codec.SplitAACFrame(frame, func(aac []byte) {
+				if aacSampleRate == -1 {
+					adts := codec.NewAdtsFrameHeader()
+					adts.Decode(aac)
+					aacSampleRate = codec.AACSampleIdxToSample(int(adts.Fix_Header.Sampling_frequency_index))
+				}
+				err = muxer.Write(atid, aac, audioTimestamp, audioTimestamp)
+				audioTimestamp += uint64(1024 * 1000 / aacSampleRate) //每帧aac采样固定为1024。aac_sampleRate 为采样率
+				if err != nil {
+					OnFrameErr = err
+					return
+				}
+			})
 		} else if cid == mpeg2.TS_STREAM_H264 {
-			OnFrameErr = muxer.Write(vtid, frame, pts, dts)
+			err = muxer.Write(vtid, frame, uint64(pts), uint64(dts))
+			if err != nil {
+				OnFrameErr = err
+				return
+			}
 		} else {
 			OnFrameErr = errors.New("unknown cid " + strconv.Itoa(int(cid)))
+			return
 		}
 	}
 
 	for idx, tsFile := range req.TsFileList {
 		select {
-		case <-req.ctx.Done():
-			return req.ctx.Err()
+		case <-req.Ctx.Done():
+			return req.Ctx.Err()
 		default:
 		}
 		DrawProgressBar(len(req.TsFileList), idx)

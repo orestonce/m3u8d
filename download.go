@@ -201,7 +201,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
 		TsFileList: tsFileList,
 		OutputMp4:  tmpOutputName,
-		ctx:        this.ctx,
+		Ctx:        this.ctx,
 	})
 	if err != nil {
 		resp.ErrMsg = "合并错误: " + err.Error()
