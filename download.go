@@ -172,7 +172,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	SetProgressBarTitle("[3/6]获取ts列表")
 	tsList, errMsg := getTsList(req.M3u8Url, string(m3u8Body))
 	if errMsg != "" {
-		resp.ErrMsg = "获取ts列表错误"
+		resp.ErrMsg = "获取ts列表错误: " + errMsg
 		return resp
 	}
 	if len(tsList) <= req.SkipTsCountFromHead {
@@ -309,35 +309,45 @@ func GetWd() string {
 
 // 获取m3u8加密的密钥
 func (this *downloadEnv) getM3u8Key(m3u8Url string, html string) (key string, err error) {
-	lines := strings.Split(html, "\n")
 	key = ""
-	for _, line := range lines {
-		if strings.Contains(line, "#EXT-X-KEY") {
-			uriPos := strings.Index(line, "URI")
-			quotationMarkPos := strings.LastIndex(line, "\"")
-			keyUrl := strings.Split(line[uriPos:quotationMarkPos], "\"")[1]
-			if !strings.Contains(line, "http") {
-				var errMsg string
-				keyUrl, errMsg = resolveRefUrl(m3u8Url, line)
-				if errMsg != "" {
-					return "", errors.New(errMsg)
-				}
-			}
-			res, err := this.doGetRequest(keyUrl)
-			if err != nil {
-				return "", err
-			}
-			return string(res), nil
+	for _, line := range splitLineWithTrimSpace(html) {
+		if strings.Contains(line, "#EXT-X-KEY") == false {
+			continue
 		}
+		uriPos := strings.Index(line, "URI")
+		quotationMarkPos := strings.LastIndex(line, "\"")
+		keyUrl := strings.Split(line[uriPos:quotationMarkPos], "\"")[1]
+		if !strings.Contains(line, "http") {
+			var errMsg string
+			keyUrl, errMsg = resolveRefUrl(m3u8Url, line)
+			if errMsg != "" {
+				return "", errors.New(errMsg)
+			}
+		}
+		var res []byte
+		res, err = this.doGetRequest(keyUrl)
+		if err != nil {
+			return "", err
+		}
+		return string(res), nil
 	}
 	return "", nil
 }
 
+func splitLineWithTrimSpace(s string) []string {
+	tmp := strings.Split(s, "\n")
+	for idx, str := range tmp {
+		str = strings.TrimSpace(str)
+		tmp[idx] = str
+	}
+	return tmp
+}
+
 func getTsList(m38uUrl string, body string) (tsList []TsInfo, errMsg string) {
-	lines := strings.Split(body, "\n")
 	index := 0
 
-	for _, line := range lines {
+	for _, line := range splitLineWithTrimSpace(body) {
+		line = strings.TrimSpace(line)
 		if !strings.HasPrefix(line, "#") && line != "" {
 			index++
 			var after string
@@ -537,14 +547,12 @@ func (this *downloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte
 			// 看这个是不是嵌套的m3u8
 			var m3u8Url string
 			containsTs := false
-			for _, line := range strings.Split(string(content), "\n") {
-				lineOrigin := strings.TrimSpace(line)
-				if strings.HasPrefix(lineOrigin, "#") {
+			for _, line := range splitLineWithTrimSpace(string(content)) {
+				if strings.HasPrefix(line, "#") {
 					continue
 				}
-				line = strings.ToLower(lineOrigin)
 				if UrlHasSuffix(line, ".m3u8") {
-					m3u8Url = lineOrigin
+					m3u8Url = line
 					break
 				}
 				if UrlHasSuffix(line, ".ts") {
