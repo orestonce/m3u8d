@@ -1,0 +1,89 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  release:
+    types: [ created ]
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      
+      - name: Cache Primes
+        id: cache-primes
+        uses: actions/cache@v3
+        with:
+          path: qt-static/
+          key: ${{ runner.os }}_qt-static
+        
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        if: steps.cache-primes.outputs.cache-hit != 'true'
+        run: |
+          mkdir download/
+          curl -L https://osdn.net/downloads/users/30/30723/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z -o download/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z
+          curl -L https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.4/threads-posix/dwarf/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z -o download/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z
+          7z x download/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z
+          7z x download/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z
+          mkdir qt-static
+          move Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104 qt-static\
+          move mingw32 qt-static\
+          rm -Force -r .\download\
+      - name: Setup Go environment
+        uses: actions/setup-go@v3.2.1
+        with:
+          # The Go version to download (if necessary) and use. Supports semver spec and ranges.
+          go-version: 1.18 # optional
+      - name: set env    
+        run: |
+          $env:Path="$PWD\qt-static\Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104\bin;$PWD\qt-static\mingw32\bin;$env:Path"
+          qt-static\Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104\QQtPatcher.exe
+          go mod tidy
+          go run export/main.go
+          cd m3u8d-qt && qmake && mingw32-make release && cd ..
+          dir m3u8d-qt\release\m3u8d-qt.exe
+      - name: upload release windows_386_qt
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_qt_windows_386-${{ github.ref_name }}.exe
+          path: m3u8d-qt\release\m3u8d-qt.exe
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release windows_386_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_windows_386-${{ github.ref_name }}.exe
+          path: bin/m3u8d_cli_windows_386.exe
+          repo-token: ${{ secrets.GITHUB_TOKEN }}    
+      - name: upload release linux_386_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_linux_386-${{ github.ref_name }}
+          path: bin/m3u8d_cli_linux_386
+          repo-token: ${{ secrets.GITHUB_TOKEN }} 
+      - name: upload release linux_arm_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_linux_arm-${{ github.ref_name }}
+          path: bin/m3u8d_cli_linux_arm
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release linux_mipsle_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_linux_mipsle-${{ github.ref_name }}
+          path: bin/m3u8d_cli_linux_mipsle
+          repo-token: ${{ secrets.GITHUB_TOKEN }}     
+      - name: upload release darwin_amd64_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_darwin_amd64-${{ github.ref_name }}
+          path: bin/m3u8d_cli_darwin_amd64
+          repo-token: ${{ secrets.GITHUB_TOKEN }} 
