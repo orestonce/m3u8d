@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -15,7 +16,8 @@ struct RunDownload_Req{
 	int32_t SkipTsCountFromHead;
 	std::string SetProxy;
 	std::map<std::string, std::vector<std::string>> HeaderMap;
-	RunDownload_Req(): Insecure(false),SkipTsCountFromHead(0){}
+	bool SkipRemoveTs;
+	RunDownload_Req(): Insecure(false),SkipTsCountFromHead(0),SkipRemoveTs(false){}
 };
 struct RunDownload_Resp{
 	std::string ErrMsg;

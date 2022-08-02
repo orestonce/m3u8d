@@ -72,7 +72,10 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 			return req.Ctx.Err()
 		default:
 		}
-		DrawProgressBar(len(req.TsFileList), idx)
+		tmp := getOldEnv()
+		if tmp != nil {
+			tmp.DrawProgressBar(len(req.TsFileList), idx)
+		}
 		var buf []byte
 		buf, err = ioutil.ReadFile(tsFile)
 		if err != nil {
@@ -95,6 +98,9 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 	if err != nil {
 		return err
 	}
-	DrawProgressBar(1, 1)
+	tmp := getOldEnv()
+	if tmp != nil {
+		tmp.DrawProgressBar(1, 1)
+	}
 	return nil
 }

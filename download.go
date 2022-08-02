@@ -30,10 +30,6 @@ type TsInfo struct {
 	Url  string
 }
 
-var gProgressBarTitle string
-var gProgressPercent int
-var gProgressPercentLocker sync.Mutex
-
 type GetProgress_Resp struct {
 	Percent int
 	Title   string
@@ -41,17 +37,17 @@ type GetProgress_Resp struct {
 }
 
 func GetProgress() (resp GetProgress_Resp) {
-	gProgressPercentLocker.Lock()
-	resp.Percent = gProgressPercent
-	resp.Title = gProgressBarTitle
-	gProgressPercentLocker.Unlock()
-	if resp.Title == "" {
-		resp.Title = "正在下载"
-	}
 	var sleepTh int32
 	gOldEnvLocker.Lock()
 	if gOldEnv != nil {
 		sleepTh = atomic.LoadInt32(&gOldEnv.sleepTh)
+		gOldEnv.progressLocker.Lock()
+		resp.Percent = gOldEnv.progressPercent
+		resp.Title = gOldEnv.progressBarTitle
+		gOldEnv.progressLocker.Unlock()
+		if resp.Title == "" {
+			resp.Title = "正在下载"
+		}
 	}
 	gOldEnvLocker.Unlock()
 	if sleepTh > 0 {
@@ -60,10 +56,10 @@ func GetProgress() (resp GetProgress_Resp) {
 	return resp
 }
 
-func SetProgressBarTitle(title string) {
-	gProgressPercentLocker.Lock()
-	defer gProgressPercentLocker.Unlock()
-	gProgressBarTitle = title
+func (this *downloadEnv) SetProgressBarTitle(title string) {
+	this.progressLocker.Lock()
+	this.progressBarTitle = title
+	this.progressLocker.Unlock()
 }
 
 type RunDownload_Resp struct {
@@ -81,14 +77,19 @@ type RunDownload_Req struct {
 	SkipTsCountFromHead int    // 跳过前面几个ts
 	SetProxy            string
 	HeaderMap           map[string][]string
+	SkipRemoveTs        bool
 }
 
 type downloadEnv struct {
-	cancelFn func()
-	ctx      context.Context
-	client   *http.Client
-	header   http.Header
-	sleepTh  int32
+	cancelFn         func()
+	ctx              context.Context
+	client           *http.Client
+	header           http.Header
+	sleepTh          int32
+	progressLocker   sync.Mutex
+	progressBarTitle string
+	progressPercent  int
+	progressBarShow  bool
 }
 
 func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
@@ -122,7 +123,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	for key, valueList := range req.HeaderMap {
 		this.header[key] = valueList
 	}
-	SetProgressBarTitle("[1/6]嗅探m3u8")
+	this.SetProgressBarTitle("[1/6]嗅探m3u8")
 	var m3u8Body []byte
 	var errMsg string
 	req.M3u8Url, m3u8Body, errMsg = this.sniffM3u8(req.M3u8Url)
@@ -142,7 +143,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		return resp
 	}
 	if info != nil {
-		SetProgressBarTitle("[2/6]检查是否已下载")
+		this.SetProgressBarTitle("[2/6]检查是否已下载")
 		latestNameFullPath, found := info.SearchVideoInDir(req.SaveDir)
 		if found {
 			resp.IsSkipped = true
@@ -169,7 +170,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
-	SetProgressBarTitle("[3/6]获取ts列表")
+	this.SetProgressBarTitle("[3/6]获取ts列表")
 	tsList, errMsg := getTsList(req.M3u8Url, string(m3u8Body))
 	if errMsg != "" {
 		resp.ErrMsg = "获取ts列表错误: " + errMsg
@@ -181,14 +182,14 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	}
 	tsList = tsList[req.SkipTsCountFromHead:]
 	// 下载ts
-	SetProgressBarTitle("[4/6]下载ts")
+	this.SetProgressBarTitle("[4/6]下载ts")
 	err = this.downloader(tsList, downloadDir, tsKey)
 	if err != nil {
 		resp.ErrMsg = "下载ts文件错误: " + err.Error()
 		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
-	DrawProgressBar(1, 1)
+	this.DrawProgressBar(1, 1)
 	var tsFileList []string
 	for _, one := range tsList {
 		tsFileList = append(tsFileList, filepath.Join(downloadDir, one.Name))
@@ -197,7 +198,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	var contentHash string
 	tmpOutputName = filepath.Join(downloadDir, "all.merge.mp4")
 
-	SetProgressBarTitle("[5/6]合并ts为mp4")
+	this.SetProgressBarTitle("[5/6]合并ts为mp4")
 	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
 		TsFileList: tsFileList,
 		OutputMp4:  tmpOutputName,
@@ -207,7 +208,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		resp.ErrMsg = "合并错误: " + err.Error()
 		return resp
 	}
-	SetProgressBarTitle("[6/6]计算文件hash")
+	this.SetProgressBarTitle("[6/6]计算文件hash")
 	contentHash = getFileSha256(tmpOutputName)
 	if contentHash == "" {
 		resp.ErrMsg = "无法计算摘要信息: " + tmpOutputName
@@ -244,13 +245,15 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		resp.ErrMsg = "cacheWrite: " + err.Error()
 		return resp
 	}
-	err = os.RemoveAll(downloadDir)
-	if err != nil {
-		resp.ErrMsg = "删除下载目录失败: " + err.Error()
-		return resp
+	if req.SkipRemoveTs == false {
+		err = os.RemoveAll(downloadDir)
+		if err != nil {
+			resp.ErrMsg = "删除下载目录失败: " + err.Error()
+			return resp
+		}
+		// 如果downloading目录为空,就删除掉,否则忽略
+		_ = os.Remove(filepath.Join(req.SaveDir, "downloading"))
 	}
-	// 如果downloading目录为空,就删除掉,否则忽略
-	_ = os.Remove(filepath.Join(req.SaveDir, "downloading"))
 	return resp
 }
 
@@ -279,9 +282,15 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 	gOldEnv = env
 	gOldEnvLocker.Unlock()
 	resp = env.RunDownload(req)
-	SetProgressBarTitle("下载进度")
-	DrawProgressBar(1, 0)
+	env.SetProgressBarTitle("下载进度")
+	env.DrawProgressBar(1, 0)
 	return resp
+}
+
+func getOldEnv() *downloadEnv {
+	gOldEnvLocker.Lock()
+	defer gOldEnvLocker.Unlock()
+	return gOldEnv
 }
 
 func CloseOldEnv() {
@@ -451,7 +460,7 @@ func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key str
 			}
 			locker.Lock()
 			downloadCount++
-			DrawProgressBar(tsLen, downloadCount)
+			this.DrawProgressBar(tsLen, downloadCount)
 			locker.Unlock()
 		})
 	}
@@ -460,33 +469,33 @@ func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key str
 	return err
 }
 
-var gShowProgressBar bool
-var gShowProgressBarLocker sync.Mutex
-
 func SetShowProgressBar() {
-	gShowProgressBarLocker.Lock()
-	gShowProgressBar = true
-	gShowProgressBarLocker.Unlock()
+	gOldEnvLocker.Lock()
+	tmp := gOldEnv
+	gOldEnvLocker.Unlock()
+	if tmp != nil {
+		tmp.progressLocker.Lock()
+		tmp.progressBarShow = true
+		tmp.progressLocker.Unlock()
+	}
 }
 
 // 进度条
-func DrawProgressBar(total int, current int) {
+func (this *downloadEnv) DrawProgressBar(total int, current int) {
 	if total == 0 {
 		return
 	}
 	proportion := float32(current) / float32(total)
-	gProgressPercentLocker.Lock()
-	gProgressPercent = int(proportion * 100)
-	title := gProgressBarTitle
-	gProgressPercentLocker.Unlock()
 
-	gShowProgressBarLocker.Lock()
-	if gShowProgressBar {
+	this.progressLocker.Lock()
+	this.progressPercent = int(proportion * 100)
+	title := this.progressBarTitle
+	if this.progressBarShow {
 		width := 50
 		pos := int(proportion * float32(width))
 		fmt.Printf(title+" %s%*s %6.2f%%\r", strings.Repeat("■", pos), width-pos, "", proportion*100)
 	}
-	gShowProgressBarLocker.Unlock()
+	this.progressLocker.Unlock()
 }
 
 func isFileExists(path string) bool {

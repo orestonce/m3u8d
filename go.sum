@@ -5,6 +5,8 @@ github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2 h1:AmGkuxSIOW0gA/jet
 github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2/go.mod h1:HMNNdA1LMQFJRwobtCzVevWcInFSo9rfs1fYeVYwU+c=
 github.com/orestonce/go2cpp v0.0.0-20220704224208-2d58769247a4 h1:v6Y0pkcMIJdRgow+X9smChnYkC2v9Zqae/QjB7zzMoo=
 github.com/orestonce/go2cpp v0.0.0-20220704224208-2d58769247a4/go.mod h1:1fsOAZftk08/dOTRqlp6f/MVwaEKOhrnPUg0RtWiSdY=
+github.com/orestonce/go2cpp v0.0.0-20220730064838-feb9dd043919 h1:f8oUxbDjOgXrBhtDSaNWNAnZEPDTwrjpccdsrn4UCUs=
+github.com/orestonce/go2cpp v0.0.0-20220730064838-feb9dd043919/go.mod h1:1fsOAZftk08/dOTRqlp6f/MVwaEKOhrnPUg0RtWiSdY=
 github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171 h1:NnOl6HTrhrlTT7aaAybVOtq+fEztGFMoQtegckgwLdk=
 github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171/go.mod h1:MCQUrAPiG9/PTjHJuGqWLasKbIaG6z62KO6kfp90byM=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

@@ -56,6 +56,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     ui->progressBar->setValue(0);
     ui->lineEdit_SetProxy->setEnabled(false);
     ui->pushButton_curlMode->setEnabled(false);
+    ui->checkBox_SkipRemoveTs->setEnabled(false);
     ui->pushButton_StopDownload->setEnabled(true);
 
     RunDownload_Req req;
@@ -66,6 +67,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.SkipTsCountFromHead = ui->lineEdit_SkipTsCountFromHead->text().toInt();
     req.SetProxy = ui->lineEdit_SetProxy->text().toStdString();
     req.HeaderMap = m_HeaderMap;
+    req.SkipRemoveTs = ui->checkBox_SkipRemoveTs->isChecked();
 
     m_syncUi.AddRunFnOn_OtherThread([req, this](){
         RunDownload_Resp resp = RunDownload(req);
@@ -81,6 +83,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
             ui->lineEdit_SetProxy->setEnabled(true);
             ui->pushButton_StopDownload->setEnabled(false);
             ui->pushButton_curlMode->setEnabled(true);
+            ui->checkBox_SkipRemoveTs->setEnabled(true);
             if (resp.IsCancel) {
                 return;
             }

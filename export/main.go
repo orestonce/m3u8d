@@ -13,12 +13,15 @@ import (
 	"strings"
 )
 
-const version = "1.5.5"
-
 func main() {
-	BuildCliBinary()   // 编译二进制
-	CreateLibForQtUi() // 创建Qt需要使用的.a库文件
-	WriteVersionDotRc()
+	BuildCliBinary()                       // 编译二进制
+	if os.Getenv("GITHUB_ACTIONS") == "" { // 正常编译
+		CreateLibForQtUi(true) // 创建Qt需要使用的.a库文件
+		WriteVersionDotRc("1.5.6")
+	} else { // github actions 编译
+		version := strings.TrimPrefix(os.Getenv("GITHUB_REF_NAME"), "v")
+		WriteVersionDotRc(version)
+	}
 }
 
 func BuildCliBinary() {
@@ -55,7 +58,7 @@ func BuildCliBinary() {
 		},
 	}
 	for _, cfg := range list {
-		name := "m3u8d_cli_v" + version + "_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
+		name := "m3u8d_cli_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
 		cmd := exec.Command("go", "build", "-trimpath", "-ldflags", "-s -w", "-o", filepath.Join(wd, "bin", name))
 		cmd.Dir = filepath.Join(wd, "cmd")
 		cmd.Env = append(os.Environ(), "GOOS="+cfg.GOOS)
@@ -71,7 +74,7 @@ func BuildCliBinary() {
 	}
 }
 
-func CreateLibForQtUi() {
+func CreateLibForQtUi(isAmd64 bool) {
 	ctx := go2cpp.NewGo2cppContext(go2cpp.NewGo2cppContext_Req{
 		CppBaseName:                 "m3u8d",
 		EnableQtClass_RunOnUiThread: true,
@@ -83,10 +86,14 @@ func CreateLibForQtUi() {
 	ctx.Generate1(m3u8d.GetWd)
 	ctx.Generate1(m3u8d.ParseCurlStr)
 	ctx.Generate1(m3u8d.RunDownload_Req_ToCurlStr)
-	ctx.MustCreateAmd64LibraryInDir("m3u8d-qt")
+	if isAmd64 {
+		ctx.MustCreateAmd64LibraryInDir("m3u8d-qt")
+	} else {
+		ctx.MustCreate386LibraryInDir("m3u8-qt")
+	}
 }
 
-func WriteVersionDotRc() {
+func WriteVersionDotRc(version string) {
 	tmp := strings.Split(version, ".")
 	ok := len(tmp) == 3
 	for _, v := range tmp {
@@ -105,6 +112,7 @@ func WriteVersionDotRc() {
 	}
 	tmp = append(tmp, "0")
 	v1 := strings.Join(tmp, ",")
+	// TODO: 这里写中文github action会乱码, 有空研究一下
 	data := []byte(`IDI_ICON1 ICON "favicon.ico"
 
 #if defined(UNDER_CE)
@@ -131,9 +139,9 @@ VS_VERSION_INFO VERSIONINFO
             BLOCK "080404b0"
             BEGIN
                 VALUE "ProductVersion", "` + version + `.0\0"
-                VALUE "ProductName", "m3u8视频下载工具\0"
+                VALUE "ProductName", "m3u8 downloader\0"
                 VALUE "LegalCopyright", "https://github.com/orestonce/m3u8d\0"
-                VALUE "FileDescription", "m3u8视频下载工具\0"
+                VALUE "FileDescription", "m3u8 downloader\0"
            END
         END
 
