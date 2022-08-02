@@ -3,8 +3,7 @@
 * 没有ffmpeg依赖, 不需要单独配置任何环境
 * 提供windows图形界面(Qt), mac、linux命令行, linux支持arm、386、mipsle 
 * 程序会自动将下载的ts文件合并转换格式为mp4
-* windows自带GUI界面的版本下载: [m3u8d_qt_v1.5.5_windows_amd64.exe](https://github.com/orestonce/m3u8d/releases/download/v1.5.5/m3u8d_qt_v1.5.5_windows_amd64.exe):
-    ![](m3u8d-qt/screenshot.png)
+* ![](m3u8d-qt/screenshot.png)
 * 全部版本下载, 包括windows图形界面/linux命令行/mac命令行: https://github.com/orestonce/m3u8d/releases    
 * linux/mac版的命令行使用教程
   * 普通下载命令 `./m3u8d download -u https://example.com/index.m3u8`
