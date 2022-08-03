@@ -19,6 +19,7 @@ func main() {
 		CreateLibForQtUi(true) // 创建Qt需要使用的.a库文件
 		WriteVersionDotRc("1.5.6")
 	} else { // github actions 编译
+		CreateLibForQtUi(false)
 		version := strings.TrimPrefix(os.Getenv("GITHUB_REF_NAME"), "v")
 		WriteVersionDotRc(version)
 	}
