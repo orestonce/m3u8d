@@ -90,8 +90,9 @@ func CreateLibForQtUi(isAmd64 bool) {
 	if isAmd64 {
 		ctx.MustCreateAmd64LibraryInDir("m3u8d-qt")
 	} else {
-		ctx.MustCreate386LibraryInDir("m3u8-qt")
+		ctx.MustCreate386LibraryInDir("m3u8d-qt")
 	}
+	fmt.Println("isAmd64", isAmd64)
 }
 
 func WriteVersionDotRc(version string) {
