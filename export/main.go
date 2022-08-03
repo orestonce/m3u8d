@@ -20,8 +20,10 @@ func main() {
 		WriteVersionDotRc("1.5.6")
 	} else { // github actions 编译
 		CreateLibForQtUi(false)
-		version := strings.TrimPrefix(os.Getenv("GITHUB_REF_NAME"), "v")
-		WriteVersionDotRc(version)
+		if len(os.Args)<=1 || os.Args[1] != "check-only" {
+			version := strings.TrimPrefix(os.Getenv("GITHUB_REF_NAME"), "v")
+			WriteVersionDotRc(version)
+		}
 	}
 }
 

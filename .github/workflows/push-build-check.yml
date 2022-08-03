@@ -46,6 +46,6 @@ jobs:
           $env:Path="$PWD\qt-static\Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104\bin;$PWD\qt-static\mingw32\bin;$env:Path"
           qt-static\Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104\QQtPatcher.exe
           go mod tidy
-          go run export/main.go
+          go run export/main.go check-only
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
           dir m3u8d-qt\release\m3u8d-qt.exe
