@@ -31,7 +31,7 @@ void CloseOldEnv();
 struct GetProgress_Resp{
 	int32_t Percent;
 	std::string Title;
-	std::string SleepTh;
+	std::string StatusBar;
 	GetProgress_Resp(): Percent(0){}
 };
 GetProgress_Resp GetProgress();

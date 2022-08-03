@@ -31,13 +31,15 @@ type TsInfo struct {
 }
 
 type GetProgress_Resp struct {
-	Percent int
-	Title   string
-	SleepTh string
+	Percent   int
+	Title     string
+	StatusBar string
 }
 
 func GetProgress() (resp GetProgress_Resp) {
 	var sleepTh int32
+	var speedV string
+
 	gOldEnvLocker.Lock()
 	if gOldEnv != nil {
 		sleepTh = atomic.LoadInt32(&gOldEnv.sleepTh)
@@ -48,10 +50,15 @@ func GetProgress() (resp GetProgress_Resp) {
 		if resp.Title == "" {
 			resp.Title = "正在下载"
 		}
+		speedV = gOldEnv.speedRecent5sGetAndUpdate()
 	}
 	gOldEnvLocker.Unlock()
+	resp.StatusBar = speedV
 	if sleepTh > 0 {
-		resp.SleepTh = "有 " + strconv.Itoa(int(sleepTh)) + "个线程正在休眠."
+		if resp.StatusBar != "" {
+			resp.StatusBar += ", "
+		}
+		resp.StatusBar += "有 " + strconv.Itoa(int(sleepTh)) + "个线程正在休眠."
 	}
 	return resp
 }
@@ -90,6 +97,9 @@ type downloadEnv struct {
 	progressBarTitle string
 	progressPercent  int
 	progressBarShow  bool
+	speedBytesLocker sync.Mutex
+	speedBeginTime   time.Time
+	speedBytesMap    map[time.Time]int64
 }
 
 func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
@@ -183,7 +193,9 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	tsList = tsList[req.SkipTsCountFromHead:]
 	// 下载ts
 	this.SetProgressBarTitle("[4/6]下载ts")
+	this.speedSetBegin()
 	err = this.downloader(tsList, downloadDir, tsKey)
+	this.speedClearBytes()
 	if err != nil {
 		resp.ErrMsg = "下载ts文件错误: " + err.Error()
 		resp.IsCancel = this.GetIsCancel()
@@ -199,11 +211,13 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	tmpOutputName = filepath.Join(downloadDir, "all.merge.mp4")
 
 	this.SetProgressBarTitle("[5/6]合并ts为mp4")
+	this.speedSetBegin()
 	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
 		TsFileList: tsFileList,
 		OutputMp4:  tmpOutputName,
 		Ctx:        this.ctx,
 	})
+	this.speedClearBytes()
 	if err != nil {
 		resp.ErrMsg = "合并错误: " + err.Error()
 		return resp
@@ -272,6 +286,7 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 			},
 			Timeout: time.Second * 10,
 		},
+		speedBytesMap: map[time.Time]int64{},
 	}
 	env.ctx, env.cancelFn = context.WithCancel(context.Background())
 
@@ -411,7 +426,12 @@ func (this *downloadEnv) downloadTsFile(ts TsInfo, download_dir, key string) (er
 	if err != nil {
 		return err
 	}
-	return os.Rename(tmpPath, currPath)
+	err = os.Rename(tmpPath, currPath)
+	if err != nil {
+		return err
+	}
+	this.speedAddBytes(len(origData))
+	return nil
 }
 
 func (this *downloadEnv) SleepDur(d time.Duration) {

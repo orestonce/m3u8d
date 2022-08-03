@@ -261,7 +261,7 @@ GetProgress_Resp GetProgress(){
 			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+3]) << 0);
 			tmp13 = tmp14 | tmp15 | tmp16 | tmp17;
 			outIdx+=4;
-			retValue.SleepTh = std::string(out+outIdx, out+outIdx+tmp13);
+			retValue.StatusBar = std::string(out+outIdx, out+outIdx+tmp13);
 			outIdx+=tmp13;
 		}
 	}

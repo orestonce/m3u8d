@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
                 GetProgress_Resp resp = GetProgress();
                 ui->progressBar->setValue(resp.Percent);
                 ui->label_progressBar->setText(QString::fromStdString(resp.Title));
-                ui->statusBar->showMessage(QString::fromStdString(resp.SleepTh), 5*1000);
+                ui->statusBar->showMessage(QString::fromStdString(resp.StatusBar), 5*1000);
             });
         }
     });

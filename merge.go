@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/yapingcat/gomedia/codec"
-	"github.com/yapingcat/gomedia/mp4"
-	"github.com/yapingcat/gomedia/mpeg2"
+	"github.com/yapingcat/gomedia/go-codec"
+	"github.com/yapingcat/gomedia/go-mp4"
+	"github.com/yapingcat/gomedia/go-mpeg2"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -66,15 +66,13 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 		}
 	}
 
+	env := getOldEnv()
+
 	for idx, tsFile := range req.TsFileList {
 		select {
 		case <-req.Ctx.Done():
 			return req.Ctx.Err()
 		default:
-		}
-		tmp := getOldEnv()
-		if tmp != nil {
-			tmp.DrawProgressBar(len(req.TsFileList), idx)
 		}
 		var buf []byte
 		buf, err = ioutil.ReadFile(tsFile)
@@ -88,6 +86,10 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 		if OnFrameErr != nil {
 			return OnFrameErr
 		}
+		if env != nil {
+			env.DrawProgressBar(len(req.TsFileList), idx)
+			env.speedAddBytes(len(buf))
+		}
 	}
 
 	err = muxer.WriteTrailer()
@@ -98,9 +100,8 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 	if err != nil {
 		return err
 	}
-	tmp := getOldEnv()
-	if tmp != nil {
-		tmp.DrawProgressBar(1, 1)
+	if env != nil {
+		env.DrawProgressBar(1, 1)
 	}
 	return nil
 }
