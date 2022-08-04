@@ -41,6 +41,7 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 			return
 		}
 		if cid == mpeg2.TS_STREAM_AAC {
+			audioTimestamp = pts
 			codec.SplitAACFrame(frame, func(aac []byte) {
 				if aacSampleRate == -1 {
 					adts := codec.NewAdtsFrameHeader()
