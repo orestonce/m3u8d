@@ -39,4 +39,10 @@ FORMS += \
         mainwindow.ui \
     curldialog.ui
 
-LIBS += -L$$PWD -lm3u8d-impl
+win32{
+    #静态库
+    LIBS += -L$$PWD -lm3u8d-impl
+} else {
+    #动态库
+    LIBS += $$PWD/m3u8d-impl
+}

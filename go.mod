@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2
-	github.com/orestonce/go2cpp v0.0.0-20220730064838-feb9dd043919
+	github.com/orestonce/go2cpp v0.0.0-20220802140809-b2a921a62a07
 	github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171
 	github.com/spf13/cobra v1.4.0
 	github.com/yapingcat/gomedia v0.0.0-20220731053213-04782526c441

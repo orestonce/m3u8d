@@ -9,18 +9,23 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	BuildCliBinary()                       // 编译二进制
-	if os.Getenv("GITHUB_ACTIONS") == "" { // 正常编译
-		CreateLibForQtUi(true) // 创建Qt需要使用的.a库文件
+	BuildCliBinary()                       // 编译命令行版本
+	if os.Getenv("GITHUB_ACTIONS") == "" { // 本地编译
+		CreateLibForQtUi("amd64-static") // 创建Qt需要使用的.a库文件
 		WriteVersionDotRc("1.5.6")
-	} else { // github actions 编译
-		CreateLibForQtUi(false)
-		if len(os.Args)<=1 || os.Args[1] != "check-only" {
+	} else {                          // github actions 编译
+		if runtime.GOOS == "darwin" { // 编译darwin版本的dmg
+			CreateLibForQtUi("amd64-shared")
+		} else { // 编译windows版本的exe
+			CreateLibForQtUi("386-static")
+		}
+		if len(os.Args) <= 1 || os.Args[1] != "check-only" {
 			version := strings.TrimPrefix(os.Getenv("GITHUB_REF_NAME"), "v")
 			WriteVersionDotRc(version)
 		}
@@ -77,7 +82,7 @@ func BuildCliBinary() {
 	}
 }
 
-func CreateLibForQtUi(isAmd64 bool) {
+func CreateLibForQtUi(mode string) {
 	ctx := go2cpp.NewGo2cppContext(go2cpp.NewGo2cppContext_Req{
 		CppBaseName:                 "m3u8d",
 		EnableQtClass_RunOnUiThread: true,
@@ -89,12 +94,15 @@ func CreateLibForQtUi(isAmd64 bool) {
 	ctx.Generate1(m3u8d.GetWd)
 	ctx.Generate1(m3u8d.ParseCurlStr)
 	ctx.Generate1(m3u8d.RunDownload_Req_ToCurlStr)
-	if isAmd64 {
+	if mode == "amd64-static" {
 		ctx.MustCreateAmd64LibraryInDir("m3u8d-qt")
-	} else {
+	} else if mode == "386-static" {
 		ctx.MustCreate386LibraryInDir("m3u8d-qt")
+	} else if mode == "amd64-shared" {
+		ctx.MustCreateAmd64CSharedInDir("m3u8d-qt")
+	} else {
+		panic(mode)
 	}
-	fmt.Println("isAmd64", isAmd64)
 }
 
 func WriteVersionDotRc(version string) {
