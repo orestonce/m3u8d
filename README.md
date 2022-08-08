@@ -4,12 +4,12 @@
 * 提供windows图形界面(Qt), mac、linux命令行, linux支持arm、386、mipsle 
 * 程序会自动将下载的ts文件合并转换格式为mp4
 * ![](m3u8d-qt/screenshot.png)
-* 全部版本下载, 包括windows图形界面/linux命令行/mac命令行/mac图形化界面: https://github.com/orestonce/m3u8d/releases    
+* [全部版本下载](https://github.com/orestonce/m3u8d/releases ), 包括windows图形界面/linux命令行/mac命令行/mac图形化界面   
 * 命令行使用教程
   * 普通下载命令 `./m3u8d download -u https://example.com/index.m3u8`
   * curl模式： `./m3u8d curl 'https://example.com/index.m3u8' -H 'cookie: CONSENT=YES'`
 ## 实现说明
-* download.go 大部分抄自 https://github.com/llychao/m3u8-downloader
+* download.go 大部分抄自 [llychao/m3u8-downloader](https://github.com/llychao/m3u8-downloader)
 * 使用[gomedia](https://github.com/yapingcat/gomedia) 代替ffmpeg进行格式转换
 * 支持跳过前面几个ts文件(一般是广告, 嘿嘿)
 * 程序会在下载保存目录创建:
@@ -22,10 +22,10 @@
 * 已有功能列表
   * 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
   * windows、linux、mac都支持转换、合并ts格式为mp4
-  * 充分测试后，使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
+  * 充分测试后，使用 [gomedia](https://github.com/yapingcat/gomedia) 代替ffmpeg进行格式转换
   * 支持嵌套m3u8的url
   * 增加openwrt路由器的mipsle二进制
-  * 支持从curl命令解析出需要的信息，正如 https://github.com/cxjava/m3u8-downloader 一样
+  * 支持从curl命令解析出需要的信息，正如 [cxjava/m3u8-downloader](https://github.com/cxjava/m3u8-downloader) 一样
   * 显示下载速度、合并ts的速度
   * 提供macos的图形化界面
 ## TODO:
