@@ -30,6 +30,7 @@
   * 提供macos的图形化界面
 ## TODO:
   * [x] 支持设置代理
+    * [x] 支持socks5代理
     * [x] 支持http CONNECT方法
     * [ ] 支持从 [proxy_pool](https://github.com/jhao104/proxy_pool) 得到的普通的http代理
   * [ ] 支持多国语言
