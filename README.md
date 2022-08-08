@@ -31,7 +31,7 @@
 ## TODO:
   * [x] 支持设置代理
     * [x] 支持http CONNECT方法
-    * [ ] 支持普通的http代理
+    * [ ] 支持从 [proxy_pool](https://github.com/jhao104/proxy_pool) 得到的普通的http代理
   * [ ] 支持多国语言
   * [ ] 支持从一个txt里读取下载列表，批量下载
 ## 二次开发操作手册:
