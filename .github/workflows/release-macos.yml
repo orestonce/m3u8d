@@ -1,0 +1,63 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI-macos
+
+# Controls when the workflow will run
+on: 
+  release:
+    types: [ created ]
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: macos-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.2
+      - name: Cache Primes
+        id: cache-primes
+        uses: actions/cache@v3
+        with:
+          path: env/
+          key: ${{ runner.os }}-primes3
+        
+      # Runs a set of commands using the runners shell
+      - name: set up qt-static env
+        if: steps.cache-primes.outputs.cache-hit != 'true'
+        run: |
+          # https://build-qt.fsu0413.me/5.15-series/5.15.4-for-macos/
+          mkdir -p env/download/ && cd env/download
+          curl -L https://osdn.net/downloads/users/38/38696/Qt5.15.4-macOS-x86_64-AppleClang12.0.5-20220513.tar.xz -o Qt5.15.4-macOS-x86_64-AppleClang12.0.5-20220513.tar.xz
+          tar xf Qt5.15.4-macOS-x86_64-AppleClang12.0.5-20220513.tar.xz
+          pwd
+          ls -al Qt5.15.4-macOS-x86_64-AppleClang12.0.5
+          chmod +x Qt5.15.4-macOS-x86_64-AppleClang12.0.5/bin/*
+          mv Qt5.15.4-macOS-x86_64-AppleClang12.0.5 ../
+          cd ../../ && rm -rf env/download
+      - name: Setup Go environment
+        uses: actions/setup-go@v3.2.1
+        with:
+          # The Go version to download (if necessary) and use. Supports semver spec and ranges.
+          go-version: 1.18 # optional
+      - name: build    
+        run: |
+          export PATH=$(pwd)"/env/Qt5.15.4-macOS-x86_64-AppleClang12.0.5/bin:"${PATH}
+          echo $PATH
+          go mod tidy && go run export/main.go "check-only"
+          cd m3u8d-qt && qmake && ls -alh && make
+          ls -alh m3u8d-qt.app && ls m3u8d-qt.app/Contents/ && ls -alh m3u8d-qt.app/Contents/MacOS
+          otool -L m3u8d-qt.app/Contents/MacOS/m3u8d-qt
+          install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
+          otool -L m3u8d-qt.app/Contents/MacOS/m3u8d-qt
+          cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
+          macdeployqt m3u8d-qt.app -dmg && ls -alh
+
+      - name: upload release
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_qt_darwin_amd64-${{ github.ref_name }}.dmg
+          path: m3u8d-qt/m3u8d-qt.dmg
+          repo-token: ${{ secrets.GITHUB_TOKEN }} 

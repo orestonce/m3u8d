@@ -55,7 +55,7 @@ jobs:
         uses: Guerra24/upload-to-release@v1
         with:
           name: m3u8d_qt_windows_386-${{ github.ref_name }}.exe
-          path: m3u8d-qt\release\m3u8d-qt.exe
+          path: m3u8d-qt/release/m3u8d-qt.exe
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: upload release windows_386_cli
         uses: Guerra24/upload-to-release@v1
