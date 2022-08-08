@@ -4,8 +4,8 @@
 * 提供windows图形界面(Qt), mac、linux命令行, linux支持arm、386、mipsle 
 * 程序会自动将下载的ts文件合并转换格式为mp4
 * ![](m3u8d-qt/screenshot.png)
-* 全部版本下载, 包括windows图形界面/linux命令行/mac命令行: https://github.com/orestonce/m3u8d/releases    
-* linux/mac版的命令行使用教程
+* 全部版本下载, 包括windows图形界面/linux命令行/mac命令行/mac图形化界面: https://github.com/orestonce/m3u8d/releases    
+* 命令行使用教程
   * 普通下载命令 `./m3u8d download -u https://example.com/index.m3u8`
   * curl模式： `./m3u8d curl 'https://example.com/index.m3u8' -H 'cookie: CONSENT=YES'`
 ## 实现说明
@@ -19,18 +19,21 @@
     * 将M3u8Url+SkipTsCountFromHead进行hash, 得到文件下载id
     * 将文件下载id/文件大小/文件内容hash 储存在 m3u8_cache.cdb里面, 下载前搜索下载目录
     如果发现某个文件大小/文件内容hash和以前的记录相等,则认为这个文件是以前下载的文件, 跳过此次下载.
-
+* 已有功能列表
+  * 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
+  * windows、linux、mac都支持转换、合并ts格式为mp4
+  * 充分测试后，使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
+  * 支持嵌套m3u8的url
+  * 增加openwrt路由器的mipsle二进制
+  * 支持从curl命令解析出需要的信息，正如 https://github.com/cxjava/m3u8-downloader 一样
+  * 显示下载速度、合并ts的速度
+  * 提供macos的图形化界面
 ## TODO:
-  * [x] 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
-  * [x] windows、linux、mac都支持转换、合并ts格式为mp4
-  * [x] 充分测试后，使用 https://github.com/yapingcat/gomedia 代替ffmpeg进行格式转换
-  * [x] 支持嵌套m3u8的url
   * [x] 支持设置代理
-  * [x] 增加openwrt路由器的mipsle二进制
-  * [x] 支持从curl命令解析出需要的信息，正如 https://github.com/cxjava/m3u8-downloader 一样
-  * [x] 显示下载速度、合并ts的速度
-  * [ ] 支持从一个txt里读取下载列表，批量下载
+    * [x] 支持http CONNECT方法
+    * [ ] 支持普通的http代理
   * [ ] 支持多国语言
+  * [ ] 支持从一个txt里读取下载列表，批量下载
 ## 二次开发操作手册:
 * 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
 * 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的
