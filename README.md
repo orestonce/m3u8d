@@ -28,11 +28,9 @@
   * 支持从curl命令解析出需要的信息，正如 [cxjava/m3u8-downloader](https://github.com/cxjava/m3u8-downloader) 一样
   * 显示下载速度、合并ts的速度
   * 提供macos的图形化界面
+  * 支持设置代理: http/socks5
+    * http代理解释: 要访问的真实url是http协议, 使用代理服务器可见的GET形式; 如果要访问的真实url是https协议, 使用代理服务器不可见的CONNECT形式
 ## TODO:
-  * [x] 支持设置代理
-    * [x] 支持socks5代理
-    * [x] 支持http CONNECT方法
-    * [ ] 支持从 [proxy_pool](https://github.com/jhao104/proxy_pool) 得到的普通的http代理
   * [ ] 支持多国语言
   * [ ] 支持从一个txt里读取下载列表，批量下载
 ## 二次开发操作手册:

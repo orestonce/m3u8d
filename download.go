@@ -90,7 +90,7 @@ type RunDownload_Req struct {
 type downloadEnv struct {
 	cancelFn         func()
 	ctx              context.Context
-	client           *http.Client
+	nowClient        *http.Client
 	header           http.Header
 	sleepTh          int32
 	progressLocker   sync.Mutex
@@ -275,16 +275,20 @@ var gOldEnv *downloadEnv
 var gOldEnvLocker sync.Mutex
 
 func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
-	req.SetProxy = strings.ToLower(req.SetProxy)
+	var proxyUrlObj *url.URL
+	req.SetProxy, proxyUrlObj, resp.ErrMsg = SetProxyFormat(req.SetProxy)
+	if resp.ErrMsg != "" {
+		return resp
+	}
 	env := &downloadEnv{
-		client: &http.Client{
+		nowClient: &http.Client{
+			Timeout: time.Second * 20,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify: req.Insecure,
 				},
-				DialContext: newDialContext(req.SetProxy),
+				Proxy: http.ProxyURL(proxyUrlObj),
 			},
-			Timeout: time.Second * 10,
 		},
 		speedBytesMap: map[time.Time]int64{},
 	}
@@ -637,7 +641,7 @@ func (this *downloadEnv) doGetRequest(urlS string) (data []byte, err error) {
 	}
 	req = req.WithContext(this.ctx)
 	req.Header = this.header
-	resp, err := this.client.Do(req)
+	resp, err := this.nowClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

@@ -3,8 +3,6 @@ github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NH
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2 h1:AmGkuxSIOW0gA/jetY8d1DVV0cyQ08FMCxa1arkI6HQ=
 github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2/go.mod h1:HMNNdA1LMQFJRwobtCzVevWcInFSo9rfs1fYeVYwU+c=
-github.com/orestonce/go2cpp v0.0.0-20220730064838-feb9dd043919 h1:f8oUxbDjOgXrBhtDSaNWNAnZEPDTwrjpccdsrn4UCUs=
-github.com/orestonce/go2cpp v0.0.0-20220730064838-feb9dd043919/go.mod h1:1fsOAZftk08/dOTRqlp6f/MVwaEKOhrnPUg0RtWiSdY=
 github.com/orestonce/go2cpp v0.0.0-20220802140809-b2a921a62a07 h1:nyt0GDiskod5Y9uNVrXgK7PZHeL7Ab1uVc3LhLg7/gk=
 github.com/orestonce/go2cpp v0.0.0-20220802140809-b2a921a62a07/go.mod h1:1fsOAZftk08/dOTRqlp6f/MVwaEKOhrnPUg0RtWiSdY=
 github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171 h1:NnOl6HTrhrlTT7aaAybVOtq+fEztGFMoQtegckgwLdk=

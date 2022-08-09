@@ -73,6 +73,7 @@ func ParseCurl(cmdList []string) (resp ParseCurl_Resp) {
 
 	isHeader := false
 	isMethod := false
+	isProxy := false
 
 	for idx := 0; idx < len(cmdList); idx++ {
 		value := cmdList[idx]
@@ -94,16 +95,28 @@ func ParseCurl(cmdList []string) (resp ParseCurl_Resp) {
 			isMethod = false
 			continue
 		}
+		if isProxy {
+			resp.DownloadReq.SetProxy = value
+			isProxy = false
+			continue
+		}
 		valueLow := strings.ToLower(value)
 		switch valueLow {
 		case "-h":
 			isHeader = true
 		case "--compressed":
 		case "-x":
-			isMethod = true
+			if value == "-X" {
+				isMethod = true
+			} else {
+				isProxy = true
+			}
 		case "-k", "--insecure":
 			resp.DownloadReq.Insecure = true
 		default:
+			if strings.HasPrefix(valueLow, "-") { // 不认识的flag, 跳过
+				continue
+			}
 			if resp.DownloadReq.M3u8Url != "" {
 				resp.ErrMsg = "重复的url"
 				return resp
@@ -123,6 +136,9 @@ func RunDownload_Req_ToCurlStr(req RunDownload_Req) string {
 	buf.WriteString("curl " + strconv.Quote(req.M3u8Url))
 	if req.Insecure {
 		buf.WriteString(" \\\n -insecure")
+	}
+	if req.SetProxy != "" {
+		buf.WriteString(" \\\n -X " + req.SetProxy)
 	}
 	for key, vList := range req.HeaderMap {
 		if len(vList) == 0 {
