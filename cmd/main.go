@@ -22,7 +22,7 @@ var downloadCmd = &cobra.Command{
 }
 
 func downloadFromCmd(req m3u8d.RunDownload_Req) {
-	m3u8d.SetShowProgressBar()
+	req.ProgressBarShow = true
 	resp := m3u8d.RunDownload(req)
 	fmt.Println() // 有进度条,所以需要换行
 	if resp.ErrMsg != "" {

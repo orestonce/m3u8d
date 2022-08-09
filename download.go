@@ -85,6 +85,7 @@ type RunDownload_Req struct {
 	SetProxy            string
 	HeaderMap           map[string][]string
 	SkipRemoveTs        bool
+	ProgressBarShow     bool
 }
 
 type downloadEnv struct {
@@ -291,6 +292,7 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 			},
 		},
 		speedBytesMap: map[time.Time]int64{},
+		progressBarShow: req.ProgressBarShow,
 	}
 	env.ctx, env.cancelFn = context.WithCancel(context.Background())
 
@@ -491,17 +493,6 @@ func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key str
 	task.CloseAndWait()
 
 	return err
-}
-
-func SetShowProgressBar() {
-	gOldEnvLocker.Lock()
-	tmp := gOldEnv
-	gOldEnvLocker.Unlock()
-	if tmp != nil {
-		tmp.progressLocker.Lock()
-		tmp.progressBarShow = true
-		tmp.progressLocker.Unlock()
-	}
 }
 
 // 进度条
