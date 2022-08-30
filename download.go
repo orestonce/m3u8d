@@ -291,7 +291,7 @@ func RunDownload(req RunDownload_Req) (resp RunDownload_Resp) {
 				Proxy: http.ProxyURL(proxyUrlObj),
 			},
 		},
-		speedBytesMap: map[time.Time]int64{},
+		speedBytesMap:   map[time.Time]int64{},
 		progressBarShow: req.ProgressBarShow,
 	}
 	env.ctx, env.cancelFn = context.WithCancel(context.Background())
@@ -448,7 +448,7 @@ func (this *downloadEnv) SleepDur(d time.Duration) {
 }
 
 func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key string) (err error) {
-	task := gopool.NewThreadPool(1)
+	task := gopool.NewThreadPool(8)
 	tsLen := len(tsList)
 	downloadCount := 0
 	var locker sync.Mutex
