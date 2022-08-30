@@ -29,7 +29,7 @@
   * 显示下载速度、合并ts的速度
   * 提供macos的图形化界面
   * 支持设置代理: http/socks5
-    * http代理解释: 要访问的真实url是http协议, 使用代理服务器可见的GET形式; 如果要访问的真实url是https协议, 使用代理服务器不可见的CONNECT形式 
+    * http代理解释: 要访问的真实url是http协议, 使用代理服务器可见的GET/POST/HEAD...形式; 如果要访问的真实url是https协议, 使用代理服务器不可见的CONNECT形式 
 ## TODO:
   * [ ] 支持多国语言
   * [ ] 支持从一个txt里读取下载列表，批量下载
