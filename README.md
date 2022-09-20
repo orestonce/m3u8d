@@ -28,6 +28,8 @@
   * 支持从curl命令解析出需要的信息，正如 [cxjava/m3u8-downloader](https://github.com/cxjava/m3u8-downloader) 一样
   * 显示下载速度、合并ts的速度
   * 提供macos的图形化界面
+  * 支持下载aes加密的m3u8
+  * 多线程下载ts文件，提升下载速度
   * 支持设置代理: http/socks5
     * http代理解释: 要访问的真实url是http协议, 使用代理服务器可见的GET/POST/HEAD...形式; 如果要访问的真实url是https协议, 使用代理服务器不可见的CONNECT形式 
 ## TODO:
