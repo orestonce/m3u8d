@@ -1,6 +1,7 @@
 package m3u8d
 
 import (
+	"bytes"
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
@@ -9,7 +10,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/orestonce/gopool"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -22,6 +22,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/orestonce/gopool"
 )
 
 // TsInfo 用于保存 ts 文件的下载地址和文件名
@@ -35,6 +37,8 @@ type GetProgress_Resp struct {
 	Title     string
 	StatusBar string
 }
+
+var PNG_SIGN = []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
 
 func GetProgress() (resp GetProgress_Resp) {
 	var sleepTh int32
@@ -416,6 +420,12 @@ func (this *downloadEnv) downloadTsFile(ts TsInfo, download_dir, key string) (er
 			return err
 		}
 	}
+
+	// Detect Fake png file
+	if bytes.HasPrefix(origData, PNG_SIGN) {
+		origData = origData[8:]
+	}
+
 	// https://en.wikipedia.org/wiki/MPEG_transport_stream
 	// Some TS files do not start with SyncByte 0x47, they can not be played after merging,
 	// Need to remove the bytes before the SyncByte 0x47(71).
@@ -580,6 +590,11 @@ func (this *downloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte
 					break
 				}
 				if UrlHasSuffix(line, ".ts") {
+					containsTs = true
+					break
+				}
+				// Support fake png ts
+				if UrlHasSuffix(line, ".png") {
 					containsTs = true
 					break
 				}
