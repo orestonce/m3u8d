@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -85,6 +86,7 @@ type RunDownload_Req struct {
 	Insecure            bool   // "是否允许不安全的请求(默认为false)"
 	SaveDir             string // "文件保存路径(默认为当前路径)"
 	FileName            string // 文件名
+	RemoteName          bool   // 尝试自动获取文件名
 	SkipTsCountFromHead int    // 跳过前面几个ts
 	SetProxy            string
 	HeaderMap           map[string][]string
@@ -115,6 +117,9 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 			resp.ErrMsg = "os.Getwd error: " + err.Error()
 			return resp
 		}
+	}
+	if req.RemoteName && req.FileName == "" {
+		req.FileName = getFileName(req.M3u8Url)
 	}
 	if req.FileName == "" {
 		req.FileName = "all"
@@ -670,4 +675,16 @@ func (this *downloadEnv) GetIsCancel() bool {
 	default:
 		return false
 	}
+}
+
+func getFileName(u string) string {
+	url, err := url.Parse(u)
+	if err != nil {
+		return ""
+	}
+	name := path.Base(url.Path)
+	if strings.HasSuffix(name, ".m3u8") {
+		return name[:len(name)-5]
+	}
+	return name
 }

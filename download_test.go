@@ -100,3 +100,21 @@ func TestFull(t *testing.T) {
 		panic("state error")
 	}
 }
+
+func TestGetFileName(t *testing.T) {
+	u1 := "https://example.com/video.m3u8"
+	u2 := "https://example.com/video.m3u8?query=1"
+	u3 := "https://example.com/video-name"
+
+	if getFileName(u1) != "video" {
+		t.Fail()
+	}
+
+	if getFileName(u2) != "video" {
+		t.Fail()
+	}
+
+	if getFileName(u3) != "video-name" {
+		t.Fail()
+	}
+}
