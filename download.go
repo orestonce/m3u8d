@@ -86,7 +86,6 @@ type RunDownload_Req struct {
 	Insecure            bool   // "是否允许不安全的请求(默认为false)"
 	SaveDir             string // "文件保存路径(默认为当前路径)"
 	FileName            string // 文件名
-	RemoteName          bool   // 尝试自动获取文件名
 	SkipTsCountFromHead int    // 跳过前面几个ts
 	SetProxy            string
 	HeaderMap           map[string][]string
@@ -118,11 +117,8 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 			return resp
 		}
 	}
-	if req.RemoteName && req.FileName == "" {
-		req.FileName = GetFileNameFromUrl(req.M3u8Url)
-	}
 	if req.FileName == "" {
-		req.FileName = "all"
+		req.FileName = GetFileNameFromUrl(req.M3u8Url)
 	}
 	if req.SkipTsCountFromHead < 0 {
 		req.SkipTsCountFromHead = 0
@@ -683,6 +679,9 @@ func GetFileNameFromUrl(u string) string {
 		return "all"
 	}
 	name := path.Base(urlObj.Path)
+	if name == "" {
+		return "all"
+	}
 	ext := path.Ext(name)
 	if len(name) > len(ext) {
 		return strings.TrimSuffix(name, ext)

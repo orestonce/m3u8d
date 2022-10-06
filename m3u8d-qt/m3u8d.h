@@ -13,13 +13,12 @@ struct RunDownload_Req{
 	bool Insecure;
 	std::string SaveDir;
 	std::string FileName;
-	bool RemoteName;
 	int32_t SkipTsCountFromHead;
 	std::string SetProxy;
 	std::map<std::string, std::vector<std::string>> HeaderMap;
 	bool SkipRemoveTs;
 	bool ProgressBarShow;
-	RunDownload_Req(): Insecure(false),RemoteName(false),SkipTsCountFromHead(0),SkipRemoveTs(false),ProgressBarShow(false){}
+	RunDownload_Req(): Insecure(false),SkipTsCountFromHead(0),SkipRemoveTs(false),ProgressBarShow(false){}
 };
 struct RunDownload_Resp{
 	std::string ErrMsg;
