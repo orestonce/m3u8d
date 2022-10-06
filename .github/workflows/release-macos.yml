@@ -28,14 +28,14 @@ jobs:
       - name: set up qt-static env
         if: steps.cache-primes.outputs.cache-hit != 'true'
         run: |
-          # https://build-qt.fsu0413.me/5.15-series/5.15.4-for-macos/
+          # https://build-qt.fsu0413.me/5.15-series/5.15.6-for-macos/
           mkdir -p env/download/ && cd env/download
-          curl -L https://osdn.net/downloads/users/38/38696/Qt5.15.4-macOS-x86_64-AppleClang12.0.5-20220513.tar.xz -o Qt5.15.4-macOS-x86_64-AppleClang12.0.5-20220513.tar.xz
-          tar xf Qt5.15.4-macOS-x86_64-AppleClang12.0.5-20220513.tar.xz
+          curl -L https://osdn.net/downloads/users/39/39213/Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework-20220914.tar.xz -o Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework-20220914.tar.xz
+          tar xf Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework-20220914.tar.xz
           pwd
-          ls -al Qt5.15.4-macOS-x86_64-AppleClang12.0.5
-          chmod +x Qt5.15.4-macOS-x86_64-AppleClang12.0.5/bin/*
-          mv Qt5.15.4-macOS-x86_64-AppleClang12.0.5 ../
+          ls -al Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework
+          chmod +x Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework/bin/*
+          mv Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework ../
           cd ../../ && rm -rf env/download
       - name: Setup Go environment
         uses: actions/setup-go@v3.2.1
@@ -44,7 +44,7 @@ jobs:
           go-version: 1.18 # optional
       - name: build    
         run: |
-          export PATH=$(pwd)"/env/Qt5.15.4-macOS-x86_64-AppleClang12.0.5/bin:"${PATH}
+          export PATH=$(pwd)"/env/Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework/bin:"${PATH}
           echo $PATH
           go mod tidy && go run export/main.go "check-only"
           cd m3u8d-qt && qmake && ls -alh && make
