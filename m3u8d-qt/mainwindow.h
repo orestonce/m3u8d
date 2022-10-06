@@ -25,6 +25,8 @@ private slots:
 
     void on_pushButton_curlMode_clicked();
 
+    void on_lineEdit_M3u8Url_textChanged(const QString &arg1);
+
 private:
     Ui::MainWindow *ui;
     RunOnUiThread m_syncUi;

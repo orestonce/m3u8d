@@ -19,7 +19,7 @@ func main() {
 	if os.Getenv("GITHUB_ACTIONS") == "" { // 本地编译
 		CreateLibForQtUi("amd64-static") // 创建Qt需要使用的.a库文件
 		WriteVersionDotRc("1.5.6")
-	} else {                          // github actions 编译
+	} else { // github actions 编译
 		if runtime.GOOS == "darwin" { // 编译darwin版本的dmg
 			CreateLibForQtUi("amd64-shared")
 		} else { // 编译windows版本的exe
@@ -94,6 +94,7 @@ func CreateLibForQtUi(mode string) {
 	ctx.Generate1(m3u8d.GetWd)
 	ctx.Generate1(m3u8d.ParseCurlStr)
 	ctx.Generate1(m3u8d.RunDownload_Req_ToCurlStr)
+	ctx.Generate1(m3u8d.GetFileNameFromUrl)
 	if mode == "amd64-static" {
 		ctx.MustCreateAmd64LibraryInDir("m3u8d-qt")
 	} else if mode == "386-static" {

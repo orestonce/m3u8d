@@ -119,7 +119,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		}
 	}
 	if req.RemoteName && req.FileName == "" {
-		req.FileName = getFileName(req.M3u8Url)
+		req.FileName = GetFileNameFromUrl(req.M3u8Url)
 	}
 	if req.FileName == "" {
 		req.FileName = "all"
@@ -677,14 +677,15 @@ func (this *downloadEnv) GetIsCancel() bool {
 	}
 }
 
-func getFileName(u string) string {
-	url, err := url.Parse(u)
-	if err != nil {
-		return ""
+func GetFileNameFromUrl(u string) string {
+	urlObj, err := url.Parse(u)
+	if err != nil || urlObj.Scheme == "" {
+		return "all"
 	}
-	name := path.Base(url.Path)
-	if strings.HasSuffix(name, ".m3u8") {
-		return name[:len(name)-5]
+	name := path.Base(urlObj.Path)
+	ext := path.Ext(name)
+	if len(name) > len(ext) {
+		return strings.TrimSuffix(name, ext)
 	}
 	return name
 }

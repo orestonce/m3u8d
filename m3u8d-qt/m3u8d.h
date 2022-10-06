@@ -13,11 +13,13 @@ struct RunDownload_Req{
 	bool Insecure;
 	std::string SaveDir;
 	std::string FileName;
+	bool RemoteName;
 	int32_t SkipTsCountFromHead;
 	std::string SetProxy;
 	std::map<std::string, std::vector<std::string>> HeaderMap;
 	bool SkipRemoveTs;
-	RunDownload_Req(): Insecure(false),SkipTsCountFromHead(0),SkipRemoveTs(false){}
+	bool ProgressBarShow;
+	RunDownload_Req(): Insecure(false),RemoteName(false),SkipTsCountFromHead(0),SkipRemoveTs(false),ProgressBarShow(false){}
 };
 struct RunDownload_Resp{
 	std::string ErrMsg;
@@ -42,6 +44,7 @@ struct ParseCurl_Resp{
 };
 ParseCurl_Resp ParseCurlStr(std::string in0);
 std::string RunDownload_Req_ToCurlStr(RunDownload_Req in0);
+std::string GetFileNameFromUrl(std::string in0);
 
 #include <QObject>
 #include <QVector>

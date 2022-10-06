@@ -106,15 +106,15 @@ func TestGetFileName(t *testing.T) {
 	u2 := "https://example.com/video.m3u8?query=1"
 	u3 := "https://example.com/video-name"
 
-	if getFileName(u1) != "video" {
+	if GetFileNameFromUrl(u1) != "video" {
 		t.Fail()
 	}
 
-	if getFileName(u2) != "video" {
+	if GetFileNameFromUrl(u2) != "video" {
 		t.Fail()
 	}
 
-	if getFileName(u3) != "video-name" {
+	if GetFileNameFromUrl(u3) != "video-name" {
 		t.Fail()
 	}
 }

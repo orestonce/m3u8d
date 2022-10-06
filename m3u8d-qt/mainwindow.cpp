@@ -129,3 +129,15 @@ void MainWindow::on_pushButton_curlMode_clicked()
     ui->checkBox_Insecure->setChecked(resp.DownloadReq.Insecure);
     this->m_HeaderMap = resp.DownloadReq.HeaderMap;
 }
+
+void MainWindow::on_lineEdit_M3u8Url_textChanged(const QString &arg1)
+{
+    if (ui->lineEdit_FileName->text().isEmpty()==false) {
+        return;
+    }
+    QString fileName = QString::fromStdString(GetFileNameFromUrl(arg1.toStdString()));
+    if (fileName.isEmpty()) {
+        return;
+    }
+    ui->lineEdit_FileName->setPlaceholderText(fileName);
+}
