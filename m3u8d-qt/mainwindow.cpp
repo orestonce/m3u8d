@@ -4,6 +4,7 @@
 #include <atomic>
 #include <QFileDialog>
 #include <QIntValidator>
+#include <QMessageBox>
 #include "curldialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -57,6 +58,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     ui->lineEdit_SetProxy->setEnabled(false);
     ui->pushButton_curlMode->setEnabled(false);
     ui->checkBox_SkipRemoveTs->setEnabled(false);
+    ui->checkBox_SingleThread->setEnabled(false);
     ui->pushButton_StopDownload->setEnabled(true);
 
     RunDownload_Req req;
@@ -68,6 +70,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.SetProxy = ui->lineEdit_SetProxy->text().toStdString();
     req.HeaderMap = m_HeaderMap;
     req.SkipRemoveTs = ui->checkBox_SkipRemoveTs->isChecked();
+    req.SingleThread = ui->checkBox_SingleThread->isChecked();
 
     m_syncUi.AddRunFnOn_OtherThread([req, this](){
         RunDownload_Resp resp = RunDownload(req);
@@ -84,12 +87,13 @@ void MainWindow::on_pushButton_RunDownload_clicked()
             ui->pushButton_StopDownload->setEnabled(false);
             ui->pushButton_curlMode->setEnabled(true);
             ui->checkBox_SkipRemoveTs->setEnabled(true);
+            ui->checkBox_SingleThread->setEnabled(true);
             if (resp.IsCancel) {
                 return;
             }
 
             if (!resp.ErrMsg.empty()) {
-                Toast::Instance()->SetError(QString::fromStdString(resp.ErrMsg));
+                QMessageBox::warning(this, "下载错误", QString::fromStdString(resp.ErrMsg));
                 return;
             }
             if (resp.IsSkipped) {

@@ -18,7 +18,7 @@ func main() {
 	BuildCliBinary()                       // 编译命令行版本
 	if os.Getenv("GITHUB_ACTIONS") == "" { // 本地编译
 		CreateLibForQtUi("amd64-static") // 创建Qt需要使用的.a库文件
-		WriteVersionDotRc("1.5.6")
+		WriteVersionDotRc("1.5.20")
 	} else { // github actions 编译
 		if runtime.GOOS == "darwin" { // 编译darwin版本的dmg
 			CreateLibForQtUi("amd64-shared")

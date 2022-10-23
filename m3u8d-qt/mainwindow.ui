@@ -131,6 +131,13 @@
      </widget>
     </item>
     <item>
+     <widget class="QCheckBox" name="checkBox_SingleThread">
+      <property name="text">
+       <string>单线程下载</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Vertical</enum>

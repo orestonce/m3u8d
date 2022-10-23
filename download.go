@@ -91,6 +91,7 @@ type RunDownload_Req struct {
 	HeaderMap           map[string][]string
 	SkipRemoveTs        bool
 	ProgressBarShow     bool
+	SingleThread        bool
 }
 
 type downloadEnv struct {
@@ -200,7 +201,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	// 下载ts
 	this.SetProgressBarTitle("[4/6]下载ts")
 	this.speedSetBegin()
-	err = this.downloader(tsList, downloadDir, tsKey)
+	err = this.downloader(tsList, downloadDir, tsKey, req.SingleThread)
 	this.speedClearBytes()
 	if err != nil {
 		resp.ErrMsg = "下载ts文件错误: " + err.Error()
@@ -458,8 +459,12 @@ func (this *downloadEnv) SleepDur(d time.Duration) {
 	}
 }
 
-func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key string) (err error) {
-	task := gopool.NewThreadPool(8)
+func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key string, singleThread bool) (err error) {
+	var threadCount = 8
+	if singleThread {
+		threadCount = 1
+	}
+	task := gopool.NewThreadPool(threadCount)
 	tsLen := len(tsList)
 	downloadCount := 0
 	var locker sync.Mutex
