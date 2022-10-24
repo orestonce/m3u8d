@@ -30,8 +30,8 @@ jobs:
         if: steps.cache-primes.outputs.cache-hit != 'true'
         run: |
           mkdir download/
-          curl -L https://osdn.net/downloads/users/30/30723/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z -o download/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z
-          curl -L https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.4/threads-posix/dwarf/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z -o download/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z
+          curl -L https://github.com/orestonce/action/releases/download/qt-static5.6.3/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z -o download/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z
+          curl -L https://github.com/orestonce/action/releases/download/qt-static5.6.3/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z -o download/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z
           7z x download/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z
           7z x download/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z
           mkdir qt-static
