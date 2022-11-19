@@ -18,26 +18,13 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
       
-      - name: Cache Primes
-        id: cache-primes
-        uses: actions/cache@v3
-        with:
-          path: qt-static/
-          key: ${{ runner.os }}_qt-static
-        
       # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        if: steps.cache-primes.outputs.cache-hit != 'true'
-        run: |
-          mkdir download/
-          curl -L https://github.com/orestonce/action/releases/download/qt-static5.6.3/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z -o download/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z
-          curl -L https://github.com/orestonce/action/releases/download/qt-static5.6.3/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z -o download/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z
-          7z x download/Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104-ManualPatchSslLib.7z
-          7z x download/i686-4.9.4-release-posix-dwarf-rt_v5-rev0.7z
-          mkdir qt-static
-          move Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104 qt-static\
-          move mingw32 qt-static\
-          rm -Force -r .\download\
+      - uses: actions/checkout@v3
+      
+      - name: install qt static
+        uses: orestonce/install-qt-static@v0.4.0
+        with:
+          version: Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104
       - name: Setup Go environment
         uses: actions/setup-go@v3.2.1
         with:
@@ -45,8 +32,6 @@ jobs:
           go-version: 1.18 # optional
       - name: set env    
         run: |
-          $env:Path="$PWD\qt-static\Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104\bin;$PWD\qt-static\mingw32\bin;$env:Path"
-          qt-static\Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104\QQtPatcher.exe
           go mod tidy
           go run export/main.go
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
