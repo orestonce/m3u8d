@@ -18,8 +18,8 @@ struct RunDownload_Req{
 	std::map<std::string, std::vector<std::string>> HeaderMap;
 	bool SkipRemoveTs;
 	bool ProgressBarShow;
-	bool SingleThread;
-	RunDownload_Req(): Insecure(false),SkipTsCountFromHead(0),SkipRemoveTs(false),ProgressBarShow(false),SingleThread(false){}
+	int32_t ThreadCount;
+	RunDownload_Req(): Insecure(false),SkipTsCountFromHead(0),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0){}
 };
 struct RunDownload_Resp{
 	std::string ErrMsg;

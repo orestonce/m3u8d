@@ -91,7 +91,7 @@ type RunDownload_Req struct {
 	HeaderMap           map[string][]string
 	SkipRemoveTs        bool
 	ProgressBarShow     bool
-	SingleThread        bool
+	ThreadCount         int
 }
 
 type downloadEnv struct {
@@ -201,7 +201,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	// 下载ts
 	this.SetProgressBarTitle("[4/6]下载ts")
 	this.speedSetBegin()
-	err = this.downloader(tsList, downloadDir, tsKey, req.SingleThread)
+	err = this.downloader(tsList, downloadDir, tsKey, req.ThreadCount)
 	this.speedClearBytes()
 	if err != nil {
 		resp.ErrMsg = "下载ts文件错误: " + err.Error()
@@ -459,10 +459,9 @@ func (this *downloadEnv) SleepDur(d time.Duration) {
 	}
 }
 
-func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key string, singleThread bool) (err error) {
-	var threadCount = 8
-	if singleThread {
-		threadCount = 1
+func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key string, threadCount int) (err error) {
+	if threadCount <= 0 || threadCount > 1000 {
+		return errors.New("downloadEnv.threadCount invalid: " + strconv.Itoa(threadCount))
 	}
 	task := gopool.NewThreadPool(threadCount)
 	tsLen := len(tsList)

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>762</width>
-    <height>253</height>
+    <height>271</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,17 +17,10 @@
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_3">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
         <property name="text">
-         <string>代理设置</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>保存的文件名</string>
+         <string>m3u8的url</string>
         </property>
        </widget>
       </item>
@@ -35,6 +28,13 @@
        <widget class="QLineEdit" name="lineEdit_M3u8Url">
         <property name="text">
          <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="pushButton_curlMode">
+        <property name="text">
+         <string>curl模式</string>
         </property>
        </widget>
       </item>
@@ -73,17 +73,17 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>保存的文件名</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="1">
        <widget class="QLineEdit" name="lineEdit_FileName">
         <property name="placeholderText">
          <string>all</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="pushButton_curlMode">
-        <property name="text">
-         <string>curl模式</string>
         </property>
        </widget>
       </item>
@@ -97,10 +97,10 @@
       <item row="3" column="1">
        <widget class="QLineEdit" name="lineEdit_SkipTsCountFromHead"/>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>m3u8的url</string>
+         <string>代理设置</string>
         </property>
        </widget>
       </item>
@@ -111,6 +111,23 @@
         </property>
         <property name="placeholderText">
          <string>http://127.0.0.1:8080 socks5://127.0.0.1:1089</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>下载线程数</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLineEdit" name="lineEdit_ThreadCount">
+        <property name="text">
+         <string>8</string>
+        </property>
+        <property name="placeholderText">
+         <string>[1,1000]</string>
         </property>
        </widget>
       </item>
@@ -127,13 +144,6 @@
      <widget class="QCheckBox" name="checkBox_SkipRemoveTs">
       <property name="text">
        <string>不删除下载的ts文件</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QCheckBox" name="checkBox_SingleThread">
-      <property name="text">
-       <string>单线程下载</string>
       </property>
      </widget>
     </item>

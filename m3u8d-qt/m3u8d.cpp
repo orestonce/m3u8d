@@ -184,7 +184,14 @@ RunDownload_Resp RunDownload(RunDownload_Req in0){
 		}
 		in.append((char*)(&in0.SkipRemoveTs), 1);
 		in.append((char*)(&in0.ProgressBarShow), 1);
-		in.append((char*)(&in0.SingleThread), 1);
+		{
+			char tmp55[4];
+			tmp55[0] = (uint32_t(in0.ThreadCount) >> 24) & 0xFF;
+			tmp55[1] = (uint32_t(in0.ThreadCount) >> 16) & 0xFF;
+			tmp55[2] = (uint32_t(in0.ThreadCount) >> 8) & 0xFF;
+			tmp55[3] = (uint32_t(in0.ThreadCount) >> 0) & 0xFF;
+			in.append(tmp55, 4);
+		}
 	}
 	char *out = NULL;
 	int outLen = 0;
@@ -193,30 +200,30 @@ RunDownload_Resp RunDownload(RunDownload_Req in0){
 	int outIdx = 0;
 	{
 		{
-			uint32_t tmp55 = 0;
-			uint32_t tmp56 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp57 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp58 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp59 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp55 = tmp56 | tmp57 | tmp58 | tmp59;
+			uint32_t tmp56 = 0;
+			uint32_t tmp57 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp58 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp59 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp60 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp56 = tmp57 | tmp58 | tmp59 | tmp60;
 			outIdx+=4;
-			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp55);
-			outIdx+=tmp55;
+			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp56);
+			outIdx+=tmp56;
 		}
 		retValue.IsSkipped = (bool) out[outIdx];
 		outIdx++;
 		retValue.IsCancel = (bool) out[outIdx];
 		outIdx++;
 		{
-			uint32_t tmp60 = 0;
-			uint32_t tmp61 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp62 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp63 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp64 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp60 = tmp61 | tmp62 | tmp63 | tmp64;
+			uint32_t tmp61 = 0;
+			uint32_t tmp62 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp63 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp64 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp65 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp61 = tmp62 | tmp63 | tmp64 | tmp65;
 			outIdx+=4;
-			retValue.SaveFileTo = std::string(out+outIdx, out+outIdx+tmp60);
-			outIdx+=tmp60;
+			retValue.SaveFileTo = std::string(out+outIdx, out+outIdx+tmp61);
+			outIdx+=tmp61;
 		}
 	}
 	if (out != NULL) {
@@ -441,8 +448,14 @@ ParseCurl_Resp ParseCurlStr(std::string in0){
 			outIdx++;
 			retValue.DownloadReq.ProgressBarShow = (bool) out[outIdx];
 			outIdx++;
-			retValue.DownloadReq.SingleThread = (bool) out[outIdx];
-			outIdx++;
+			{
+				uint32_t tmp77 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+				uint32_t tmp78 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+				uint32_t tmp79 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+				uint32_t tmp80 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+				retValue.DownloadReq.ThreadCount = tmp77 | tmp78 | tmp79 | tmp80;
+				outIdx+=4;
+			}
 		}
 	}
 	if (out != NULL) {
@@ -547,7 +560,14 @@ std::string RunDownload_Req_ToCurlStr(RunDownload_Req in0){
 		}
 		in.append((char*)(&in0.SkipRemoveTs), 1);
 		in.append((char*)(&in0.ProgressBarShow), 1);
-		in.append((char*)(&in0.SingleThread), 1);
+		{
+			char tmp52[4];
+			tmp52[0] = (uint32_t(in0.ThreadCount) >> 24) & 0xFF;
+			tmp52[1] = (uint32_t(in0.ThreadCount) >> 16) & 0xFF;
+			tmp52[2] = (uint32_t(in0.ThreadCount) >> 8) & 0xFF;
+			tmp52[3] = (uint32_t(in0.ThreadCount) >> 0) & 0xFF;
+			in.append(tmp52, 4);
+		}
 	}
 	char *out = NULL;
 	int outLen = 0;
@@ -555,15 +575,15 @@ std::string RunDownload_Req_ToCurlStr(RunDownload_Req in0){
 	std::string retValue;
 	int outIdx = 0;
 	{
-		uint32_t tmp52 = 0;
-		uint32_t tmp53 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-		uint32_t tmp54 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-		uint32_t tmp55 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-		uint32_t tmp56 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-		tmp52 = tmp53 | tmp54 | tmp55 | tmp56;
+		uint32_t tmp53 = 0;
+		uint32_t tmp54 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+		uint32_t tmp55 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+		uint32_t tmp56 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+		uint32_t tmp57 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+		tmp53 = tmp54 | tmp55 | tmp56 | tmp57;
 		outIdx+=4;
-		retValue = std::string(out+outIdx, out+outIdx+tmp52);
-		outIdx+=tmp52;
+		retValue = std::string(out+outIdx, out+outIdx+tmp53);
+		outIdx+=tmp53;
 	}
 	if (out != NULL) {
 		free(out);

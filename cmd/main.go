@@ -113,7 +113,7 @@ func init() {
 	downloadCmd.Flags().IntVarP(&gRunReq.SkipTsCountFromHead, "SkipTsCountFromHead", "", 0, "跳过前面几个ts")
 	downloadCmd.Flags().StringVarP(&gRunReq.SetProxy, "SetProxy", "", "", "代理设置, http://127.0.0.1:8080 socks5://127.0.0.1:1089")
 	downloadCmd.Flags().BoolVarP(&gRunReq.SkipRemoveTs, "SkipRemoveTs", "", false, "不删除下载的ts文件")
-	downloadCmd.Flags().BoolVarP(&gRunReq.SingleThread, "SingleThread", "", false, "单线程下载")
+	downloadCmd.Flags().IntVarP(&gRunReq.ThreadCount, "ThreadCount", "", 8, "下载线程数")
 	rootCmd.AddCommand(downloadCmd)
 	curlCmd.DisableFlagParsing = true
 	rootCmd.AddCommand(curlCmd)
