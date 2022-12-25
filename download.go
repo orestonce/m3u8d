@@ -352,6 +352,9 @@ func (this *downloadEnv) getM3u8Key(m3u8Url string, html string) (key string, er
 		}
 		uriPos := strings.Index(line, "URI")
 		quotationMarkPos := strings.LastIndex(line, "\"")
+		if uriPos == -1 || quotationMarkPos == -1 {
+			continue
+		}
 		keyUrl := strings.Split(line[uriPos:quotationMarkPos], "\"")[1]
 		if !strings.Contains(line, "http") {
 			var errMsg string
