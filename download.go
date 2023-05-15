@@ -181,9 +181,9 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		}
 	}
 	// 获取m3u8地址的内容体
-	tsKey, err := this.getM3u8Key(req.M3u8Url, string(m3u8Body))
+	encInfo, err := this.getEncryptInfo(req.M3u8Url, string(m3u8Body))
 	if err != nil {
-		resp.ErrMsg = "getM3u8Key: " + err.Error()
+		resp.ErrMsg = "getEncryptInfo: " + err.Error()
 		resp.IsCancel = this.GetIsCancel()
 		return resp
 	}
@@ -201,7 +201,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	// 下载ts
 	this.SetProgressBarTitle("[4/6]下载ts")
 	this.speedSetBegin()
-	err = this.downloader(tsList, downloadDir, tsKey, req.ThreadCount)
+	err = this.downloader(tsList, downloadDir, encInfo, req.ThreadCount)
 	this.speedClearBytes()
 	if err != nil {
 		resp.ErrMsg = "下载ts文件错误: " + err.Error()
@@ -343,34 +343,31 @@ func GetWd() string {
 	return wd
 }
 
-// 获取m3u8加密的密钥
-func (this *downloadEnv) getM3u8Key(m3u8Url string, html string) (key string, err error) {
-	key = ""
-	for _, line := range splitLineWithTrimSpace(html) {
-		if strings.Contains(line, "#EXT-X-KEY") == false {
-			continue
-		}
-		uriPos := strings.Index(line, "URI")
-		quotationMarkPos := strings.LastIndex(line, "\"")
-		if uriPos == -1 || quotationMarkPos == -1 {
-			continue
-		}
-		keyUrl := strings.Split(line[uriPos:quotationMarkPos], "\"")[1]
-		if !strings.Contains(line, "http") {
-			var errMsg string
-			keyUrl, errMsg = resolveRefUrl(m3u8Url, line)
-			if errMsg != "" {
-				return "", errors.New(errMsg)
-			}
-		}
-		var res []byte
-		res, err = this.doGetRequest(keyUrl)
-		if err != nil {
-			return "", err
-		}
-		return string(res), nil
+// 获取m3u8加密的密钥, 可能存在iv
+func (this *downloadEnv) getEncryptInfo(m3u8Url string, html string) (info *EncryptInfo, err error) {
+	keyPart := M3u8Parse(html).GetPart("#EXT-X-KEY")
+	uri := keyPart.KeyValue["URI"]
+	if uri == "" {
+		return nil, nil
 	}
-	return "", nil
+	keyUrl, errMsg := resolveRefUrl(m3u8Url, uri)
+	if errMsg != "" {
+		return nil, errors.New(errMsg)
+	}
+	var res []byte
+	res, err = this.doGetRequest(keyUrl)
+	if err != nil {
+		return nil, err
+	}
+	iv, err := hex.DecodeString(strings.TrimPrefix(keyPart.KeyValue["IV"], "0x"))
+	if err != nil {
+		return nil, err
+	}
+	return &EncryptInfo{
+		Method: keyPart.KeyValue["METHOD"],
+		Key:    res,
+		Iv:     iv,
+	}, nil
 }
 
 func splitLineWithTrimSpace(s string) []string {
@@ -405,7 +402,7 @@ func getTsList(m38uUrl string, body string) (tsList []TsInfo, errMsg string) {
 
 // 下载ts文件
 // @modify: 2020-08-13 修复ts格式SyncByte合并不能播放问题
-func (this *downloadEnv) downloadTsFile(ts TsInfo, download_dir, key string) (err error) {
+func (this *downloadEnv) downloadTsFile(ts TsInfo, download_dir string, encInfo *EncryptInfo) (err error) {
 	currPath := fmt.Sprintf("%s/%s", download_dir, ts.Name)
 	if isFileExists(currPath) {
 		return nil
@@ -418,9 +415,9 @@ func (this *downloadEnv) downloadTsFile(ts TsInfo, download_dir, key string) (er
 	var origData []byte
 	origData = data
 	// 解密出视频 ts 源文件
-	if key != "" {
+	if encInfo != nil {
 		//解密 ts 文件，算法：aes 128 cbc pack5
-		origData, err = AesDecrypt(origData, []byte(key))
+		origData, err = AesDecrypt(origData, encInfo)
 		if err != nil {
 			return err
 		}
@@ -462,7 +459,7 @@ func (this *downloadEnv) SleepDur(d time.Duration) {
 	}
 }
 
-func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key string, threadCount int) (err error) {
+func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, encInfo *EncryptInfo, threadCount int) (err error) {
 	if threadCount <= 0 || threadCount > 1000 {
 		return errors.New("downloadEnv.threadCount invalid: " + strconv.Itoa(threadCount))
 	}
@@ -487,7 +484,7 @@ func (this *downloadEnv) downloader(tsList []TsInfo, downloadDir string, key str
 					this.SleepDur(time.Second * time.Duration(i))
 					atomic.AddInt32(&this.sleepTh, -1)
 				}
-				lastErr = this.downloadTsFile(ts, downloadDir, key)
+				lastErr = this.downloadTsFile(ts, downloadDir, encInfo)
 				if lastErr == nil {
 					break
 				}
@@ -549,13 +546,20 @@ func PKCS7UnPadding(origData []byte) []byte {
 	return origData[:(length - unpadding)]
 }
 
-func AesDecrypt(crypted, key []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
+func AesDecrypt(crypted []byte, encInfo *EncryptInfo) ([]byte, error) {
+	block, err := aes.NewCipher(encInfo.Key)
 	if err != nil {
 		return nil, err
 	}
 	blockSize := block.BlockSize()
-	blockMode := cipher.NewCBCDecrypter(block, key[:blockSize])
+	iv := encInfo.Iv
+	if len(iv) == 0 {
+		if len(encInfo.Key) > blockSize {
+			return nil, errors.New(fmt.Sprint("AesDecrypt invalid size ", blockSize, " ", len(encInfo.Key)))
+		}
+		iv = encInfo.Key[:blockSize]
+	}
+	blockMode := cipher.NewCBCDecrypter(block, iv)
 	origData := make([]byte, len(crypted))
 	blockMode.CryptBlocks(origData, crypted)
 	origData = PKCS7UnPadding(origData)
