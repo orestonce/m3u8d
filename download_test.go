@@ -1,6 +1,7 @@
 package m3u8d
 
 import (
+	"bytes"
 	"embed"
 	"io/fs"
 	"net/http"
@@ -50,7 +51,7 @@ func TestGetTsList(t *testing.T) {
 }
 
 func tGetTsList(m3u8Url string, m3u8Content string, expectTs0Url string) {
-	list, errMsg := getTsList(m3u8Url, m3u8Content)
+	list, errMsg := getTsList(0, m3u8Url, m3u8Content)
 	if errMsg != "" {
 		panic(errMsg)
 	}
@@ -85,9 +86,10 @@ func TestFull(t *testing.T) {
 		panic(err)
 	}
 	resp2 := RunDownload(RunDownload_Req{
-		M3u8Url:  m3u8Url,
-		SaveDir:  saveDir,
-		FileName: "all",
+		M3u8Url:     m3u8Url,
+		SaveDir:     saveDir,
+		FileName:    "all",
+		ThreadCount: 8,
 	})
 	if resp2.ErrMsg != "" {
 		panic(resp2.ErrMsg)
@@ -116,5 +118,19 @@ func TestGetFileName(t *testing.T) {
 
 	if GetFileNameFromUrl(u3) != "video-name" {
 		t.Fail()
+	}
+}
+
+func TestCloseOldEnv(t *testing.T) {
+	encInfo := EncryptInfo{
+		Method: EncryptMethod_AES128,
+		Key:    []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6},
+		Iv:     nil,
+	}
+	before := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 4}
+	after, err := AesDecrypt(1, before, &encInfo)
+	checkErr(err)
+	if bytes.Equal(after, []byte{69, 46, 52, 180, 68, 205, 99, 220, 193, 44, 116, 174, 96, 196, 199, 87, 214, 77, 67, 5, 37, 8, 139, 146, 229, 120, 164, 76, 107, 0, 204, 0}) == false {
+		panic("expect bytes failed")
 	}
 }

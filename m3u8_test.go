@@ -16,7 +16,7 @@ func TestM3u8Parse(t *testing.T) {
 #EXT-X-KEY:METHOD=AES-128,URI="/20230502/xthms/2000kb/hls/key.key"
 `)
 	part := info.GetPart("#EXT-X-KEY")
-	if part.KeyValue["METHOD"] != "AES-128" {
+	if part.KeyValue["METHOD"] != EncryptMethod_AES128 {
 		panic("method")
 	}
 	if part.KeyValue["URI"] != "/20230502/xthms/2000kb/hls/key.key" {
@@ -47,4 +47,24 @@ func checkErr(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func TestM3u8Parse2(t *testing.T) {
+	seq1 := parseBeginSeq([]byte(`#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:6
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXT-X-MEDIA-SEQUENCE:0`))
+	if seq1 != 0 {
+		panic(seq1)
+	}
+	seq2 := parseBeginSeq([]byte(`#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:6
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXT-X-MEDIA-SEQUENCE:2`))
+	if seq2 != 2 {
+		panic(seq2)
+	}
+
 }

@@ -7,6 +7,7 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"crypto/tls"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -31,6 +32,7 @@ import (
 type TsInfo struct {
 	Name string
 	Url  string
+	Seq  uint64 // 如果是aes加密并且没有iv, 这个seq需要充当iv
 }
 
 type GetProgress_Resp struct {
@@ -180,6 +182,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 			return resp
 		}
 	}
+	beginSeq := parseBeginSeq(m3u8Body)
 	// 获取m3u8地址的内容体
 	encInfo, err := this.getEncryptInfo(req.M3u8Url, string(m3u8Body))
 	if err != nil {
@@ -188,7 +191,7 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 		return resp
 	}
 	this.SetProgressBarTitle("[3/6]获取ts列表")
-	tsList, errMsg := getTsList(req.M3u8Url, string(m3u8Body))
+	tsList, errMsg := getTsList(beginSeq, req.M3u8Url, string(m3u8Body))
 	if errMsg != "" {
 		resp.ErrMsg = "获取ts列表错误: " + errMsg
 		return resp
@@ -278,6 +281,16 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 	return resp
 }
 
+func parseBeginSeq(body []byte) uint64 {
+	data := M3u8Parse(string(body))
+	seq := data.GetPart(`#EXT-X-MEDIA-SEQUENCE`).TextFull
+	u, err := strconv.ParseUint(seq, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return u
+}
+
 var gOldEnv *downloadEnv
 var gOldEnvLocker sync.Mutex
 
@@ -350,6 +363,10 @@ func (this *downloadEnv) getEncryptInfo(m3u8Url string, html string) (info *Encr
 	if uri == "" {
 		return nil, nil
 	}
+	method := keyPart.KeyValue["METHOD"]
+	if method == EncryptMethod_NONE {
+		return nil, nil
+	}
 	keyUrl, errMsg := resolveRefUrl(m3u8Url, uri)
 	if errMsg != "" {
 		return nil, errors.New(errMsg)
@@ -359,12 +376,19 @@ func (this *downloadEnv) getEncryptInfo(m3u8Url string, html string) (info *Encr
 	if err != nil {
 		return nil, err
 	}
-	iv, err := hex.DecodeString(strings.TrimPrefix(keyPart.KeyValue["IV"], "0x"))
-	if err != nil {
-		return nil, err
+	if method == EncryptMethod_AES128 && len(res) != 16 { // Aes 128
+		return nil, errors.New("getEncryptInfo invalid key " + strconv.Quote(string(res)))
+	}
+	var iv []byte
+	ivs := keyPart.KeyValue["IV"]
+	if ivs != "" {
+		iv, err = hex.DecodeString(strings.TrimPrefix(ivs, "0x"))
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &EncryptInfo{
-		Method: keyPart.KeyValue["METHOD"],
+		Method: method,
 		Key:    res,
 		Iv:     iv,
 	}, nil
@@ -379,7 +403,7 @@ func splitLineWithTrimSpace(s string) []string {
 	return tmp
 }
 
-func getTsList(m38uUrl string, body string) (tsList []TsInfo, errMsg string) {
+func getTsList(beginSeq uint64, m38uUrl string, body string) (tsList []TsInfo, errMsg string) {
 	index := 0
 
 	for _, line := range splitLineWithTrimSpace(body) {
@@ -394,6 +418,7 @@ func getTsList(m38uUrl string, body string) (tsList []TsInfo, errMsg string) {
 			tsList = append(tsList, TsInfo{
 				Name: fmt.Sprintf("%05d.ts", index), // ts视频片段命名规则
 				Url:  after,
+				Seq:  beginSeq + uint64(index-1),
 			})
 		}
 	}
@@ -417,7 +442,7 @@ func (this *downloadEnv) downloadTsFile(ts TsInfo, download_dir string, encInfo 
 	// 解密出视频 ts 源文件
 	if encInfo != nil {
 		//解密 ts 文件，算法：aes 128 cbc pack5
-		origData, err = AesDecrypt(origData, encInfo)
+		origData, err = AesDecrypt(ts.Seq, origData, encInfo)
 		if err != nil {
 			return err
 		}
@@ -540,30 +565,29 @@ func isDirExists(path string) bool {
 
 // ============================== 加解密相关 ==============================
 
-func PKCS7UnPadding(origData []byte) []byte {
-	length := len(origData)
-	unpadding := int(origData[length-1])
-	return origData[:(length - unpadding)]
-}
-
-func AesDecrypt(crypted []byte, encInfo *EncryptInfo) ([]byte, error) {
+func AesDecrypt(seq uint64, crypted []byte, encInfo *EncryptInfo) ([]byte, error) {
 	block, err := aes.NewCipher(encInfo.Key)
 	if err != nil {
 		return nil, err
 	}
-	blockSize := block.BlockSize()
 	iv := encInfo.Iv
 	if len(iv) == 0 {
-		if len(encInfo.Key) > blockSize {
-			return nil, errors.New(fmt.Sprint("AesDecrypt invalid size ", blockSize, " ", len(encInfo.Key)))
+		if encInfo.Method == EncryptMethod_AES128 {
+			iv = make([]byte, 16)
+			binary.BigEndian.PutUint64(iv[8:], seq)
+		} else {
+			return nil, errors.New("AesDecrypt method not support " + strconv.Quote(encInfo.Method))
 		}
-		iv = encInfo.Key[:blockSize]
 	}
 	blockMode := cipher.NewCBCDecrypter(block, iv)
 	origData := make([]byte, len(crypted))
 	blockMode.CryptBlocks(origData, crypted)
-	origData = PKCS7UnPadding(origData)
-	return origData, nil
+	length := len(origData)
+	unpadding := int(origData[length-1])
+	if length-unpadding < 0 {
+		return nil, fmt.Errorf(`invalid length of unpadding %v - %v`, length, unpadding)
+	}
+	return origData[:(length - unpadding)], nil
 }
 
 func getFileSha256(targetFile string) (v string) {

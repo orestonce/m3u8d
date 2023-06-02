@@ -11,9 +11,15 @@ type EncryptInfo struct {
 	Iv     []byte
 }
 
+// https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.4
+const (
+	EncryptMethod_NONE       = `NONE`
+	EncryptMethod_AES128     = `AES-128`
+	EncryptMethod_SIMPLE_AES = `SAMPLE-AES` // TODO
+)
+
 type M3u8Content struct {
 	PartList []M3u8Part `json:",omitempty"`
-	TsList   []string   `json:",omitempty"`
 }
 
 type M3u8Part struct {
