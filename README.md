@@ -19,6 +19,11 @@
     * 将M3u8Url+SkipTsCountFromHead进行hash, 得到文件下载id
     * 将文件下载id/文件大小/文件内容hash 储存在 m3u8_cache.cdb里面, 下载前搜索下载目录
     如果发现某个文件大小/文件内容hash和以前的记录相等,则认为这个文件是以前下载的文件, 跳过此次下载.
+* **curl模式** 可以赋予使用者任意设置下载请求的Header信息的能力，方便解决只有一个m3u8的链接时无法下载视频的尴尬局面
+  * 例子1, 你需要下载的视频是要登陆后观看的，Cookie信息里存放了登陆状态
+  * 例子2, 网站开发者验证了Referer信息、Authority信息、Origin信息、User-Agent信息、各种特定的Header信息
+  * 以windows下的chrome为例，找到对应的m3u8请求记录，然后右键选择 "Copy - Copy as cURL(bash)", 
+    然后打开 windows-qt版本的 m3u8d, 点击 "curl 模式"，将复制出来的请求粘贴上去即可
 * 已有功能列表
   * 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
   * windows、linux、mac都支持转换、合并ts格式为mp4
