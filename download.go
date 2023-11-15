@@ -182,6 +182,16 @@ func (this *downloadEnv) RunDownload(req RunDownload_Req) (resp RunDownload_Resp
 			return resp
 		}
 	}
+
+	downloadingFilePath := filepath.Join(downloadDir, "downloading.txt")
+	if !isFileExists(downloadingFilePath) {
+		err = ioutil.WriteFile(downloadingFilePath, []byte(req.M3u8Url), 0666)
+		if err != nil {
+			resp.ErrMsg = "os.WriteUrl error: " + err.Error()
+			return resp
+		}
+	}
+
 	beginSeq := parseBeginSeq(m3u8Body)
 	// 获取m3u8地址的内容体
 	encInfo, err := this.getEncryptInfo(req.M3u8Url, string(m3u8Body))

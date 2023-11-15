@@ -20,12 +20,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lineEdit_SkipTsCountFromHead->setPlaceholderText("[0,9999]");
     ui->lineEdit_SaveDir->setPlaceholderText(QString::fromStdString(GetWd()));
     m_syncUi.AddRunFnOn_OtherThread([this](){
-        while(true)
+        while(!this->m_syncUi.Get_Done())
         {
             QThread::msleep(50);
-            if (this->m_syncUi.Get_Done()) {
-                break;
-            }
             m_syncUi.AddRunFnOn_UiThread([this](){
                 GetProgress_Resp resp = GetProgress();
                 ui->progressBar->setValue(resp.Percent);
