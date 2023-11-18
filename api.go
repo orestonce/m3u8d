@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 )
 
 var gMergeStatus SpeedStatus
@@ -19,13 +18,25 @@ type MergeTsDir_Resp struct {
 	IsCancel bool
 }
 
-var gMergeIsRunning atomic.Bool
+var gMergeIsRunning bool
+var gMergeIsRunningLocker sync.Mutex
 
 func MergeTsDir(InputTsDir string, OutputMp4Name string) (resp MergeTsDir_Resp) {
-	if !gMergeIsRunning.CompareAndSwap(false, true) {
-		return resp
+	{
+		gMergeIsRunningLocker.Lock()
+		defer gMergeIsRunningLocker.Unlock()
+
+		if gMergeIsRunning != false {
+			return resp
+		}
+		gMergeIsRunning = true
 	}
-	defer gMergeIsRunning.Store(false)
+
+	defer func() {
+		gMergeIsRunningLocker.Lock()
+		gMergeIsRunning = false
+		gMergeIsRunningLocker.Unlock()
+	}()
 
 	fList, err := ioutil.ReadDir(InputTsDir)
 	if err != nil {
