@@ -88,7 +88,9 @@ type MergeGetProgressPercent_Resp struct {
 }
 
 func MergeGetProgressPercent() (resp MergeGetProgressPercent_Resp) {
-	resp.IsRunning = gMergeIsRunning.Load()
+	gMergeIsRunningLocker.Lock()
+	resp.IsRunning = gMergeIsRunning
+	gMergeIsRunningLocker.Unlock()
 	if resp.IsRunning {
 		resp.Percent = gMergeStatus.GetPercent()
 		resp.SpeedText = gMergeStatus.SpeedRecent5sGetAndUpdate()
