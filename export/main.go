@@ -95,6 +95,9 @@ func CreateLibForQtUi(mode string) {
 	ctx.Generate1(m3u8d.ParseCurlStr)
 	ctx.Generate1(m3u8d.RunDownload_Req_ToCurlStr)
 	ctx.Generate1(m3u8d.GetFileNameFromUrl)
+	ctx.Generate1(m3u8d.MergeTsDir)
+	ctx.Generate1(m3u8d.MergeStop)
+	ctx.Generate1(m3u8d.MergeGetProgressPercent)
 	if mode == "amd64-static" {
 		ctx.MustCreateAmd64LibraryInDir("m3u8d-qt")
 	} else if mode == "386-static" {

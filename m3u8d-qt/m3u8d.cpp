@@ -82,6 +82,9 @@ extern __declspec(dllexport) void Go2cppFn_GetWd(char* in, int inLen, char** out
 extern __declspec(dllexport) void Go2cppFn_ParseCurlStr(char* in, int inLen, char** out, int* outLen);
 extern __declspec(dllexport) void Go2cppFn_RunDownload_Req_ToCurlStr(char* in, int inLen, char** out, int* outLen);
 extern __declspec(dllexport) void Go2cppFn_GetFileNameFromUrl(char* in, int inLen, char** out, int* outLen);
+extern __declspec(dllexport) void Go2cppFn_MergeTsDir(char* in, int inLen, char** out, int* outLen);
+extern __declspec(dllexport) void Go2cppFn_MergeStop(char* in, int inLen, char** out, int* outLen);
+extern __declspec(dllexport) void Go2cppFn_MergeGetProgressPercent(char* in, int inLen, char** out, int* outLen);
 
 #ifdef __cplusplus
 }
@@ -618,6 +621,100 @@ std::string GetFileNameFromUrl(std::string in0){
 		outIdx+=4;
 		retValue = std::string(out+outIdx, out+outIdx+tmp7);
 		outIdx+=tmp7;
+	}
+	if (out != NULL) {
+		free(out);
+	}
+	return retValue;
+}
+
+MergeTsDir_Resp MergeTsDir(std::string in0, std::string in1){
+	std::string in;
+	{
+		uint32_t tmp9 = in0.length();
+		char tmp10[4];
+		tmp10[0] = (uint32_t(tmp9) >> 24) & 0xFF;
+		tmp10[1] = (uint32_t(tmp9) >> 16) & 0xFF;
+		tmp10[2] = (uint32_t(tmp9) >> 8) & 0xFF;
+		tmp10[3] = (uint32_t(tmp9) >> 0) & 0xFF;
+		in.append(tmp10, 4);
+		in.append(in0);
+	}
+	{
+		uint32_t tmp11 = in1.length();
+		char tmp12[4];
+		tmp12[0] = (uint32_t(tmp11) >> 24) & 0xFF;
+		tmp12[1] = (uint32_t(tmp11) >> 16) & 0xFF;
+		tmp12[2] = (uint32_t(tmp11) >> 8) & 0xFF;
+		tmp12[3] = (uint32_t(tmp11) >> 0) & 0xFF;
+		in.append(tmp12, 4);
+		in.append(in1);
+	}
+	char *out = NULL;
+	int outLen = 0;
+	Go2cppFn_MergeTsDir((char *)in.data(), in.length(), &out, &outLen);
+	MergeTsDir_Resp retValue;
+	int outIdx = 0;
+	{
+		{
+			uint32_t tmp13 = 0;
+			uint32_t tmp14 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp15 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp16 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp13 = tmp14 | tmp15 | tmp16 | tmp17;
+			outIdx+=4;
+			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp13);
+			outIdx+=tmp13;
+		}
+		retValue.IsCancel = (bool) out[outIdx];
+		outIdx++;
+	}
+	if (out != NULL) {
+		free(out);
+	}
+	return retValue;
+}
+
+void MergeStop(){
+	std::string in;
+	char *out = NULL;
+	int outLen = 0;
+	Go2cppFn_MergeStop((char *)in.data(), in.length(), &out, &outLen);
+	if (out != NULL) {
+		free(out);
+	}
+}
+
+MergeGetProgressPercent_Resp MergeGetProgressPercent(){
+	std::string in;
+	char *out = NULL;
+	int outLen = 0;
+	Go2cppFn_MergeGetProgressPercent((char *)in.data(), in.length(), &out, &outLen);
+	MergeGetProgressPercent_Resp retValue;
+	int outIdx = 0;
+	{
+		{
+			uint32_t tmp4 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp5 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp6 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp7 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			retValue.Percent = tmp4 | tmp5 | tmp6 | tmp7;
+			outIdx+=4;
+		}
+		{
+			uint32_t tmp8 = 0;
+			uint32_t tmp9 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp10 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp11 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp12 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp8 = tmp9 | tmp10 | tmp11 | tmp12;
+			outIdx+=4;
+			retValue.SpeedText = std::string(out+outIdx, out+outIdx+tmp8);
+			outIdx+=tmp8;
+		}
+		retValue.IsRunning = (bool) out[outIdx];
+		outIdx++;
 	}
 	if (out != NULL) {
 		free(out);

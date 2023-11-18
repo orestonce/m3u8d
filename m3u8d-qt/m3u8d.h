@@ -45,6 +45,20 @@ struct ParseCurl_Resp{
 ParseCurl_Resp ParseCurlStr(std::string in0);
 std::string RunDownload_Req_ToCurlStr(RunDownload_Req in0);
 std::string GetFileNameFromUrl(std::string in0);
+struct MergeTsDir_Resp{
+	std::string ErrMsg;
+	bool IsCancel;
+	MergeTsDir_Resp(): IsCancel(false){}
+};
+MergeTsDir_Resp MergeTsDir(std::string in0, std::string in1);
+void MergeStop();
+struct MergeGetProgressPercent_Resp{
+	int32_t Percent;
+	std::string SpeedText;
+	bool IsRunning;
+	MergeGetProgressPercent_Resp(): Percent(0),IsRunning(false){}
+};
+MergeGetProgressPercent_Resp MergeGetProgressPercent();
 
 #include <QObject>
 #include <QVector>

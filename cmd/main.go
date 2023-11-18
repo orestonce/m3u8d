@@ -96,6 +96,7 @@ var mergeCmd = &cobra.Command{
 			TsFileList: tsFileList,
 			OutputMp4:  gMergeReq.OutputMp4Name,
 			Ctx:        context.Background(),
+			Status:     nil,
 		})
 		if err != nil {
 			log.Fatalln("合并失败", err)

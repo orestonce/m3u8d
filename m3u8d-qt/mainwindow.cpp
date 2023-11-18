@@ -5,6 +5,9 @@
 #include <QFileDialog>
 #include <QIntValidator>
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QTimer>
+#include <QDebug>
 #include "curldialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -19,22 +22,33 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lineEdit_SkipTsCountFromHead->setValidator(vd);
     ui->lineEdit_SkipTsCountFromHead->setPlaceholderText("[0,9999]");
     ui->lineEdit_SaveDir->setPlaceholderText(QString::fromStdString(GetWd()));
-    m_syncUi.AddRunFnOn_OtherThread([this](){
-        while(!this->m_syncUi.Get_Done())
+    m_timer = new QTimer(this);
+    connect(m_timer, &QTimer::timeout, [this](){
+        //更新ui1
         {
-            QThread::msleep(50);
-            m_syncUi.AddRunFnOn_UiThread([this](){
-                GetProgress_Resp resp = GetProgress();
-                ui->progressBar->setValue(resp.Percent);
-                ui->label_progressBar->setText(QString::fromStdString(resp.Title));
+            GetProgress_Resp resp = GetProgress();
+            ui->progressBar->setValue(resp.Percent);
+            ui->label_progressBar->setText(QString::fromStdString(resp.Title));
+            if(!resp.StatusBar.empty())
                 ui->statusBar->showMessage(QString::fromStdString(resp.StatusBar), 5*1000);
-            });
+        }
+
+        //更新ui2
+        {
+            auto resp = MergeGetProgressPercent();
+            ui->progressBar_merge->setValue(resp.Percent);
+            if(!resp.SpeedText.empty())
+                ui->statusBar->showMessage(QString::fromStdString(resp.SpeedText), 5*1000);
         }
     });
+    m_timer->start(50);
+    this->updateDownloadUi(false);
+    this->updateMergeUi(false);
 }
 
 MainWindow::~MainWindow()
 {
+    m_timer->stop();
     CloseOldEnv();
     delete ui;
 }
@@ -44,19 +58,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     if (ui->lineEdit_M3u8Url->isEnabled()==false) {
         return;
     }
-    ui->lineEdit_M3u8Url->setEnabled(false);
-    ui->lineEdit_SaveDir->setEnabled(false);
-    ui->pushButton_SaveDir->setEnabled(false);
-    ui->lineEdit_FileName->setEnabled(false);
-    ui->lineEdit_SkipTsCountFromHead->setEnabled(false);
-    ui->pushButton_RunDownload->setEnabled(false);
-    ui->checkBox_Insecure->setEnabled(false);
-    ui->progressBar->setValue(0);
-    ui->lineEdit_SetProxy->setEnabled(false);
-    ui->pushButton_curlMode->setEnabled(false);
-    ui->checkBox_SkipRemoveTs->setEnabled(false);
-    ui->lineEdit_ThreadCount->setEnabled(false);
-    ui->pushButton_StopDownload->setEnabled(true);
+    updateDownloadUi(true);
 
     RunDownload_Req req;
     req.M3u8Url = ui->lineEdit_M3u8Url->text().toStdString();
@@ -72,19 +74,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     m_syncUi.AddRunFnOn_OtherThread([req, this](){
         RunDownload_Resp resp = RunDownload(req);
         m_syncUi.AddRunFnOn_UiThread([req, this, resp](){
-            ui->lineEdit_M3u8Url->setEnabled(true);
-            ui->lineEdit_SaveDir->setEnabled(true);
-            ui->pushButton_SaveDir->setEnabled(true);
-            ui->lineEdit_FileName->setEnabled(true);
-            ui->lineEdit_SkipTsCountFromHead->setEnabled(true);
-            ui->pushButton_RunDownload->setEnabled(true);
-            ui->checkBox_Insecure->setEnabled(true);
-            ui->pushButton_RunDownload->setText("开始下载");
-            ui->lineEdit_SetProxy->setEnabled(true);
-            ui->pushButton_StopDownload->setEnabled(false);
-            ui->pushButton_curlMode->setEnabled(true);
-            ui->checkBox_SkipRemoveTs->setEnabled(true);
-            ui->lineEdit_ThreadCount->setEnabled(true);
+            this->updateDownloadUi(false);
             if (resp.IsCancel) {
                 return;
             }
@@ -141,4 +131,81 @@ void MainWindow::on_lineEdit_M3u8Url_textChanged(const QString &arg1)
         return;
     }
     ui->lineEdit_FileName->setPlaceholderText(fileName);
+}
+
+void MainWindow::on_pushButton_returnDownload_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+}
+
+void MainWindow::on_pushButton_gotoMergeTs_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(1);
+}
+
+void MainWindow::on_pushButton_startMerge_clicked()
+{
+    QString fileName = ui->lineEdit_mergeFileName->text();
+    if(fileName.isEmpty())
+        fileName = ui->lineEdit_mergeFileName->placeholderText();
+    QString dir = ui->lineEdit_mergeDir->text();
+
+    this->updateMergeUi(true);
+
+    m_syncUi.AddRunFnOn_OtherThread([=](){
+        auto resp = MergeTsDir(dir.toStdString(), fileName.toStdString());
+
+        m_syncUi.AddRunFnOn_UiThread([=](){
+            this->updateMergeUi(false);
+            if(resp.ErrMsg.empty())
+                Toast::Instance()->SetSuccess("合并成功!");
+            else if(!resp.IsCancel)
+                QMessageBox::warning(this, "下载错误", QString::fromStdString(resp.ErrMsg));
+        });
+    });
+}
+
+void MainWindow::on_pushButton_stopMerge_clicked()
+{
+    MergeStop();
+}
+
+void MainWindow::on_toolButton_selectMergeDir_clicked()
+{
+    QString dir = QFileDialog::getExistingDirectory(this);
+    if(dir.isEmpty())
+        return;
+    ui->lineEdit_mergeDir->setText(dir);
+}
+
+void MainWindow::updateDownloadUi(bool runing)
+{
+    ui->lineEdit_M3u8Url->setEnabled(!runing);
+    ui->lineEdit_SaveDir->setEnabled(!runing);
+    ui->pushButton_SaveDir->setEnabled(!runing);
+    ui->lineEdit_FileName->setEnabled(!runing);
+    ui->lineEdit_SkipTsCountFromHead->setEnabled(!runing);
+    ui->pushButton_RunDownload->setEnabled(!runing);
+    ui->checkBox_Insecure->setEnabled(!runing);
+    if(runing == false)
+        ui->pushButton_RunDownload->setText("开始下载");
+    ui->lineEdit_SetProxy->setEnabled(!runing);
+    ui->pushButton_StopDownload->setEnabled(runing);
+    ui->pushButton_curlMode->setEnabled(!runing);
+    ui->checkBox_SkipRemoveTs->setEnabled(!runing);
+    ui->lineEdit_ThreadCount->setEnabled(!runing);
+
+    if(runing == false)
+        ui->progressBar->setValue(0);
+
+    ui->pushButton_gotoMergeTs->setEnabled(!runing);
+}
+
+void MainWindow::updateMergeUi(bool runing)
+{
+    ui->lineEdit_mergeDir->setEnabled(!runing);
+    ui->toolButton_selectMergeDir->setEnabled(!runing);
+    ui->pushButton_stopMerge->setEnabled(runing);
+    ui->lineEdit_mergeFileName->setEnabled(!runing);
+    ui->pushButton_returnDownload->setEnabled(!runing);
 }

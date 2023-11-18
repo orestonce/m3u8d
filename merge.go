@@ -15,6 +15,7 @@ import (
 type MergeTsFileListToSingleMp4_Req struct {
 	TsFileList []string
 	OutputMp4  string
+	Status     *SpeedStatus
 	Ctx        context.Context
 }
 
@@ -24,6 +25,10 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 		return err
 	}
 	defer mp4file.Close()
+
+	if req.Status != nil {
+		req.Status.SpeedResetBytes()
+	}
 
 	muxer, err := mp4.CreateMp4Muxer(mp4file)
 	if err != nil {
@@ -67,8 +72,6 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 		}
 	}
 
-	env := getOldEnv()
-
 	for idx, tsFile := range req.TsFileList {
 		select {
 		case <-req.Ctx.Done():
@@ -87,9 +90,9 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 		if OnFrameErr != nil {
 			return OnFrameErr
 		}
-		if env != nil {
-			env.DrawProgressBar(len(req.TsFileList), idx)
-			env.speedAddBytes(len(buf))
+		if req.Status != nil {
+			req.Status.DrawProgressBar(len(req.TsFileList), idx)
+			req.Status.SpeedAddBytes(len(buf))
 		}
 	}
 
@@ -101,8 +104,8 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 	if err != nil {
 		return err
 	}
-	if env != nil {
-		env.DrawProgressBar(1, 1)
+	if req.Status != nil {
+		req.Status.DrawProgressBar(1, 1)
 	}
 	return nil
 }

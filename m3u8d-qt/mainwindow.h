@@ -27,9 +27,22 @@ private slots:
 
     void on_lineEdit_M3u8Url_textChanged(const QString &arg1);
 
+    void on_pushButton_returnDownload_clicked();
+
+    void on_pushButton_gotoMergeTs_clicked();
+
+    void on_pushButton_startMerge_clicked();
+
+    void on_pushButton_stopMerge_clicked();
+
+    void on_toolButton_selectMergeDir_clicked();
+private:
+    void updateDownloadUi(bool runing);
+    void updateMergeUi(bool runing);
 private:
     Ui::MainWindow *ui;
     RunOnUiThread m_syncUi;
+    QTimer *m_timer = nullptr;
     std::map<std::string, std::vector<std::string>> m_HeaderMap;
 };
 
