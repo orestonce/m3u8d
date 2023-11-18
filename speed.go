@@ -62,7 +62,7 @@ func (this *SpeedStatus) SpeedRecent5sGetAndUpdate() string {
 
 	now := time.Now()
 	if this.speedBeginTime.IsZero() || now.Sub(this.speedBeginTime) < time.Second { // 1s以内, 暂时不计算速度
-		return "x1 " + strconv.FormatBool(this.speedBeginTime.IsZero()) + " " + strconv.FormatBool(now.Sub(this.speedBeginTime) < time.Second)
+		return strconv.FormatBool(this.speedBeginTime.IsZero()) + " " + strconv.FormatBool(now.Sub(this.speedBeginTime) < time.Second)
 	}
 
 	const secondCount = 5
