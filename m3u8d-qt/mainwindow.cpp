@@ -206,6 +206,7 @@ void MainWindow::updateMergeUi(bool runing)
     ui->lineEdit_mergeDir->setEnabled(!runing);
     ui->toolButton_selectMergeDir->setEnabled(!runing);
     ui->pushButton_stopMerge->setEnabled(runing);
+    ui->pushButton_startMerge->setEnabled(!runing);
     ui->lineEdit_mergeFileName->setEnabled(!runing);
     ui->pushButton_returnDownload->setEnabled(!runing);
 }

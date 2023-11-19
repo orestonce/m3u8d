@@ -61,6 +61,8 @@ func MergeTsDir(InputTsDir string, OutputMp4Name string) (resp MergeTsDir_Resp) 
 	sort.Strings(tsFileList) // 按照字典顺序排序
 	if OutputMp4Name == "" {
 		OutputMp4Name = filepath.Join(InputTsDir, "all.mp4")
+	} else if !filepath.IsAbs(OutputMp4Name) {
+		OutputMp4Name = filepath.Join(InputTsDir, OutputMp4Name)
 	}
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
