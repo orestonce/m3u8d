@@ -21,15 +21,20 @@ type MergeTsDir_Resp struct {
 var gMergeIsRunning bool
 var gMergeIsRunningLocker sync.Mutex
 
-func MergeTsDir(InputTsDir string, OutputMp4Name string) (resp MergeTsDir_Resp) {
-	{
-		gMergeIsRunningLocker.Lock()
-		defer gMergeIsRunningLocker.Unlock()
+func beginMerge() bool {
+	gMergeIsRunningLocker.Lock()
+	defer gMergeIsRunningLocker.Unlock()
 
-		if gMergeIsRunning != false {
-			return resp
-		}
-		gMergeIsRunning = true
+	if gMergeIsRunning != false {
+		return false
+	}
+	gMergeIsRunning = true
+	return true
+}
+
+func MergeTsDir(InputTsDir string, OutputMp4Name string) (resp MergeTsDir_Resp) {
+	if !beginMerge() {
+		return resp
 	}
 
 	defer func() {
