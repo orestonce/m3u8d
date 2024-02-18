@@ -1,4 +1,4 @@
-module m3u8d
+module github.com/orestonce/m3u8d
 
 go 1.17
 

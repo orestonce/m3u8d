@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/orestonce/m3u8d"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
-	"m3u8d"
 	"os"
 	"path/filepath"
 	"sort"

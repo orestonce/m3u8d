@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/orestonce/go2cpp"
+	"github.com/orestonce/m3u8d"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"io/ioutil"
-	"m3u8d"
 	"os"
 	"os/exec"
 	"path/filepath"
