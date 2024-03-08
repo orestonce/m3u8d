@@ -72,7 +72,10 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 		}
 	}
 
-	for idx, tsFile := range req.TsFileList {
+	if req.Status != nil {
+		req.Status.ResetTotalBlockCount(len(req.TsFileList))
+	}
+	for _, tsFile := range req.TsFileList {
 		select {
 		case <-req.Ctx.Done():
 			return req.Ctx.Err()
@@ -91,8 +94,7 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 			return OnFrameErr
 		}
 		if req.Status != nil {
-			req.Status.DrawProgressBar(len(req.TsFileList), idx)
-			req.Status.SpeedAddBytes(len(buf))
+			req.Status.SpeedAdd1Block(len(buf))
 		}
 	}
 

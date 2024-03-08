@@ -10,7 +10,7 @@ import (
 
 type ParseCurl_Resp struct {
 	ErrMsg      string
-	DownloadReq RunDownload_Req
+	DownloadReq StartDownload_Req
 }
 
 func ParseCurlStr(s string) (resp ParseCurl_Resp) {
@@ -128,7 +128,7 @@ func ParseCurl(cmdList []string) (resp ParseCurl_Resp) {
 	return resp
 }
 
-func RunDownload_Req_ToCurlStr(req RunDownload_Req) string {
+func RunDownload_Req_ToCurlStr(req StartDownload_Req) string {
 	if req.M3u8Url == "" {
 		return ""
 	}

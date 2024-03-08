@@ -85,14 +85,19 @@ func TestFull(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	resp2 := RunDownload(RunDownload_Req{
+	var instance DownloadEnv
+	errMsg := instance.StartDownload(StartDownload_Req{
 		M3u8Url:     m3u8Url,
 		SaveDir:     saveDir,
 		FileName:    "all",
 		ThreadCount: 8,
 	})
-	if resp2.ErrMsg != "" {
-		panic(resp2.ErrMsg)
+	if errMsg != "" {
+		panic(errMsg)
+	}
+	status := instance.WaitDownloadFinish()
+	if status.ErrMsg != "" {
+		panic(status.ErrMsg)
 	}
 	fState, err := os.Stat(filepath.Join(saveDir, "all.mp4"))
 	if err != nil {

@@ -8,6 +8,9 @@
 #include <QFileDialog>
 #include <QTimer>
 #include <QDebug>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QCloseEvent>
 #include "curldialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -18,19 +21,20 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     QIntValidator* vd = new QIntValidator(this);
-    vd->setRange(0, 9999);
+    vd->setRange(0, 99999);
     ui->lineEdit_SkipTsCountFromHead->setValidator(vd);
-    ui->lineEdit_SkipTsCountFromHead->setPlaceholderText("[0,9999]");
+    ui->lineEdit_SkipTsCountFromHead->setPlaceholderText("[0,99999]");
     ui->lineEdit_SaveDir->setPlaceholderText(QString::fromStdString(GetWd()));
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, [this](){
         //更新ui1
         {
-            GetProgress_Resp resp = GetProgress();
+            GetStatus_Resp resp = GetStatus();
             ui->progressBar->setValue(resp.Percent);
             ui->label_progressBar->setText(QString::fromStdString(resp.Title));
             if(!resp.StatusBar.empty())
                 ui->statusBar->showMessage(QString::fromStdString(resp.StatusBar), 5*1000);
+            updateDownloadUi(resp.IsDownloading);
         }
 
         //更新ui2
@@ -44,12 +48,22 @@ MainWindow::MainWindow(QWidget *parent) :
     m_timer->start(50);
     this->updateDownloadUi(false);
     this->updateMergeUi(false);
+
+    m_saveConfigTimer = new QTimer(this);
+    m_saveConfigTimer->start(3000);
+    connect(m_saveConfigTimer, &QTimer::timeout, [this](){
+        saveUiConfig();
+    });
+
+    loadUiConfig();
 }
 
 MainWindow::~MainWindow()
 {
     m_timer->stop();
+    m_saveConfigTimer->stop();
     CloseOldEnv();
+    saveUiConfig();
     delete ui;
 }
 
@@ -58,9 +72,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     if (ui->lineEdit_M3u8Url->isEnabled()==false) {
         return;
     }
-    updateDownloadUi(true);
-
-    RunDownload_Req req;
+    StartDownload_Req req;
     req.M3u8Url = ui->lineEdit_M3u8Url->text().toStdString();
     req.Insecure = ui->checkBox_Insecure->isChecked();
     req.SaveDir = ui->lineEdit_SaveDir->text().toStdString();
@@ -70,11 +82,15 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.HeaderMap = m_HeaderMap;
     req.SkipRemoveTs = ui->checkBox_SkipRemoveTs->isChecked();
     req.ThreadCount = ui->lineEdit_ThreadCount->text().toInt();
-
-    m_syncUi.AddRunFnOn_OtherThread([req, this](){
-        RunDownload_Resp resp = RunDownload(req);
-        m_syncUi.AddRunFnOn_UiThread([req, this, resp](){
-            this->updateDownloadUi(false);
+    req.SkipCacheCheck = ui->checkBox_SkipCacheCheck->isChecked();
+    std::string errMsg = StartDownload(req);
+    if(!errMsg.empty()) {
+        Toast::Instance()->SetError(QString::fromStdString(errMsg));
+        return;
+    }
+    m_syncUi.AddRunFnOn_OtherThread([=](){
+        GetStatus_Resp resp = WaitDownloadFinish();
+        m_syncUi.AddRunFnOn_UiThread([=](){
             if (resp.IsCancel) {
                 return;
             }
@@ -105,7 +121,7 @@ void MainWindow::on_pushButton_StopDownload_clicked()
 
 void MainWindow::on_pushButton_curlMode_clicked()
 {
-    RunDownload_Req req;
+    StartDownload_Req req;
     req.M3u8Url = ui->lineEdit_M3u8Url->text().toStdString();
     req.Insecure = ui->checkBox_Insecure->isChecked();
     req.HeaderMap = m_HeaderMap;
@@ -194,6 +210,7 @@ void MainWindow::updateDownloadUi(bool runing)
     ui->pushButton_curlMode->setEnabled(!runing);
     ui->checkBox_SkipRemoveTs->setEnabled(!runing);
     ui->lineEdit_ThreadCount->setEnabled(!runing);
+    ui->checkBox_SkipCacheCheck->setEnabled(!runing);
 
     if(runing == false)
         ui->progressBar->setValue(0);
@@ -209,4 +226,107 @@ void MainWindow::updateMergeUi(bool runing)
     ui->pushButton_startMerge->setEnabled(!runing);
     ui->lineEdit_mergeFileName->setEnabled(!runing);
     ui->pushButton_returnDownload->setEnabled(!runing);
+}
+
+static const QString configPath = "m3u8d_config.json";
+
+void MainWindow::saveUiConfig()
+{
+    QJsonObject obj;
+
+    obj["M3u8Url"] = ui->lineEdit_M3u8Url->text();
+    obj["SaveDir"] = ui->lineEdit_SaveDir->text();
+    obj["FileName"]= ui->lineEdit_FileName->text();
+    obj["SkipTsCountFromHead"] = ui->lineEdit_SkipTsCountFromHead->text().toInt();
+    obj["SetProxy"] = ui->lineEdit_SetProxy->text();
+    obj["ThreadCount"] = ui->lineEdit_ThreadCount->text().toInt();
+    obj["Insecure"] = ui->checkBox_Insecure->isChecked();
+    obj["SkipRemoveTs"] = ui->checkBox_SkipRemoveTs->isChecked();
+    obj["SkipCacheCheck"] = ui->checkBox_SkipCacheCheck->isChecked();
+
+    QJsonDocument doc;
+    doc.setObject(obj);
+    QByteArray data = doc.toJson();
+    QFile file(configPath);
+    if(!file.open(QFile::WriteOnly)) {
+        return;
+    }
+    file.write(data);
+    file.close();
+}
+
+void MainWindow::loadUiConfig()
+{
+    QFile file(configPath);
+    if(!file.open(QFile::ReadOnly)) {
+        return;
+    }
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    if(!doc.isObject()) {
+        return;
+    }
+    QJsonObject obj = doc.object();
+
+    QString m3u8Url = obj["M3u8Url"].toString();
+    if(!m3u8Url.isEmpty()) {
+        ui->lineEdit_M3u8Url->setText(m3u8Url);
+    }
+    QString saveDir = obj["SaveDir"].toString();
+    if(!saveDir.isEmpty()) {
+        ui->lineEdit_SaveDir->setText(saveDir);
+    }
+    QString fileName = obj["FileName"].toString();
+    if(!fileName.isEmpty()) {
+        ui->lineEdit_FileName->setText(fileName);
+    }
+    int skipTsCountFromHead = obj["SkipTsCountFromHead"].toInt();
+    if(skipTsCountFromHead > 0) {
+        ui->lineEdit_SkipTsCountFromHead->setText(QString::number(skipTsCountFromHead));
+    }
+    QString setProxy = obj["SetProxy"].toString();
+    if(!setProxy.isEmpty()) {
+        ui->lineEdit_SetProxy->setText(setProxy);
+    }
+    int threadCount = obj["ThreadCount"].toInt();
+    if(threadCount > 0) {
+        ui->lineEdit_ThreadCount->setText(QString::number(threadCount));
+    }
+    bool insecure = obj["Insecure"].toBool();
+    ui->checkBox_Insecure->setChecked(insecure);
+    bool skipRemoveTs = obj["SkipRemoveTs"].toBool();
+    ui->checkBox_SkipRemoveTs->setChecked(skipRemoveTs);
+    bool skipCacheCheck = obj["SkipCacheCheck"].toBool();
+    ui->checkBox_SkipCacheCheck->setChecked(skipCacheCheck);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    do {
+        GetStatus_Resp status = GetStatus();
+        if(!status.IsDownloading) {
+            break;
+        }
+        // 创建 QMessageBox 对象
+        QMessageBox msgBox;
+        // 设置标题和消息
+        msgBox.setText("正在下载文件，是否关闭窗口？");
+        msgBox.setWindowTitle("确认关闭窗口");
+
+        // 添加按钮并设置默认按钮
+        msgBox.addButton(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+
+        // 显示弹窗并根据用户选择执行相应操作
+        int result = msgBox.exec();
+        if (result != QMessageBox::Yes) {
+            event->ignore();
+            return;
+        }
+    } while(false);
+
+    event->accept();
 }

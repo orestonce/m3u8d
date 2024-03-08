@@ -8,7 +8,7 @@
 //Qt Creator 需要在xxx.pro 内部增加静态库的链接声明
 //LIBS += -L$$PWD -lm3u8d-impl
 
-struct RunDownload_Req{
+struct StartDownload_Req{
 	std::string M3u8Url;
 	bool Insecure;
 	std::string SaveDir;
@@ -19,31 +19,31 @@ struct RunDownload_Req{
 	bool SkipRemoveTs;
 	bool ProgressBarShow;
 	int32_t ThreadCount;
-	RunDownload_Req(): Insecure(false),SkipTsCountFromHead(0),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0){}
+	bool SkipCacheCheck;
+	StartDownload_Req(): Insecure(false),SkipTsCountFromHead(0),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false){}
 };
-struct RunDownload_Resp{
-	std::string ErrMsg;
-	bool IsSkipped;
-	bool IsCancel;
-	std::string SaveFileTo;
-	RunDownload_Resp(): IsSkipped(false),IsCancel(false){}
-};
-RunDownload_Resp RunDownload(RunDownload_Req in0);
+std::string StartDownload(StartDownload_Req in0);
 void CloseOldEnv();
-struct GetProgress_Resp{
+struct GetStatus_Resp{
 	int32_t Percent;
 	std::string Title;
 	std::string StatusBar;
-	GetProgress_Resp(): Percent(0){}
+	bool IsDownloading;
+	bool IsCancel;
+	std::string ErrMsg;
+	bool IsSkipped;
+	std::string SaveFileTo;
+	GetStatus_Resp(): Percent(0),IsDownloading(false),IsCancel(false),IsSkipped(false){}
 };
-GetProgress_Resp GetProgress();
+GetStatus_Resp GetStatus();
+GetStatus_Resp WaitDownloadFinish();
 std::string GetWd();
 struct ParseCurl_Resp{
 	std::string ErrMsg;
-	RunDownload_Req DownloadReq;
+	StartDownload_Req DownloadReq;
 };
 ParseCurl_Resp ParseCurlStr(std::string in0);
-std::string RunDownload_Req_ToCurlStr(RunDownload_Req in0);
+std::string RunDownload_Req_ToCurlStr(StartDownload_Req in0);
 std::string GetFileNameFromUrl(std::string in0);
 struct MergeTsDir_Resp{
 	std::string ErrMsg;

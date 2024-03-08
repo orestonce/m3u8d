@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/orestonce/go2cpp"
 	"github.com/orestonce/m3u8d"
+	"github.com/orestonce/m3u8d/m3u8dcpp"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"io/ioutil"
 	"os"
@@ -88,16 +89,17 @@ func CreateLibForQtUi(mode string) {
 		EnableQtClass_RunOnUiThread: true,
 		EnableQtClass_Toast:         true,
 	})
-	ctx.Generate1(m3u8d.RunDownload)
-	ctx.Generate1(m3u8d.CloseOldEnv)
-	ctx.Generate1(m3u8d.GetProgress)
+	ctx.Generate1(m3u8dcpp.StartDownload)
+	ctx.Generate1(m3u8dcpp.CloseOldEnv)
+	ctx.Generate1(m3u8dcpp.GetStatus)
+	ctx.Generate1(m3u8dcpp.WaitDownloadFinish)
 	ctx.Generate1(m3u8d.GetWd)
 	ctx.Generate1(m3u8d.ParseCurlStr)
 	ctx.Generate1(m3u8d.RunDownload_Req_ToCurlStr)
 	ctx.Generate1(m3u8d.GetFileNameFromUrl)
-	ctx.Generate1(m3u8d.MergeTsDir)
-	ctx.Generate1(m3u8d.MergeStop)
-	ctx.Generate1(m3u8d.MergeGetProgressPercent)
+	ctx.Generate1(m3u8dcpp.MergeTsDir)
+	ctx.Generate1(m3u8dcpp.MergeStop)
+	ctx.Generate1(m3u8dcpp.MergeGetProgressPercent)
 	if mode == "amd64-static" {
 		ctx.MustCreateAmd64LibraryInDir("m3u8d-qt")
 	} else if mode == "386-static" {

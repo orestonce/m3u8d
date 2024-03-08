@@ -22,8 +22,23 @@
       </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
         <item>
          <layout class="QGridLayout" name="gridLayout">
+          <property name="horizontalSpacing">
+           <number>0</number>
+          </property>
           <item row="4" column="1">
            <widget class="QLineEdit" name="lineEdit_SkipTsCountFromHead"/>
           </item>
@@ -141,18 +156,38 @@
          </layout>
         </item>
         <item>
-         <widget class="QCheckBox" name="checkBox_Insecure">
-          <property name="text">
-           <string>允许不安全的https请求</string>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <property name="topMargin">
+           <number>9</number>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_SkipRemoveTs">
-          <property name="text">
-           <string>不删除下载的ts文件</string>
+          <property name="spacing">
+           <number>0</number>
           </property>
-         </widget>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="checkBox_Insecure">
+            <property name="text">
+             <string>允许不安全的https请求</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="checkBox_SkipRemoveTs">
+            <property name="text">
+             <string>不删除下载的ts文件</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="checkBox_SkipCacheCheck">
+            <property name="text">
+             <string>不使用缓存</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <spacer name="verticalSpacer">
@@ -213,6 +248,21 @@
       </widget>
       <widget class="QWidget" name="page_2">
        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1,0">
           <property name="spacing">

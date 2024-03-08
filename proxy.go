@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func SetProxyFormat(origin string) (after string, urlObj *url.URL, errMsg string) {
+func ParseProxyFormat(origin string) (after string, urlObj *url.URL, errMsg string) {
 	after = strings.ToLower(strings.TrimSpace(origin))
 	if after == "" {
 		return after, nil, ""

@@ -39,11 +39,19 @@ private slots:
 private:
     void updateDownloadUi(bool runing);
     void updateMergeUi(bool runing);
+
+    void saveUiConfig();
+    void loadUiConfig();
 private:
     Ui::MainWindow *ui;
     RunOnUiThread m_syncUi;
     QTimer *m_timer = nullptr;
+    QTimer *m_saveConfigTimer = nullptr;
     std::map<std::string, std::vector<std::string>> m_HeaderMap;
+
+    // QWidget interface
+protected:
+    virtual void closeEvent(QCloseEvent *event) override;
 };
 
 #endif // MAINWINDOW_H

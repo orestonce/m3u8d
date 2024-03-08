@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/orestonce/m3u8d"
+	"github.com/orestonce/m3u8d/m3u8dcpp"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
@@ -28,9 +29,14 @@ var downloadCmd = &cobra.Command{
 	},
 }
 
-func downloadFromCmd(req m3u8d.RunDownload_Req) {
+func downloadFromCmd(req m3u8d.StartDownload_Req) {
 	req.ProgressBarShow = true
-	resp := m3u8d.RunDownload(req)
+	errMsg := m3u8dcpp.StartDownload(req)
+	if errMsg != "" {
+		fmt.Println(errMsg)
+		return
+	}
+	resp := m3u8dcpp.WaitDownloadFinish()
 	fmt.Println() // 有进度条,所以需要换行
 	if resp.ErrMsg != "" {
 		fmt.Println(resp.ErrMsg)
@@ -55,7 +61,7 @@ var curlCmd = &cobra.Command{
 	},
 }
 
-var gRunReq m3u8d.RunDownload_Req
+var gRunReq m3u8d.StartDownload_Req
 
 var gMergeReq struct {
 	InputTsDir    string

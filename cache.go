@@ -15,10 +15,10 @@ type DbVideoInfo struct {
 	VideoId     string
 	ContentHash string
 	FileSize    int64 // 加快搜索速度
-	OriginReq   RunDownload_Req
+	OriginReq   StartDownload_Req
 }
 
-func (this *RunDownload_Req) getVideoId() (id string, err error) {
+func (this *StartDownload_Req) getVideoId() (id string, err error) {
 	b, err := json.Marshal([]string{this.M3u8Url, strconv.Itoa(this.SkipTsCountFromHead)})
 	if err != nil {
 		return "", err
@@ -61,7 +61,7 @@ func (this *DbVideoInfo) SearchVideoInDir(dir string) (latestNameFullPath string
 	return "", false
 }
 
-func cacheWrite(dir string, id string, originReq RunDownload_Req, videoNameFullPath string, contentHash string) (err error) {
+func cacheWrite(dir string, id string, originReq StartDownload_Req, videoNameFullPath string, contentHash string) (err error) {
 	var info = &DbVideoInfo{
 		VideoId:     id,
 		OriginReq:   originReq,
