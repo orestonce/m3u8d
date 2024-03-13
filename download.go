@@ -161,7 +161,10 @@ func getTsList(beginSeq uint64, m38uUrl string, body string) (tsList []TsInfo, e
 // @modify: 2020-08-13 修复ts格式SyncByte合并不能播放问题
 func (this *DownloadEnv) downloadTsFile(ts TsInfo, downloadDir string, encInfo *EncryptInfo) (err error) {
 	currPath := fmt.Sprintf("%s/%s", downloadDir, ts.Name)
-	if isFileExists(currPath) {
+	var stat os.FileInfo
+	stat, err = os.Stat(currPath)
+	if err == nil && stat.Mode().IsRegular() {
+		this.status.SpeedAdd1Block(int(stat.Size()))
 		return nil
 	}
 	data, err := this.doGetRequest(ts.Url)
@@ -275,7 +278,7 @@ func isDirExists(path string) bool {
 
 // ============================== 加解密相关 ==============================
 
-func AesDecrypt(seq uint64, crypted []byte, encInfo *EncryptInfo) ([]byte, error) {
+func AesDecrypt(seq uint64, encrypted []byte, encInfo *EncryptInfo) ([]byte, error) {
 	block, err := aes.NewCipher(encInfo.Key)
 	if err != nil {
 		return nil, err
@@ -290,8 +293,11 @@ func AesDecrypt(seq uint64, crypted []byte, encInfo *EncryptInfo) ([]byte, error
 		}
 	}
 	blockMode := cipher.NewCBCDecrypter(block, iv)
-	origData := make([]byte, len(crypted))
-	blockMode.CryptBlocks(origData, crypted)
+	if len(iv) == 0 || len(encrypted)%len(iv) != 0 {
+		return nil, errors.New("AesDecrypt invalid encrypted data len " + strconv.Itoa(len(encrypted)))
+	}
+	origData := make([]byte, len(encrypted))
+	blockMode.CryptBlocks(origData, encrypted)
 	length := len(origData)
 	unpadding := int(origData[length-1])
 	if length-unpadding < 0 {

@@ -149,7 +149,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 	}
 	downloadDir := filepath.Join(req.SaveDir, "downloading", videoId)
 	if !isDirExists(downloadDir) {
-		err := os.MkdirAll(downloadDir, os.ModePerm)
+		err = os.MkdirAll(downloadDir, os.ModePerm)
 		if err != nil {
 			this.setErrMsg("os.MkdirAll error: " + err.Error())
 			return

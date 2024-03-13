@@ -20,6 +20,7 @@ type SpeedStatus struct {
 	progressPercent  int
 	progressBarTitle string
 	progressBarShow  bool
+	lastDrawProgress time.Time
 
 	errMsg     string
 	saveFileTo string
@@ -56,9 +57,11 @@ func (this *SpeedStatus) DrawProgressBar(total int, current int) {
 	this.progressPercent = int(proportion * 100)
 	title := this.progressBarTitle
 	if this.progressBarShow {
-		width := 50
-		pos := int(proportion * float32(width))
-		fmt.Printf(title+" %s%*s %6.2f%%\r", strings.Repeat("■", pos), width-pos, "", proportion*100)
+		if this.lastDrawProgress.IsZero() || time.Now().Sub(this.lastDrawProgress).Milliseconds() > 100 {
+			width := 50
+			pos := int(proportion * float32(width))
+			fmt.Printf(title+" %s%*s %6.2f%%\r", strings.Repeat("■", pos), width-pos, "", proportion*100)
+		}
 	}
 	this.Locker.Unlock()
 }
