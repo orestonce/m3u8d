@@ -83,6 +83,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.SkipRemoveTs = ui->checkBox_SkipRemoveTs->isChecked();
     req.ThreadCount = ui->lineEdit_ThreadCount->text().toInt();
     req.SkipCacheCheck = ui->checkBox_SkipCacheCheck->isChecked();
+    req.SkipMergeTs = ui->checkBox_SkipMergeTs->isChecked();
     std::string errMsg = StartDownload(req);
     if(!errMsg.empty()) {
         Toast::Instance()->SetError(QString::fromStdString(errMsg));
@@ -101,6 +102,10 @@ void MainWindow::on_pushButton_RunDownload_clicked()
             }
             if (resp.IsSkipped) {
                 Toast::Instance()->SetSuccess("已经下载过了: " + QString::fromStdString(resp.SaveFileTo));
+                return;
+            }
+            if (resp.SaveFileTo.empty()) {
+                Toast::Instance()->SetSuccess("下载成功");
                 return;
             }
             Toast::Instance()->SetSuccess("下载成功, 保存路径" + QString::fromStdString(resp.SaveFileTo));
@@ -211,6 +216,7 @@ void MainWindow::updateDownloadUi(bool runing)
     ui->checkBox_SkipRemoveTs->setEnabled(!runing);
     ui->lineEdit_ThreadCount->setEnabled(!runing);
     ui->checkBox_SkipCacheCheck->setEnabled(!runing);
+    ui->checkBox_SkipMergeTs->setEnabled(!runing);
 
     if(runing == false)
         ui->progressBar->setValue(0);
@@ -243,6 +249,7 @@ void MainWindow::saveUiConfig()
     obj["Insecure"] = ui->checkBox_Insecure->isChecked();
     obj["SkipRemoveTs"] = ui->checkBox_SkipRemoveTs->isChecked();
     obj["SkipCacheCheck"] = ui->checkBox_SkipCacheCheck->isChecked();
+    obj["SkipMergeTs"] = ui->checkBox_SkipMergeTs->isChecked();
 
     QJsonDocument doc;
     doc.setObject(obj);
@@ -300,6 +307,8 @@ void MainWindow::loadUiConfig()
     ui->checkBox_SkipRemoveTs->setChecked(skipRemoveTs);
     bool skipCacheCheck = obj["SkipCacheCheck"].toBool();
     ui->checkBox_SkipCacheCheck->setChecked(skipCacheCheck);
+    bool skipMergeTs = obj["SkipMergeTs"].toBool();
+    ui->checkBox_SkipMergeTs->setChecked(skipMergeTs);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

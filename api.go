@@ -127,7 +127,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 		return
 	}
 
-	if req.SkipCacheCheck == false {
+	if req.SkipCacheCheck == false && req.SkipMergeTs == false {
 		var info *DbVideoInfo
 		info, err = cacheRead(req.SaveDir, videoId)
 		if err != nil {
@@ -193,6 +193,9 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 		return
 	}
 	this.status.DrawProgressBar(1, 1)
+	if req.SkipMergeTs {
+		return
+	}
 	var tsFileList []string
 	for _, one := range tsList {
 		tsFileList = append(tsFileList, filepath.Join(downloadDir, one.Name))
@@ -234,7 +237,6 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 			name = filepath.Join(req.SaveDir, req.FileName+idxS+".mp4")
 		}
 		if !isFileExists(name) {
-			this.setSaveFileTo(name, false)
 			break
 		}
 		if idx > 10000 { // 超过1万就不找了

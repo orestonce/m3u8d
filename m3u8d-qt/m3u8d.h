@@ -20,7 +20,8 @@ struct StartDownload_Req{
 	bool ProgressBarShow;
 	int32_t ThreadCount;
 	bool SkipCacheCheck;
-	StartDownload_Req(): Insecure(false),SkipTsCountFromHead(0),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false){}
+	bool SkipMergeTs;
+	StartDownload_Req(): Insecure(false),SkipTsCountFromHead(0),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false),SkipMergeTs(false){}
 };
 std::string StartDownload(StartDownload_Req in0);
 void CloseOldEnv();

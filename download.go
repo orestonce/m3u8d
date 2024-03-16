@@ -58,6 +58,7 @@ type StartDownload_Req struct {
 	ProgressBarShow     bool                // 在控制台打印进度条
 	ThreadCount         int                 // 线程数
 	SkipCacheCheck      bool                // 不缓存已下载的m3u8的文件信息
+	SkipMergeTs         bool                // 不合并ts为mp4
 }
 
 type DownloadEnv struct {
