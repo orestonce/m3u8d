@@ -173,7 +173,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 		return
 	}
 	this.status.SetProgressBarTitle("[3/6]获取ts列表")
-	tsList, errMsg := getTsList(beginSeq, req.M3u8Url, string(m3u8Body))
+	tsList, errMsg := getTsList(beginSeq, req.M3u8Url, string(m3u8Body), req.Skip_EXT_X_DISCONTINUITY)
 	if errMsg != "" {
 		this.setErrMsg("获取ts列表错误: " + errMsg)
 		return

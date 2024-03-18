@@ -51,7 +51,7 @@ func TestGetTsList(t *testing.T) {
 }
 
 func tGetTsList(m3u8Url string, m3u8Content string, expectTs0Url string) {
-	list, errMsg := getTsList(0, m3u8Url, m3u8Content)
+	list, errMsg := getTsList(0, m3u8Url, m3u8Content, false)
 	if errMsg != "" {
 		panic(errMsg)
 	}

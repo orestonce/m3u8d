@@ -47,18 +47,19 @@ type GetStatus_Resp struct {
 var PNG_SIGN = []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
 
 type StartDownload_Req struct {
-	M3u8Url             string
-	Insecure            bool                // "是否允许不安全的请求(默认为false)"
-	SaveDir             string              // "文件保存路径(默认为当前路径)"
-	FileName            string              // 文件名
-	SkipTsCountFromHead int                 // 跳过前面几个ts
-	SetProxy            string              //代理
-	HeaderMap           map[string][]string // 自定义http头信息
-	SkipRemoveTs        bool                // 不删除ts文件
-	ProgressBarShow     bool                // 在控制台打印进度条
-	ThreadCount         int                 // 线程数
-	SkipCacheCheck      bool                // 不缓存已下载的m3u8的文件信息
-	SkipMergeTs         bool                // 不合并ts为mp4
+	M3u8Url                  string
+	Insecure                 bool                // "是否允许不安全的请求(默认为false)"
+	SaveDir                  string              // "文件保存路径(默认为当前路径)"
+	FileName                 string              // 文件名
+	SkipTsCountFromHead      int                 // 跳过前面几个ts
+	SetProxy                 string              //代理
+	HeaderMap                map[string][]string // 自定义http头信息
+	SkipRemoveTs             bool                // 不删除ts文件
+	ProgressBarShow          bool                // 在控制台打印进度条
+	ThreadCount              int                 // 线程数
+	SkipCacheCheck           bool                // 不缓存已下载的m3u8的文件信息
+	SkipMergeTs              bool                // 不合并ts为mp4
+	Skip_EXT_X_DISCONTINUITY bool                // 跳过 #EXT-X-DISCONTINUITY 标签包裹的ts
 }
 
 type DownloadEnv struct {
@@ -136,11 +137,19 @@ func splitLineWithTrimSpace(s string) []string {
 	return tmp
 }
 
-func getTsList(beginSeq uint64, m38uUrl string, body string) (tsList []TsInfo, errMsg string) {
+func getTsList(beginSeq uint64, m38uUrl string, body string, Skip_EXT_X_DISCONTINUITY bool) (tsList []TsInfo, errMsg string) {
 	index := 0
+
+	var Skip_EXT_X_DISCONTINUITY_Doing = false // 正在跳过 #EXT-X-DISCONTINUITY 标签间的ts
 
 	for _, line := range splitLineWithTrimSpace(body) {
 		line = strings.TrimSpace(line)
+		if line == "#EXT-X-DISCONTINUITY" && Skip_EXT_X_DISCONTINUITY {
+			Skip_EXT_X_DISCONTINUITY_Doing = !Skip_EXT_X_DISCONTINUITY_Doing
+		}
+		if Skip_EXT_X_DISCONTINUITY_Doing {
+			continue
+		}
 		if !strings.HasPrefix(line, "#") && line != "" {
 			index++
 			var after string
