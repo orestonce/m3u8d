@@ -60,7 +60,7 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 					return
 				}
 			})
-		} else if cid == mpeg2.TS_STREAM_H264 {
+		} else if cid == mpeg2.TS_STREAM_H264 || cid == mpeg2.TS_STREAM_H265 {
 			err = muxer.Write(vtid, frame, pts, dts)
 			if err != nil {
 				OnFrameErr = err

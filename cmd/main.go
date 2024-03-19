@@ -125,7 +125,6 @@ func init() {
 	downloadCmd.Flags().StringVarP(&gRunReq.SetProxy, "SetProxy", "", "", "代理设置, http://127.0.0.1:8080 socks5://127.0.0.1:1089")
 	downloadCmd.Flags().BoolVarP(&gRunReq.SkipRemoveTs, "SkipRemoveTs", "", false, "不删除下载的ts文件")
 	downloadCmd.Flags().IntVarP(&gRunReq.ThreadCount, "ThreadCount", "", 8, "下载线程数")
-	downloadCmd.Flags().BoolVarP(&gRunReq.SkipCacheCheck, "SkipCacheCheck", "", false, "是否使用缓存检测")
 	downloadCmd.Flags().BoolVarP(&gRunReq.SkipMergeTs, "SkipMergeTs", "", false, "不合并ts为mp4")
 	downloadCmd.Flags().BoolVarP(&gRunReq.Skip_EXT_X_DISCONTINUITY, "Skip_EXT_X_DISCONTINUITY", "", false, "跳过 #EXT-X-DISCONTINUITY 标签包裹的ts")
 	rootCmd.AddCommand(downloadCmd)

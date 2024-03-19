@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>866</width>
-    <height>340</height>
+    <width>780</width>
+    <height>299</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -148,13 +148,6 @@
           <property name="horizontalSpacing">
            <number>0</number>
           </property>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_SkipRemoveTs">
-            <property name="text">
-             <string>不删除下载的ts文件</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0">
            <widget class="QCheckBox" name="checkBox_Insecure">
             <property name="text">
@@ -162,10 +155,10 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="checkBox_Skip_EXT_X_DISCONTINUITY">
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="checkBox_SkipRemoveTs">
             <property name="text">
-             <string>跳过 #EXT-X-DISCONTINUITY 标签包裹的ts</string>
+             <string>不删除下载的ts文件</string>
             </property>
            </widget>
           </item>
@@ -177,12 +170,9 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_SkipCacheCheck">
+           <widget class="QCheckBox" name="checkBox_Skip_EXT_X_DISCONTINUITY">
             <property name="text">
-             <string>不使用缓存</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
+             <string>跳过 #EXT-X-DISCONTINUITY 标签包裹的ts</string>
             </property>
            </widget>
           </item>

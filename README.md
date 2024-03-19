@@ -6,19 +6,17 @@
 * ![](m3u8d-qt/screenshot.png)
 * [全部版本下载](https://github.com/orestonce/m3u8d/releases ), 包括windows图形界面/linux命令行/mac命令行/mac图形化界面   
 * 命令行使用教程
-  * 普通下载命令 `./m3u8d download -u https://example.com/index.m3u8`
+  * 普通下载命令: `./m3u8d download -u https://example.com/index.m3u8`
   * curl模式： `./m3u8d curl 'https://example.com/index.m3u8' -H 'cookie: CONSENT=YES'`
+  * 合并某个目录下的ts文件为 mp4: `./m3u8d merge --InputTsDir /root/save --OutputMp4Name save.mp4` 
 ## 实现说明
 * download.go 大部分抄自 [llychao/m3u8-downloader](https://github.com/llychao/m3u8-downloader)
 * 使用[gomedia](https://github.com/yapingcat/gomedia) 代替ffmpeg进行格式转换
 * 支持跳过前面几个ts文件(一般是广告, 嘿嘿)
+* 支持跳过 #EXT-X-DISCONTINUITY 标签包裹的ts。有的网站会在视频中增加广告，广告内容在 #EXT-X-DISCONTINUITY 直接包裹
 * 程序会在下载保存目录创建:
     * downloading/ 目录, 用于存放正在下载的分段ts视频, 按照m3u8的url进行划分
-    * m3u8d_cache.cdb 文件, 用于存放以前的下载历史, 用于防止重复下载文件
-* 重复下载文件的判定和跳过    
-    * 将M3u8Url+SkipTsCountFromHead进行hash, 得到文件下载id
-    * 将文件下载id/文件大小/文件内容hash 储存在 m3u8_cache.cdb里面, 下载前搜索下载目录
-    如果发现某个文件大小/文件内容hash和以前的记录相等,则认为这个文件是以前下载的文件, 跳过此次下载.
+    * m3u8d_config.json 文件, 用于存放Qt ui的的界面上的配置信息, 只有Windows/Macos的Qt版本会创建此文件
 * **curl模式** 可以赋予使用者任意设置下载请求的Header信息的能力，方便解决只有一个m3u8的链接时无法下载视频的尴尬局面
   * 例子1, 你需要下载的视频是要登陆后观看的，Cookie信息里存放了登陆状态
   * 例子2, 网站开发者验证了Referer信息、Authority信息、Origin信息、User-Agent信息、各种特定的Header信息

@@ -2,7 +2,10 @@ package m3u8d
 
 import (
 	"context"
+	"crypto/sha256"
 	"crypto/tls"
+	"encoding/hex"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -113,7 +116,7 @@ func (this *DownloadEnv) setSaveFileTo(to string, isSkipped bool) {
 }
 
 func (this *DownloadEnv) runDownload(req StartDownload_Req) {
-	this.status.SetProgressBarTitle("[1/6]嗅探m3u8")
+	this.status.SetProgressBarTitle("[1/4]嗅探m3u8")
 	var m3u8Body []byte
 	var errMsg string
 	req.M3u8Url, m3u8Body, errMsg = this.sniffM3u8(req.M3u8Url)
@@ -127,22 +130,6 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 		return
 	}
 
-	if req.SkipCacheCheck == false && req.SkipMergeTs == false {
-		var info *DbVideoInfo
-		info, err = cacheRead(req.SaveDir, videoId)
-		if err != nil {
-			this.setErrMsg("cacheRead: " + err.Error())
-			return
-		}
-		if info != nil {
-			this.status.SetProgressBarTitle("[2/6]检查是否已下载")
-			latestNameFullPath, found := info.SearchVideoInDir(req.SaveDir)
-			if found {
-				this.setSaveFileTo(latestNameFullPath, true)
-				return
-			}
-		}
-	}
 	if !strings.HasPrefix(req.M3u8Url, "http") || req.M3u8Url == "" {
 		this.setErrMsg("M3u8Url not valid " + strconv.Quote(req.M3u8Url))
 		return
@@ -172,7 +159,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 		this.setErrMsg("getEncryptInfo: " + err.Error())
 		return
 	}
-	this.status.SetProgressBarTitle("[3/6]获取ts列表")
+	this.status.SetProgressBarTitle("[2/4]获取ts列表")
 	tsList, errMsg := getTsList(beginSeq, req.M3u8Url, string(m3u8Body), req.Skip_EXT_X_DISCONTINUITY)
 	if errMsg != "" {
 		this.setErrMsg("获取ts列表错误: " + errMsg)
@@ -184,7 +171,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 	}
 	tsList = tsList[req.SkipTsCountFromHead:]
 	// 下载ts
-	this.status.SetProgressBarTitle("[4/6]下载ts")
+	this.status.SetProgressBarTitle("[3/4]下载ts")
 	this.status.SpeedResetBytes()
 	err = this.downloader(tsList, downloadDir, encInfo, req.ThreadCount)
 	this.status.SpeedResetBytes()
@@ -203,7 +190,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 	var tmpOutputName string
 	tmpOutputName = filepath.Join(downloadDir, "all.merge.mp4")
 
-	this.status.SetProgressBarTitle("[5/6]合并ts为mp4")
+	this.status.SetProgressBarTitle("[4/4]合并ts为mp4")
 	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
 		TsFileList: tsFileList,
 		OutputMp4:  tmpOutputName,
@@ -214,15 +201,6 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 	if err != nil {
 		this.setErrMsg("合并错误: " + err.Error())
 		return
-	}
-	var contentHash string
-	if req.SkipCacheCheck == false {
-		this.status.SetProgressBarTitle("[6/6]计算文件hash")
-		contentHash = getFileSha256(tmpOutputName)
-		if contentHash == "" {
-			this.setErrMsg("无法计算摘要信息: " + tmpOutputName)
-			return
-		}
 	}
 	var name string
 	for idx := 0; ; idx++ {
@@ -248,13 +226,6 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 	if err != nil {
 		this.setErrMsg("重命名失败: " + err.Error())
 		return
-	}
-	if req.SkipCacheCheck == false {
-		err = cacheWrite(req.SaveDir, videoId, req, name, contentHash)
-		if err != nil {
-			this.setErrMsg("cacheWrite: " + err.Error())
-			return
-		}
 	}
 	if req.SkipRemoveTs == false {
 		err = os.RemoveAll(downloadDir)
@@ -321,4 +292,13 @@ func (this *DownloadEnv) prepareReqAndHeader(req *StartDownload_Req) (errMsg str
 		this.header[key] = valueList
 	}
 	return ""
+}
+
+func (this *StartDownload_Req) getVideoId() (id string, err error) {
+	b, err := json.Marshal([]string{this.M3u8Url, strconv.Itoa(this.SkipTsCountFromHead), strconv.FormatBool(this.Skip_EXT_X_DISCONTINUITY)})
+	if err != nil {
+		return "", err
+	}
+	tmp1 := sha256.Sum256(b)
+	return hex.EncodeToString(tmp1[:]), nil
 }
