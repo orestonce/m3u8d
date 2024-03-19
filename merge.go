@@ -34,7 +34,7 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 	if err != nil {
 		return err
 	}
-	vtid := muxer.AddVideoTrack(mp4.MP4_CODEC_H264)
+	var vtid uint32 // video track id
 	atid := muxer.AddAudioTrack(mp4.MP4_CODEC_AAC)
 
 	demuxer := mpeg2.NewTSDemuxer()
@@ -61,6 +61,17 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 				}
 			})
 		} else if cid == mpeg2.TS_STREAM_H264 || cid == mpeg2.TS_STREAM_H265 {
+			if vtid == 0 {
+				switch cid {
+				case mpeg2.TS_STREAM_H264:
+					vtid = muxer.AddVideoTrack(mp4.MP4_CODEC_H264)
+				case mpeg2.TS_STREAM_H265:
+					vtid = muxer.AddVideoTrack(mp4.MP4_CODEC_H265)
+				default:
+					OnFrameErr = errors.New("unknown cid2 " + strconv.Itoa(int(cid)))
+					return
+				}
+			}
 			err = muxer.Write(vtid, frame, pts, dts)
 			if err != nil {
 				OnFrameErr = err
