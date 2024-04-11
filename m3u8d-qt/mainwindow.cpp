@@ -20,10 +20,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QIntValidator* vd = new QIntValidator(this);
-    vd->setRange(0, 99999);
-    ui->lineEdit_SkipTsCountFromHead->setValidator(vd);
-    ui->lineEdit_SkipTsCountFromHead->setPlaceholderText("[0,99999]");
     ui->lineEdit_SaveDir->setPlaceholderText(QString::fromStdString(GetWd()));
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, [this](){
@@ -77,7 +73,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.Insecure = ui->checkBox_Insecure->isChecked();
     req.SaveDir = ui->lineEdit_SaveDir->text().toStdString();
     req.FileName = ui->lineEdit_FileName->text().toStdString();
-    req.SkipTsCountFromHead = ui->lineEdit_SkipTsCountFromHead->text().toInt();
+    req.SkipTsExpr = ui->lineEdit_SkipTsExpr->text().toStdString();
     req.SetProxy = ui->lineEdit_SetProxy->text().toStdString();
     req.HeaderMap = m_HeaderMap;
     req.SkipRemoveTs = ui->checkBox_SkipRemoveTs->isChecked();
@@ -182,7 +178,7 @@ void MainWindow::on_pushButton_startMerge_clicked()
             if(resp.ErrMsg.empty())
                 Toast::Instance()->SetSuccess("合并成功!");
             else if(!resp.IsCancel)
-                QMessageBox::warning(this, "下载错误", QString::fromStdString(resp.ErrMsg));
+                QMessageBox::warning(this, "合并错误", QString::fromStdString(resp.ErrMsg));
         });
     });
 }
@@ -206,7 +202,7 @@ void MainWindow::updateDownloadUi(bool runing)
     ui->lineEdit_SaveDir->setEnabled(!runing);
     ui->pushButton_SaveDir->setEnabled(!runing);
     ui->lineEdit_FileName->setEnabled(!runing);
-    ui->lineEdit_SkipTsCountFromHead->setEnabled(!runing);
+    ui->lineEdit_SkipTsExpr->setEnabled(!runing);
     ui->pushButton_RunDownload->setEnabled(!runing);
     ui->checkBox_Insecure->setEnabled(!runing);
     if(runing == false)
@@ -244,7 +240,7 @@ void MainWindow::saveUiConfig()
     obj["M3u8Url"] = ui->lineEdit_M3u8Url->text();
     obj["SaveDir"] = ui->lineEdit_SaveDir->text();
     obj["FileName"]= ui->lineEdit_FileName->text();
-    obj["SkipTsCountFromHead"] = ui->lineEdit_SkipTsCountFromHead->text().toInt();
+    obj["SkipTsExpr"] = ui->lineEdit_SkipTsExpr->text();
     obj["SetProxy"] = ui->lineEdit_SetProxy->text();
     obj["ThreadCount"] = ui->lineEdit_ThreadCount->text().toInt();
     obj["Insecure"] = ui->checkBox_Insecure->isChecked();
@@ -290,9 +286,9 @@ void MainWindow::loadUiConfig()
     if(!fileName.isEmpty()) {
         ui->lineEdit_FileName->setText(fileName);
     }
-    int skipTsCountFromHead = obj["SkipTsCountFromHead"].toInt();
-    if(skipTsCountFromHead > 0) {
-        ui->lineEdit_SkipTsCountFromHead->setText(QString::number(skipTsCountFromHead));
+    QString skipTsExpr = obj["SkipTsExpr"].toString();
+    if(!skipTsExpr.isEmpty()) {
+        ui->lineEdit_SkipTsExpr->setText(skipTsExpr);
     }
     QString setProxy = obj["SetProxy"].toString();
     if(!setProxy.isEmpty()) {

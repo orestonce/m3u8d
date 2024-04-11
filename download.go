@@ -28,9 +28,10 @@ import (
 
 // TsInfo 用于保存 ts 文件的下载地址和文件名
 type TsInfo struct {
-	Name string
-	Url  string
-	Seq  uint64 // 如果是aes加密并且没有iv, 这个seq需要充当iv
+	Name                        string
+	Url                         string
+	Seq                         uint64 // 如果是aes加密并且没有iv, 这个seq需要充当iv
+	Between_EXT_X_DISCONTINUITY bool
 }
 
 type GetStatus_Resp struct {
@@ -51,7 +52,7 @@ type StartDownload_Req struct {
 	Insecure                 bool                // "是否允许不安全的请求(默认为false)"
 	SaveDir                  string              // "文件保存路径(默认为当前路径)"
 	FileName                 string              // 文件名
-	SkipTsCountFromHead      int                 // 跳过前面几个ts
+	SkipTsExpr               string              // 跳过ts信息，ts编号从1开始，可以以逗号","为分隔符跳过多部分ts，例如: 1,92-100 表示跳过第1号ts、跳过92到100号ts
 	SetProxy                 string              //代理
 	HeaderMap                map[string][]string // 自定义http头信息
 	SkipRemoveTs             bool                // 不删除ts文件
@@ -137,17 +138,15 @@ func splitLineWithTrimSpace(s string) []string {
 	return tmp
 }
 
-func getTsList(beginSeq uint64, m38uUrl string, body string, Skip_EXT_X_DISCONTINUITY bool) (tsList []TsInfo, errMsg string) {
+func getTsList(beginSeq uint64, m38uUrl string, body string) (tsList []TsInfo, errMsg string) {
 	index := 0
 
-	var Skip_EXT_X_DISCONTINUITY_Doing = false // 正在跳过 #EXT-X-DISCONTINUITY 标签间的ts
+	var between_EXT_X_DISCONTINUITY = false // 正在跳过 #EXT-X-DISCONTINUITY 标签间的ts
 
 	for _, line := range splitLineWithTrimSpace(body) {
 		line = strings.TrimSpace(line)
-		if line == "#EXT-X-DISCONTINUITY" && Skip_EXT_X_DISCONTINUITY {
-			Skip_EXT_X_DISCONTINUITY_Doing = !Skip_EXT_X_DISCONTINUITY_Doing
-		}
-		if Skip_EXT_X_DISCONTINUITY_Doing {
+		if line == "#EXT-X-DISCONTINUITY" {
+			between_EXT_X_DISCONTINUITY = !between_EXT_X_DISCONTINUITY
 			continue
 		}
 		if !strings.HasPrefix(line, "#") && line != "" {
@@ -158,9 +157,10 @@ func getTsList(beginSeq uint64, m38uUrl string, body string, Skip_EXT_X_DISCONTI
 				return nil, errMsg
 			}
 			tsList = append(tsList, TsInfo{
-				Name: fmt.Sprintf("%05d.ts", index), // ts视频片段命名规则
-				Url:  after,
-				Seq:  beginSeq + uint64(index-1),
+				Name:                        fmt.Sprintf("%05d.ts", index), // ts视频片段命名规则
+				Url:                         after,
+				Seq:                         beginSeq + uint64(index-1),
+				Between_EXT_X_DISCONTINUITY: between_EXT_X_DISCONTINUITY,
 			})
 		}
 	}
@@ -229,7 +229,7 @@ func (this *DownloadEnv) SleepDur(d time.Duration) {
 	}
 }
 
-func (this *DownloadEnv) downloader(tsList []TsInfo, downloadDir string, encInfo *EncryptInfo, threadCount int) (err error) {
+func (this *DownloadEnv) downloader(tsList []TsInfo, downloadDir string, encInfo *EncryptInfo, threadCount int) (errMsg error) {
 	if threadCount <= 0 || threadCount > 1000 {
 		return errors.New("DownloadEnv.threadCount invalid: " + strconv.Itoa(threadCount))
 	}

@@ -8,8 +8,55 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
+
+func TestParseSkipTsExpr(t *testing.T) {
+	list, errMsg := ParseSkipTsExpr("12-17, 1,19 - 121 , 122-125, 100-1000")
+	if errMsg != "" {
+		panic(errMsg)
+	}
+	reflect.DeepEqual(list, []SkipTsUnit{
+		{
+			StartIdx: 1,
+			EndIdx:   1,
+		},
+		{
+			StartIdx: 12,
+			EndIdx:   17,
+		},
+		{
+			StartIdx: 19,
+			EndIdx:   1000,
+		},
+	})
+}
+
+func TestParseSkipTsExpr2(t *testing.T) {
+	list, errMsg := ParseSkipTsExpr("1,90-100,102-122,900-1000000000")
+	if errMsg != "" {
+		panic(errMsg)
+	}
+	reflect.DeepEqual(list, []SkipTsUnit{
+		{
+			StartIdx: 1,
+			EndIdx:   1,
+		},
+		{
+			StartIdx: 90,
+			EndIdx:   100,
+		},
+		{
+			StartIdx: 102,
+			EndIdx:   122,
+		},
+		{
+			StartIdx: 900,
+			EndIdx:   1000000000,
+		},
+	})
+}
 
 func TestUrlHasSuffix(t *testing.T) {
 	if UrlHasSuffix("/0001.ts", ".ts") == false {
@@ -51,7 +98,7 @@ func TestGetTsList(t *testing.T) {
 }
 
 func tGetTsList(m3u8Url string, m3u8Content string, expectTs0Url string) {
-	list, errMsg := getTsList(0, m3u8Url, m3u8Content, false)
+	list, errMsg := getTsList(0, m3u8Url, m3u8Content)
 	if errMsg != "" {
 		panic(errMsg)
 	}

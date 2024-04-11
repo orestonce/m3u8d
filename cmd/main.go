@@ -121,7 +121,7 @@ func init() {
 	downloadCmd.Flags().BoolVarP(&gRunReq.Insecure, "Insecure", "", false, "是否允许不安全的请求")
 	downloadCmd.Flags().StringVarP(&gRunReq.SaveDir, "SaveDir", "d", "", "文件保存路径(默认为当前路径)")
 	downloadCmd.Flags().StringVarP(&gRunReq.FileName, "FileName", "f", "", "文件名")
-	downloadCmd.Flags().IntVarP(&gRunReq.SkipTsCountFromHead, "SkipTsCountFromHead", "", 0, "跳过前面几个ts")
+	downloadCmd.Flags().StringVarP(&gRunReq.SkipTsExpr, "SkipTsExpr", "", "", "跳过ts信息，ts编号从1开始，例如: 1,92-100 表示跳过第1号ts、跳过92到100号ts")
 	downloadCmd.Flags().StringVarP(&gRunReq.SetProxy, "SetProxy", "", "", "代理设置, http://127.0.0.1:8080 socks5://127.0.0.1:1089")
 	downloadCmd.Flags().BoolVarP(&gRunReq.SkipRemoveTs, "SkipRemoveTs", "", false, "不删除下载的ts文件")
 	downloadCmd.Flags().IntVarP(&gRunReq.ThreadCount, "ThreadCount", "", 8, "下载线程数")

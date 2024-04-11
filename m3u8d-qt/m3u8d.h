@@ -13,7 +13,7 @@ struct StartDownload_Req{
 	bool Insecure;
 	std::string SaveDir;
 	std::string FileName;
-	int32_t SkipTsCountFromHead;
+	std::string SkipTsExpr;
 	std::string SetProxy;
 	std::map<std::string, std::vector<std::string>> HeaderMap;
 	bool SkipRemoveTs;
@@ -22,7 +22,7 @@ struct StartDownload_Req{
 	bool SkipCacheCheck;
 	bool SkipMergeTs;
 	bool Skip_EXT_X_DISCONTINUITY;
-	StartDownload_Req(): Insecure(false),SkipTsCountFromHead(0),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false),SkipMergeTs(false),Skip_EXT_X_DISCONTINUITY(false){}
+	StartDownload_Req(): Insecure(false),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false),SkipMergeTs(false),Skip_EXT_X_DISCONTINUITY(false){}
 };
 std::string StartDownload(StartDownload_Req in0);
 void CloseOldEnv();
