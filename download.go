@@ -229,7 +229,7 @@ func (this *DownloadEnv) SleepDur(d time.Duration) {
 	}
 }
 
-func (this *DownloadEnv) downloader(tsList []TsInfo, downloadDir string, encInfo *EncryptInfo, threadCount int) (errMsg error) {
+func (this *DownloadEnv) downloader(tsList []TsInfo, downloadDir string, encInfo *EncryptInfo, threadCount int) (err error) {
 	if threadCount <= 0 || threadCount > 1000 {
 		return errors.New("DownloadEnv.threadCount invalid: " + strconv.Itoa(threadCount))
 	}
