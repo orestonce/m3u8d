@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -314,22 +313,6 @@ func AesDecrypt(seq uint64, encrypted []byte, encInfo *EncryptInfo) ([]byte, err
 		return nil, fmt.Errorf(`invalid length of unpadding %v - %v`, length, unpadding)
 	}
 	return origData[:(length - unpadding)], nil
-}
-
-func getFileSha256(targetFile string) (v string) {
-	fin, err := os.Open(targetFile)
-	if err != nil {
-		return ""
-	}
-	defer fin.Close()
-
-	sha256Obj := sha256.New()
-	_, err = io.Copy(sha256Obj, fin)
-	if err != nil {
-		return ""
-	}
-	tmp := sha256Obj.Sum(nil)
-	return hex.EncodeToString(tmp[:])
 }
 
 func (this *DownloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte, errMsg string) {
