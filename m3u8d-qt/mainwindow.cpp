@@ -80,6 +80,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.ThreadCount = ui->lineEdit_ThreadCount->text().toInt();
     req.SkipMergeTs = ui->checkBox_SkipMergeTs->isChecked();
     req.Skip_EXT_X_DISCONTINUITY = ui->checkBox_Skip_EXT_X_DISCONTINUITY->isChecked();
+    req.DebugLog = ui->checkBox_DebugLog->isChecked();
 
     std::string errMsg = StartDownload(req);
     if(!errMsg.empty()) {
@@ -214,6 +215,7 @@ void MainWindow::updateDownloadUi(bool runing)
     ui->lineEdit_ThreadCount->setEnabled(!runing);
     ui->checkBox_SkipMergeTs->setEnabled(!runing);
     ui->checkBox_Skip_EXT_X_DISCONTINUITY->setEnabled(!runing);
+    ui->checkBox_DebugLog->setEnabled(!runing);
 
     if(runing == false)
         ui->progressBar->setValue(0);
@@ -247,6 +249,7 @@ void MainWindow::saveUiConfig()
     obj["SkipRemoveTs"] = ui->checkBox_SkipRemoveTs->isChecked();
     obj["SkipMergeTs"] = ui->checkBox_SkipMergeTs->isChecked();
     obj["Skip_EXT_X_DISCONTINUITY"] = ui->checkBox_Skip_EXT_X_DISCONTINUITY->isChecked();
+    obj["DebugLog"] = ui->checkBox_DebugLog->isChecked();
 
     QJsonDocument doc;
     doc.setObject(obj);
@@ -306,6 +309,8 @@ void MainWindow::loadUiConfig()
     ui->checkBox_SkipMergeTs->setChecked(skipMergeTs);
     bool skip_EXT_X_DISCONTINUITY = obj["Skip_EXT_X_DISCONTINUITY"].toBool();
     ui->checkBox_Skip_EXT_X_DISCONTINUITY->setChecked(skip_EXT_X_DISCONTINUITY);
+    bool debugLog = obj["DebugLog"].toBool();
+    ui->checkBox_DebugLog->setChecked(debugLog);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

@@ -127,6 +127,7 @@ func init() {
 	downloadCmd.Flags().IntVarP(&gRunReq.ThreadCount, "ThreadCount", "", 8, "下载线程数")
 	downloadCmd.Flags().BoolVarP(&gRunReq.SkipMergeTs, "SkipMergeTs", "", false, "不合并ts为mp4")
 	downloadCmd.Flags().BoolVarP(&gRunReq.Skip_EXT_X_DISCONTINUITY, "Skip_EXT_X_DISCONTINUITY", "", false, "跳过 #EXT-X-DISCONTINUITY 标签包裹的ts")
+	downloadCmd.Flags().BoolVarP(&gRunReq.DebugLog, "DebugLog", "", false, "调试日志")
 	rootCmd.AddCommand(downloadCmd)
 	curlCmd.DisableFlagParsing = true
 	rootCmd.AddCommand(curlCmd)

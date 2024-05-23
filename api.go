@@ -56,6 +56,13 @@ func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 		//this.cancelFn()
 		this.status.IsRunning = false
 		this.status.Locker.Unlock()
+
+		this.logFileLocker.Lock()
+		if this.logFile != nil {
+			this.logFile.Close()
+			this.logFile = nil
+		}
+		this.logFileLocker.Unlock()
 	}()
 	return ""
 }
@@ -235,6 +242,15 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUni
 			this.setErrMsg("os.WriteUrl error: " + err.Error())
 			return
 		}
+	}
+
+	if req.DebugLog {
+		this.logFile, err = os.OpenFile(filepath.Join(downloadDir, "debug.txt"), os.O_APPEND|os.O_CREATE, 0666)
+		if err != nil {
+			this.setErrMsg("os.WriteUrl error: " + err.Error())
+			return
+		}
+		this.logToFile("m3u8 url: " + req.M3u8Url)
 	}
 
 	beginSeq := parseBeginSeq(m3u8Body)

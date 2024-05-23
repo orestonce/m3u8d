@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"path"
@@ -60,15 +61,18 @@ type StartDownload_Req struct {
 	SkipCacheCheck           bool                // 不缓存已下载的m3u8的文件信息
 	SkipMergeTs              bool                // 不合并ts为mp4
 	Skip_EXT_X_DISCONTINUITY bool                // 跳过 #EXT-X-DISCONTINUITY 标签包裹的ts
+	DebugLog                 bool                // 调试日志
 }
 
 type DownloadEnv struct {
-	cancelFn  func()
-	ctx       context.Context
-	nowClient *http.Client
-	header    http.Header
-	sleepTh   int32
-	status    SpeedStatus
+	cancelFn      func()
+	ctx           context.Context
+	nowClient     *http.Client
+	header        http.Header
+	sleepTh       int32
+	status        SpeedStatus
+	logFile       *os.File
+	logFileLocker sync.Mutex
 }
 
 func parseBeginSeq(body []byte) uint64 {
@@ -392,20 +396,63 @@ func (this *DownloadEnv) doGetRequest(urlS string) (data []byte, err error) {
 	}
 	req = req.WithContext(this.ctx)
 	req.Header = this.header
+
+	var logBuf *bytes.Buffer
+
+	this.logFileLocker.Lock()
+	if this.logFile != nil {
+		logBuf = bytes.NewBuffer(nil)
+		reqBytes, _ := httputil.DumpRequest(req, false)
+		logBuf.WriteString("httpReq:\n" + string(reqBytes) + "\n")
+	}
+	this.logFileLocker.Unlock()
+
 	resp, err := this.nowClient.Do(req)
+	if logBuf != nil && resp != nil {
+		respBytes, _ := httputil.DumpResponse(resp, false)
+		logBuf.WriteString("httpResp:\n" + string(respBytes) + "\n")
+	}
+
 	if err != nil {
+		if logBuf != nil {
+			logBuf.WriteString("error1:" + err.Error() + "\n")
+			this.logToFile(logBuf.String())
+		}
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	content, err := io.ReadAll(resp.Body)
 	if err != nil {
+		if logBuf != nil {
+			logBuf.WriteString("error2:" + err.Error() + "\n")
+			this.logToFile(logBuf.String())
+		}
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
+		if logBuf != nil {
+			logBuf.WriteString("error3\n")
+			this.logToFile(logBuf.String())
+		}
 		return content, errors.New("resp.Status: " + resp.Status + " " + urlS)
 	}
+	if logBuf != nil {
+		this.logToFile(logBuf.String())
+	}
 	return content, nil
+}
+
+func (this *DownloadEnv) logToFile(body string) {
+	this.logFileLocker.Lock()
+	defer this.logFileLocker.Unlock()
+
+	if this.logFile == nil {
+		return
+	}
+
+	timeStr := time.Now().Format("2006-01-02_15:04:05")
+	fmt.Fprintf(this.logFile, "===>time: %s\n%s\n", timeStr, body)
 }
 
 func (this *DownloadEnv) GetIsCancel() bool {

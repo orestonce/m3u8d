@@ -22,7 +22,8 @@ struct StartDownload_Req{
 	bool SkipCacheCheck;
 	bool SkipMergeTs;
 	bool Skip_EXT_X_DISCONTINUITY;
-	StartDownload_Req(): Insecure(false),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false),SkipMergeTs(false),Skip_EXT_X_DISCONTINUITY(false){}
+	bool DebugLog;
+	StartDownload_Req(): Insecure(false),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false),SkipMergeTs(false),Skip_EXT_X_DISCONTINUITY(false),DebugLog(false){}
 };
 std::string StartDownload(StartDownload_Req in0);
 void CloseOldEnv();
