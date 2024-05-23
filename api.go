@@ -5,8 +5,7 @@ import (
 	"crypto/sha256"
 	"crypto/tls"
 	"encoding/hex"
-	"encoding/json"
-	"io/ioutil"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -198,6 +197,10 @@ func (this *DownloadEnv) setErrMsg(errMsg string) {
 	this.status.Locker.Lock()
 	this.status.errMsg = errMsg
 	this.status.Locker.Unlock()
+
+	if errMsg != "" {
+		this.logToFile("errMsg " + errMsg)
+	}
 }
 
 func (this *DownloadEnv) setSaveFileTo(to string, isSkipped bool) {
@@ -207,7 +210,33 @@ func (this *DownloadEnv) setSaveFileTo(to string, isSkipped bool) {
 	this.status.Locker.Unlock()
 }
 
+var debugLogNo uint32
+
 func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUnit) {
+	if !strings.HasPrefix(req.M3u8Url, "http") || req.M3u8Url == "" {
+		this.setErrMsg("M3u8Url not valid " + strconv.Quote(req.M3u8Url))
+		return
+	}
+	var err error
+	downloadingDir := filepath.Join(req.SaveDir, "downloading")
+	if !isDirExists(downloadingDir) {
+		err = os.MkdirAll(downloadingDir, os.ModePerm)
+		if err != nil {
+			this.setErrMsg("os.MkdirAll error0: " + err.Error())
+			return
+		}
+	}
+	var tempDebugFilePath string
+	if req.DebugLog {
+		tempDebugFilePath = filepath.Join(downloadingDir, fmt.Sprintf("temp_debuglog_%08d-%05d.txt", os.Getpid(), atomic.AddUint32(&debugLogNo, 1)))
+		this.logFile, err = os.OpenFile(tempDebugFilePath, os.O_APPEND|os.O_CREATE, 0666)
+		if err != nil {
+			this.setErrMsg("os.WriteUrl error: " + err.Error())
+			return
+		}
+		this.logToFile("origin m3u8 url: " + req.M3u8Url)
+	}
+
 	this.status.SetProgressBarTitle("[1/4]嗅探m3u8")
 	var m3u8Body []byte
 	var errMsg string
@@ -216,41 +245,31 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUni
 		this.setErrMsg("sniffM3u8: " + errMsg)
 		return
 	}
-	videoId, err := req.getVideoId()
-	if err != nil {
-		this.setErrMsg("getVideoId: " + err.Error())
-		return
-	}
-
-	if !strings.HasPrefix(req.M3u8Url, "http") || req.M3u8Url == "" {
-		this.setErrMsg("M3u8Url not valid " + strconv.Quote(req.M3u8Url))
-		return
-	}
-	downloadDir := filepath.Join(req.SaveDir, "downloading", videoId)
-	if !isDirExists(downloadDir) {
-		err = os.MkdirAll(downloadDir, os.ModePerm)
+	videoId := req.getVideoId()
+	videoDownloadDir := filepath.Join(req.SaveDir, "downloading", videoId)
+	if !isDirExists(videoDownloadDir) {
+		err = os.MkdirAll(videoDownloadDir, os.ModePerm)
 		if err != nil {
 			this.setErrMsg("os.MkdirAll error: " + err.Error())
 			return
 		}
 	}
 
-	downloadingFilePath := filepath.Join(downloadDir, "downloading.txt")
-	if !isFileExists(downloadingFilePath) {
-		err = ioutil.WriteFile(downloadingFilePath, []byte(req.M3u8Url), 0666)
+	if this.logFile != nil {
+		this.logFile.Sync()
+		this.logFile.Close()
+		persistDebugFilePath := filepath.Join(videoDownloadDir, "debuglog.txt")
+		err = os.Rename(tempDebugFilePath, persistDebugFilePath)
 		if err != nil {
-			this.setErrMsg("os.WriteUrl error: " + err.Error())
+			this.setErrMsg("os.Rename set persistDebugFilePath " + strconv.Quote(persistDebugFilePath) + " error : " + err.Error())
 			return
 		}
-	}
-
-	if req.DebugLog {
-		this.logFile, err = os.OpenFile(filepath.Join(downloadDir, "debug.txt"), os.O_APPEND|os.O_CREATE, 0666)
+		this.logFile, err = os.OpenFile(persistDebugFilePath, os.O_APPEND|os.O_CREATE, 0666)
 		if err != nil {
-			this.setErrMsg("os.WriteUrl error: " + err.Error())
+			this.setErrMsg("os.Open persistDebugFilePath " + strconv.Quote(persistDebugFilePath) + " error: " + err.Error())
 			return
 		}
-		this.logToFile("m3u8 url: " + req.M3u8Url)
+		this.logToFile("refresh m3u8 url: " + req.M3u8Url)
 	}
 
 	beginSeq := parseBeginSeq(m3u8Body)
@@ -274,7 +293,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUni
 	// 下载ts
 	this.status.SetProgressBarTitle("[3/4]下载ts")
 	this.status.SpeedResetBytes()
-	err = this.downloader(tsList, downloadDir, encInfo, req.ThreadCount)
+	err = this.downloader(tsList, videoDownloadDir, encInfo, req.ThreadCount)
 	this.status.SpeedResetBytes()
 	if err != nil {
 		this.setErrMsg("下载ts文件错误: " + err.Error())
@@ -286,10 +305,10 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUni
 	}
 	var tsFileList []string
 	for _, one := range tsList {
-		tsFileList = append(tsFileList, filepath.Join(downloadDir, one.Name))
+		tsFileList = append(tsFileList, filepath.Join(videoDownloadDir, one.Name))
 	}
 	var tmpOutputName string
-	tmpOutputName = filepath.Join(downloadDir, "all.merge.mp4")
+	tmpOutputName = filepath.Join(videoDownloadDir, "all.merge.mp4")
 
 	this.status.SetProgressBarTitle("[4/4]合并ts为mp4")
 	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
@@ -329,7 +348,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUni
 		return
 	}
 	if req.SkipRemoveTs == false {
-		err = os.RemoveAll(downloadDir)
+		err = os.RemoveAll(videoDownloadDir)
 		if err != nil {
 			this.setErrMsg("删除下载目录失败: " + err.Error())
 			return
@@ -413,11 +432,7 @@ func (this *DownloadEnv) prepareReqAndHeader(req *StartDownload_Req) (errMsg str
 	return ""
 }
 
-func (this *StartDownload_Req) getVideoId() (id string, err error) {
-	b, err := json.Marshal(this.M3u8Url)
-	if err != nil {
-		return "", err
-	}
-	tmp1 := sha256.Sum256(b)
-	return hex.EncodeToString(tmp1[:]), nil
+func (this *StartDownload_Req) getVideoId() (id string) {
+	tmp1 := sha256.Sum256([]byte(this.M3u8Url))
+	return hex.EncodeToString(tmp1[:])
 }

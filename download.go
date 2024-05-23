@@ -110,7 +110,7 @@ func (this *DownloadEnv) getEncryptInfo(m3u8Url string, html string) (info *Encr
 		return nil, errors.New(errMsg)
 	}
 	var res []byte
-	res, err = this.doGetRequest(keyUrl)
+	res, err = this.doGetRequest(keyUrl, true)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func (this *DownloadEnv) downloadTsFile(ts TsInfo, downloadDir string, encInfo *
 		this.status.SpeedAdd1Block(int(stat.Size()))
 		return nil
 	}
-	data, err := this.doGetRequest(ts.Url)
+	data, err := this.doGetRequest(ts.Url, false)
 	if err != nil {
 		return err
 	}
@@ -322,7 +322,7 @@ func AesDecrypt(seq uint64, encrypted []byte, encInfo *EncryptInfo) ([]byte, err
 func (this *DownloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte, errMsg string) {
 	for idx := 0; idx < 5; idx++ {
 		var err error
-		content, err = this.doGetRequest(urlS)
+		content, err = this.doGetRequest(urlS, true)
 		if err != nil {
 			return "", nil, err.Error()
 		}
@@ -389,7 +389,7 @@ func UrlHasSuffix(urlS string, suff string) bool {
 	return strings.HasSuffix(strings.ToLower(urlObj.Path), suff)
 }
 
-func (this *DownloadEnv) doGetRequest(urlS string) (data []byte, err error) {
+func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []byte, err error) {
 	req, err := http.NewRequest(http.MethodGet, urlS, nil)
 	if err != nil {
 		return nil, err
@@ -402,6 +402,7 @@ func (this *DownloadEnv) doGetRequest(urlS string) (data []byte, err error) {
 	this.logFileLocker.Lock()
 	if this.logFile != nil {
 		logBuf = bytes.NewBuffer(nil)
+		logBuf.WriteString("http get url " + strconv.Quote(urlS) + "\n")
 		reqBytes, _ := httputil.DumpRequest(req, false)
 		logBuf.WriteString("httpReq:\n" + string(reqBytes) + "\n")
 	}
@@ -430,6 +431,9 @@ func (this *DownloadEnv) doGetRequest(urlS string) (data []byte, err error) {
 		}
 		return nil, err
 	}
+	if logBuf != nil && dumpRespBody {
+		logBuf.WriteString("httpRespBody:\n" + string(content))
+	}
 	if resp.StatusCode != 200 {
 		if logBuf != nil {
 			logBuf.WriteString("error3\n")
@@ -452,7 +456,8 @@ func (this *DownloadEnv) logToFile(body string) {
 	}
 
 	timeStr := time.Now().Format("2006-01-02_15:04:05")
-	fmt.Fprintf(this.logFile, "===>time: %s\n%s\n", timeStr, body)
+	this.logFile.WriteString("===>time: " + timeStr + "\n")
+	this.logFile.WriteString(body + "\n")
 }
 
 func (this *DownloadEnv) GetIsCancel() bool {
