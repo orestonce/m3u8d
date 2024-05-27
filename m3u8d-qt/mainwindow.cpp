@@ -12,6 +12,7 @@
 #include <QJsonObject>
 #include <QCloseEvent>
 #include "curldialog.h"
+#include <sstream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -63,6 +64,16 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+std::vector<std::string> split(const std::string &s, char delim) {
+    std::vector<std::string> tokens;
+    std::stringstream ss(s);
+    std::string token;
+    while (std::getline(ss, token, delim)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
 void MainWindow::on_pushButton_RunDownload_clicked()
 {
     if (ui->lineEdit_M3u8Url->isEnabled()==false) {
@@ -73,8 +84,18 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.Insecure = ui->checkBox_Insecure->isChecked();
     req.SaveDir = ui->lineEdit_SaveDir->text().toStdString();
     req.FileName = ui->lineEdit_FileName->text().toStdString();
+    std::string headers = ui->lineEdit_Headers->text().toStdString();
     req.SkipTsExpr = ui->lineEdit_SkipTsExpr->text().toStdString();
     req.SetProxy = ui->lineEdit_SetProxy->text().toStdString();
+    if (m_HeaderMap.size() == 0 && !headers.empty()){
+        std::vector<std::string> result = split(headers, '#');
+        for (const auto &token : result) {
+            size_t colonPos = token.find(':');
+            if (colonPos != std::string::npos) {
+                    m_HeaderMap[token.substr(0, colonPos)].push_back(token.substr(colonPos + 2));
+            }
+        }
+    }
     req.HeaderMap = m_HeaderMap;
     req.SkipRemoveTs = ui->checkBox_SkipRemoveTs->isChecked();
     req.ThreadCount = ui->lineEdit_ThreadCount->text().toInt();
@@ -203,6 +224,7 @@ void MainWindow::updateDownloadUi(bool runing)
     ui->lineEdit_SaveDir->setEnabled(!runing);
     ui->pushButton_SaveDir->setEnabled(!runing);
     ui->lineEdit_FileName->setEnabled(!runing);
+    ui->lineEdit_Headers->setEnabled(!runing);
     ui->lineEdit_SkipTsExpr->setEnabled(!runing);
     ui->pushButton_RunDownload->setEnabled(!runing);
     ui->checkBox_Insecure->setEnabled(!runing);
@@ -242,6 +264,7 @@ void MainWindow::saveUiConfig()
     obj["M3u8Url"] = ui->lineEdit_M3u8Url->text();
     obj["SaveDir"] = ui->lineEdit_SaveDir->text();
     obj["FileName"]= ui->lineEdit_FileName->text();
+    obj["Headers"] = ui->lineEdit_Headers->text();
     obj["SkipTsExpr"] = ui->lineEdit_SkipTsExpr->text();
     obj["SetProxy"] = ui->lineEdit_SetProxy->text();
     obj["ThreadCount"] = ui->lineEdit_ThreadCount->text().toInt();
@@ -288,6 +311,10 @@ void MainWindow::loadUiConfig()
     QString fileName = obj["FileName"].toString();
     if(!fileName.isEmpty()) {
         ui->lineEdit_FileName->setText(fileName);
+    }
+    QString Headers = obj["lineEdit_Headers"].toString();
+    if(!Headers.isEmpty()) {
+        ui->lineEdit_Headers->setText(Headers);
     }
     QString skipTsExpr = obj["SkipTsExpr"].toString();
     if(!skipTsExpr.isEmpty()) {

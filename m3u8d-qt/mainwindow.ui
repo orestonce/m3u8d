@@ -51,6 +51,9 @@
             </property>
            </widget>
           </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="lineEdit_Headers"/>
+          </item>
           <item row="4" column="1">
            <widget class="QLineEdit" name="lineEdit_SkipTsExpr">
             <property name="placeholderText">
@@ -107,6 +110,13 @@
            <widget class="QLabel" name="label_4">
             <property name="text">
              <string>保存的文件名</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Headers</string>
             </property>
            </widget>
           </item>
