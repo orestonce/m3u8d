@@ -56,12 +56,7 @@ func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 		this.status.IsRunning = false
 		this.status.Locker.Unlock()
 
-		this.logFileLocker.Lock()
-		if this.logFile != nil {
-			this.logFile.Close()
-			this.logFile = nil
-		}
-		this.logFileLocker.Unlock()
+		this.logFileClose()
 	}()
 	return ""
 }
@@ -348,6 +343,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUni
 		return
 	}
 	if req.SkipRemoveTs == false {
+		this.logFileClose()
 		err = os.RemoveAll(videoDownloadDir)
 		if err != nil {
 			this.setErrMsg("删除下载目录失败: " + err.Error())

@@ -490,6 +490,16 @@ func (this *DownloadEnv) CloseEnv() {
 	<-ctx.Done()
 }
 
+func (this *DownloadEnv) logFileClose() {
+	this.logFileLocker.Lock()
+	defer this.logFileLocker.Unlock()
+
+	if this.logFile != nil {
+		this.logFile.Close()
+		this.logFile = nil
+	}
+}
+
 func IsContextCancel(ctx context.Context) bool {
 	if ctx == nil {
 		return false
