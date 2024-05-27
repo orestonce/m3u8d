@@ -338,7 +338,7 @@ func (this *DownloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte
 					m3u8Url = line
 					break
 				}
-				for _, supportSuffix := range []string{".ts", ".png", ".jpeg"} {
+				for _, supportSuffix := range []string{".ts", ".png", ".jpeg", ".jpg"} {
 					if UrlHasSuffix(line, supportSuffix) {
 						containsTs = true
 						break
