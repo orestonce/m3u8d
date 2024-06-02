@@ -62,6 +62,7 @@ struct MergeGetProgressPercent_Resp{
 	MergeGetProgressPercent_Resp(): Percent(0),IsRunning(false){}
 };
 MergeGetProgressPercent_Resp MergeGetProgressPercent();
+std::string FindUrlInStr(std::string in0);
 
 #include <QObject>
 #include <QVector>

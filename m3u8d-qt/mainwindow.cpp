@@ -142,7 +142,10 @@ void MainWindow::on_pushButton_curlMode_clicked()
 
 void MainWindow::on_lineEdit_M3u8Url_textChanged(const QString &arg1)
 {
-    if (ui->lineEdit_FileName->text().isEmpty()==false) {
+    QString urlStr = QString::fromStdString(FindUrlInStr(arg1.toStdString()));
+    if(urlStr != arg1) {
+        ui->lineEdit_M3u8Url->setText(urlStr);
+        Toast::Instance()->SetTips("自动识别修改了url");
         return;
     }
     QString fileName = QString::fromStdString(GetFileNameFromUrl(arg1.toStdString()));

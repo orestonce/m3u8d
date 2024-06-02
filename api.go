@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -431,4 +432,9 @@ func (this *DownloadEnv) prepareReqAndHeader(req *StartDownload_Req) (errMsg str
 func (this *StartDownload_Req) getVideoId() (id string) {
 	tmp1 := sha256.Sum256([]byte(this.M3u8Url))
 	return hex.EncodeToString(tmp1[:])
+}
+
+func FindUrlInStr(str string) string {
+	re := regexp.MustCompile(`https?://[^\s/$.?#].\S*`)
+	return re.FindString(str)
 }

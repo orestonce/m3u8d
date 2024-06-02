@@ -86,6 +86,7 @@ extern __declspec(dllexport) void Go2cppFn_GetFileNameFromUrl(char* in, int inLe
 extern __declspec(dllexport) void Go2cppFn_MergeTsDir(char* in, int inLen, char** out, int* outLen);
 extern __declspec(dllexport) void Go2cppFn_MergeStop(char* in, int inLen, char** out, int* outLen);
 extern __declspec(dllexport) void Go2cppFn_MergeGetProgressPercent(char* in, int inLen, char** out, int* outLen);
+extern __declspec(dllexport) void Go2cppFn_FindUrlInStr(char* in, int inLen, char** out, int* outLen);
 
 #ifdef __cplusplus
 }
@@ -823,6 +824,40 @@ MergeGetProgressPercent_Resp MergeGetProgressPercent(){
 		}
 		retValue.IsRunning = (bool) out[outIdx];
 		outIdx++;
+	}
+	if (out != NULL) {
+		free(out);
+	}
+	return retValue;
+}
+
+std::string FindUrlInStr(std::string in0){
+	std::string in;
+	{
+		uint32_t tmp5 = in0.length();
+		char tmp6[4];
+		tmp6[0] = (uint32_t(tmp5) >> 24) & 0xFF;
+		tmp6[1] = (uint32_t(tmp5) >> 16) & 0xFF;
+		tmp6[2] = (uint32_t(tmp5) >> 8) & 0xFF;
+		tmp6[3] = (uint32_t(tmp5) >> 0) & 0xFF;
+		in.append(tmp6, 4);
+		in.append(in0);
+	}
+	char *out = NULL;
+	int outLen = 0;
+	Go2cppFn_FindUrlInStr((char *)in.data(), in.length(), &out, &outLen);
+	std::string retValue;
+	int outIdx = 0;
+	{
+		uint32_t tmp7 = 0;
+		uint32_t tmp8 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+		uint32_t tmp9 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+		uint32_t tmp10 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+		uint32_t tmp11 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+		tmp7 = tmp8 | tmp9 | tmp10 | tmp11;
+		outIdx+=4;
+		retValue = std::string(out+outIdx, out+outIdx+tmp7);
+		outIdx+=tmp7;
 	}
 	if (out != NULL) {
 		free(out);
