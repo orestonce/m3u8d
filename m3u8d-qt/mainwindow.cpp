@@ -367,7 +367,10 @@ void MainWindow::on_lineEdit_M3u8Url_editingFinished()
     QString originUrl = ui->lineEdit_M3u8Url->text();
     QString urlStr = QString::fromStdString(FindUrlInStr(originUrl.toStdString()));
     if(urlStr.isEmpty()) {
-        Toast::Instance()->SetWaring("m3u8 url不合法");
+        if(originUrl.isEmpty() == false)
+        {
+            Toast::Instance()->SetWaring("m3u8 url不合法");
+        }
         return;
     }
     if(urlStr != originUrl) {
