@@ -11,6 +11,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QCloseEvent>
+#include <QJsonArray>
 #include "curldialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -140,21 +141,6 @@ void MainWindow::on_pushButton_curlMode_clicked()
     this->m_HeaderMap = resp.DownloadReq.HeaderMap;
 }
 
-void MainWindow::on_lineEdit_M3u8Url_textChanged(const QString &arg1)
-{
-    QString urlStr = QString::fromStdString(FindUrlInStr(arg1.toStdString()));
-    if(urlStr != arg1) {
-        ui->lineEdit_M3u8Url->setText(urlStr);
-        Toast::Instance()->SetTips("自动识别修改了url");
-        return;
-    }
-    QString fileName = QString::fromStdString(GetFileNameFromUrl(arg1.toStdString()));
-    if (fileName.isEmpty()) {
-        return;
-    }
-    ui->lineEdit_FileName->setPlaceholderText(fileName);
-}
-
 void MainWindow::on_pushButton_returnDownload_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
@@ -254,6 +240,22 @@ void MainWindow::saveUiConfig()
     obj["Skip_EXT_X_DISCONTINUITY"] = ui->checkBox_Skip_EXT_X_DISCONTINUITY->isChecked();
     obj["DebugLog"] = ui->checkBox_DebugLog->isChecked();
 
+    QJsonObject headerMap;
+    for(auto it = m_HeaderMap.begin(); it != m_HeaderMap.end(); it++)
+    {
+        QString key = QString::fromStdString(it->first);
+        QJsonArray valueList;
+        for(auto vit = it->second.begin(); vit != it->second.end(); vit++)
+        {
+            valueList.push_back(QString::fromStdString(*vit));
+        }
+        headerMap[key] = valueList;
+    }
+    if(headerMap.empty() == false)
+    {
+        obj["HeaderMap"] = headerMap;
+    }
+
     QJsonDocument doc;
     doc.setObject(obj);
     QByteArray data = doc.toJson();
@@ -314,6 +316,21 @@ void MainWindow::loadUiConfig()
     ui->checkBox_Skip_EXT_X_DISCONTINUITY->setChecked(skip_EXT_X_DISCONTINUITY);
     bool debugLog = obj["DebugLog"].toBool();
     ui->checkBox_DebugLog->setChecked(debugLog);
+
+    QJsonObject headerMap = obj["HeaderMap"].toObject();
+    m_HeaderMap.clear();
+    for(auto it = headerMap.begin(); it != headerMap.end(); it++)
+    {
+        std::string key = it.key().toStdString();
+        std::vector<std::string> vList;
+        QJsonArray valueList = it.value().toArray();
+        for(auto vit = valueList.begin(); vit != valueList.end(); vit++)
+        {
+            std::string value = (*vit).toString().toStdString();
+            vList.push_back(value);
+        }
+        m_HeaderMap[key] = vList;
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -343,4 +360,24 @@ void MainWindow::closeEvent(QCloseEvent *event)
     } while(false);
 
     event->accept();
+}
+
+void MainWindow::on_lineEdit_M3u8Url_editingFinished()
+{
+    QString originUrl = ui->lineEdit_M3u8Url->text();
+    QString urlStr = QString::fromStdString(FindUrlInStr(originUrl.toStdString()));
+    if(urlStr.isEmpty()) {
+        Toast::Instance()->SetWaring("m3u8 url不合法");
+        return;
+    }
+    if(urlStr != originUrl) {
+        ui->lineEdit_M3u8Url->setText(urlStr);
+        Toast::Instance()->SetTips("自动识别修改了url");
+        return;
+    }
+    QString fileName = QString::fromStdString(GetFileNameFromUrl(urlStr.toStdString()));
+    if (fileName.isEmpty()) {
+        return;
+    }
+    ui->lineEdit_FileName->setPlaceholderText(fileName);
 }

@@ -25,8 +25,6 @@ private slots:
 
     void on_pushButton_curlMode_clicked();
 
-    void on_lineEdit_M3u8Url_textChanged(const QString &arg1);
-
     void on_pushButton_returnDownload_clicked();
 
     void on_pushButton_gotoMergeTs_clicked();
@@ -36,6 +34,9 @@ private slots:
     void on_pushButton_stopMerge_clicked();
 
     void on_toolButton_selectMergeDir_clicked();
+
+    void on_lineEdit_M3u8Url_editingFinished();
+
 private:
     void updateDownloadUi(bool runing);
     void updateMergeUi(bool runing);
