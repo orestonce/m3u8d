@@ -149,7 +149,9 @@ func getTsList(beginSeq uint64, m38uUrl string, body string) (tsList []TsInfo, e
 	for _, line := range splitLineWithTrimSpace(body) {
 		line = strings.TrimSpace(line)
 		if line == "#EXT-X-DISCONTINUITY" {
-			between_EXT_X_DISCONTINUITY = !between_EXT_X_DISCONTINUITY
+			if len(tsList) > 0 {
+				between_EXT_X_DISCONTINUITY = !between_EXT_X_DISCONTINUITY
+			}
 			continue
 		}
 		if !strings.HasPrefix(line, "#") && line != "" {
