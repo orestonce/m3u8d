@@ -53,6 +53,10 @@ func BuildCliBinary() {
 			GOARCH: "arm",
 		},
 		{
+			GOOS:   "android",
+			GOARCH: "arm64",
+		},
+		{
 			GOOS:   "linux",
 			GOARCH: "mipsle",
 		},

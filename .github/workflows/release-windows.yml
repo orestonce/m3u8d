@@ -69,3 +69,9 @@ jobs:
           name: m3u8d_cli_darwin_amd64-${{ github.ref_name }}
           path: bin/m3u8d_cli_darwin_amd64
           repo-token: ${{ secrets.GITHUB_TOKEN }} 
+      - name: upload release android_arm64_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: android_arm64_cli-${{ github.ref_name }}
+          path: bin/m3u8d_cli_android_arm64
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
