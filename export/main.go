@@ -105,7 +105,12 @@ func CreateLibForQtUi(goarch string, buildmode string) {
 	ctx.Generate1(m3u8dcpp.MergeStop)
 	ctx.Generate1(m3u8dcpp.MergeGetProgressPercent)
 	ctx.Generate1(m3u8d.FindUrlInStr)
-	ctx.MustCreateLibrary("m3u8d-qt", goarch, buildmode)
+
+	var optionList []string
+	if runtime.GOOS == "darwin" {
+		optionList = []string{"-ldflags=-w"}
+	}
+	ctx.MustCreateLibrary("m3u8d-qt", goarch, buildmode, optionList...)
 }
 
 func WriteVersionDotRc(version string) {
