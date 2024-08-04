@@ -63,34 +63,30 @@ struct MergeGetProgressPercent_Resp{
 };
 MergeGetProgressPercent_Resp MergeGetProgressPercent();
 std::string FindUrlInStr(std::string in0);
-
-#include <QObject>
-#include <QVector>
-#include <QThreadPool>
-#include <QMutex>
-#include <QMutexLocker>
+#include <vector>
 #include <functional>
+#include <QMutex>
+#include <QObject>
+#include <QThreadPool>
+#include <QMutexLocker>
 
 class RunOnUiThread : public QObject
 {
     Q_OBJECT
 public:
-    explicit RunOnUiThread(QObject *parent = nullptr);
     virtual ~RunOnUiThread();
 
     void AddRunFnOn_OtherThread(std::function<void()> fn);
     // !!!注意,fn可能被调用,也可能由于RunOnUiThread被析构不被调用
     // 依赖于在fn里delete回收内存, 关闭文件等操作可能造成内存泄露
     void AddRunFnOn_UiThread(std::function<void ()> fn);
-	bool Get_Done();
-signals:
-    void signal_newFn();
+    bool IsDone();
 private slots:
     void slot_newFn();
 private:
-    bool m_done;
-    QVector<std::function<void()>> m_funcList;
-    QMutex m_Mutex;
+    bool m_done = false;
+    std::vector<std::function<void()>> m_funcList;
+    QMutex m_mutex;
     QThreadPool m_pool;
 };
 
