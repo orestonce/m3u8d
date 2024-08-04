@@ -30,12 +30,12 @@ jobs:
         run: |
           # https://build-qt.fsu0413.me/5.15-series/5.15.6-for-macos/
           mkdir -p env/download/ && cd env/download
-          curl -L https://github.com/orestonce/action/releases/download/qt-static5.15.6/Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework-20220914.tar.xz -o Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework-20220914.tar.xz
-          tar xf Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework-20220914.tar.xz
+          curl -L https://github.com/orestonce/action/releases/download/qt5.15.14/Qt5.15.14-macOS-Universal-AppleClang15.0.0-noFramework-20240527.tar.xz -o Qt5.15.14-macOS-Universal-AppleClang15.0.0-noFramework-20240527.tar.xz
+          tar xf Qt5.15.14-macOS-Universal-AppleClang15.0.0-noFramework-20240527.tar.xz
           pwd
-          ls -al Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework
-          chmod +x Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework/bin/*
-          mv Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework ../
+          ls -al Qt5.15.14-macOS-Universal-AppleClang15.0.0-noFramework
+          chmod +x Qt5.15.14-macOS-Universal-AppleClang15.0.0-noFramework/bin/*
+          mv Qt5.15.14-macOS-Universal-AppleClang15.0.0-noFramework ../
           cd ../../ && rm -rf env/download
       - name: Setup Go environment
         uses: actions/setup-go@v3.2.1
@@ -44,7 +44,7 @@ jobs:
           go-version: 1.18 # optional
       - name: build    
         run: |
-          export PATH=$(pwd)"/env/Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework/bin:"${PATH}
+          export PATH=$(pwd)"/env/Qt5.15.14-macOS-Universal-AppleClang15.0.0-noFramework/bin:"${PATH}
           echo $PATH
           go mod tidy && go run export/main.go "check-only"
           cd m3u8d-qt && qmake && ls -alh && make
@@ -58,6 +58,6 @@ jobs:
       - name: upload release
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_qt_darwin_amd64-${{ github.ref_name }}.dmg
+          name: m3u8d_qt_darwin_arm64-${{ github.ref_name }}.dmg
           path: m3u8d-qt/m3u8d-qt.dmg
           repo-token: ${{ secrets.GITHUB_TOKEN }} 

@@ -38,6 +38,8 @@ github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2 h1:AmGkuxSIOW0gA/jet
 github.com/orestonce/cdb v0.0.0-20220528005855-d187c22240e2/go.mod h1:HMNNdA1LMQFJRwobtCzVevWcInFSo9rfs1fYeVYwU+c=
 github.com/orestonce/go2cpp v0.0.0-20220802140809-b2a921a62a07 h1:nyt0GDiskod5Y9uNVrXgK7PZHeL7Ab1uVc3LhLg7/gk=
 github.com/orestonce/go2cpp v0.0.0-20220802140809-b2a921a62a07/go.mod h1:1fsOAZftk08/dOTRqlp6f/MVwaEKOhrnPUg0RtWiSdY=
+github.com/orestonce/go2cpp v0.0.0-20240804083452-a7921798297d h1:GkeqCetQZcduDcM2qnFxdNod5VzQemKy24vhfJQndug=
+github.com/orestonce/go2cpp v0.0.0-20240804083452-a7921798297d/go.mod h1:1fsOAZftk08/dOTRqlp6f/MVwaEKOhrnPUg0RtWiSdY=
 github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171 h1:NnOl6HTrhrlTT7aaAybVOtq+fEztGFMoQtegckgwLdk=
 github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171/go.mod h1:MCQUrAPiG9/PTjHJuGqWLasKbIaG6z62KO6kfp90byM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
