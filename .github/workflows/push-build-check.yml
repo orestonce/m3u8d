@@ -42,7 +42,7 @@ jobs:
       - name: install qt static
         uses: orestonce/install-qt@main
         with:
-          version: Qt6.5.3-Windows-x86_64-MinGW13.2.0-ucrt-staticFull-20240527
+          version: Qt5.15.7-Windows-x86_64-MinGW8.1.0-staticFull-20221104
           dir: qt_static_install
       - name: Setup Go environment
         uses: actions/setup-go@v3.2.1
