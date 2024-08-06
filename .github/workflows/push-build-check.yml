@@ -80,12 +80,24 @@ jobs:
   build-macos-amd64:
     runs-on: macos-13
     steps:
+      - uses: actions/checkout@v3
+      - name: install qt
+        uses: orestonce/install-qt@main
+        with:
+          version: Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework-20220914
+      - name: Setup Go environment
+        uses: actions/setup-go@v3.2.1
+        with:
+          # The Go version to download (if necessary) and use. Supports semver spec and ranges.
+          go-version: 1.18 # optional
       - name: build
         run: |
-          uname -a
-  build-macos-amd64_2:
-    runs-on: macos-12
-    steps:
-      - name: build
-        run: |
-          uname -a
+          go mod tidy
+          go run export/main.go create-qt-lib amd64 c-shared
+          cd m3u8d-qt && qmake && make && cd ..
+          find . | grep -v qt_install 
+          cd m3u8d-qt
+          install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
+          cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
+          macdeployqt m3u8d-qt.app -dmg 
+          ls -alh m3u8d-qt.dmg
