@@ -80,7 +80,7 @@ jobs:
           macdeployqt m3u8d-qt.app -dmg 
           ls -alh m3u8d-qt.dmg
   build-macos-amd64:
-    runs-on: macos-13
+    runs-on: macos-14-large
     steps:
       - uses: actions/checkout@v3
       - name: install qt
