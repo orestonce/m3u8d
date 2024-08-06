@@ -99,7 +99,12 @@ jobs:
           go mod tidy
           go run export/main.go create-qt-lib amd64 c-shared
           pwd
-          cd m3u8d-qt && qmake && make && cd ..
+          cd m3u8d-qt
+          pwd
+          qmake
+          make
+          pwd
+          cd ..
           pwd
           find . | grep -v qt_install
 #          cd m3u8d-qt
