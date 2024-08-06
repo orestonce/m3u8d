@@ -114,7 +114,7 @@ jobs:
           find `pwd` | grep -v qt_install | grep -v .git
           cd m3u8d-qt
           echo "========================1"
-          qmake release
+          qmake -project m3u8d-qt.pro
           echo "========================2"
           find `pwd`
           echo "========================3"
