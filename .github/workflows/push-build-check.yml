@@ -114,6 +114,7 @@ jobs:
           find . | grep -v qt_install | grep -v .git
           cd m3u8d-qt
           qmake -project
+          find .
           make
           pwd
           cd ..
