@@ -104,7 +104,6 @@ jobs:
           pwd
           find `pwd`
           export QMAKE_XCODE_DEVELOPER_PATH="/Applications/Xcode.app/Contents/Developer"
-#          xcode-select --install
           echo $QMAKE_XCODE_DEVELOPER_PATH
           find /Applications/Xcode.app/Contents/Developer
           qmake -project
