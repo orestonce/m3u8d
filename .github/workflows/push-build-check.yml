@@ -110,6 +110,9 @@ jobs:
         run: |
           set -x
           set -e
+          pwd
+          find . | grep -v qt_install
+          cd m3u8d-qt
           qmake -project
           make
           pwd
