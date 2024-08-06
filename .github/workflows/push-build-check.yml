@@ -68,6 +68,8 @@ jobs:
           go-version: 1.18 # optional
       - name: build
         run: |
+          set -x
+          set -e
           go mod tidy
           go run export/main.go create-qt-lib arm64 c-shared
           cd m3u8d-qt && qmake && make && cd ..
@@ -92,6 +94,8 @@ jobs:
           go-version: 1.18 # optional
       - name: build
         run: |
+          set -x
+          set -e
           go mod tidy
           go run export/main.go create-qt-lib amd64 c-shared
           cd m3u8d-qt && qmake && make && cd ..
