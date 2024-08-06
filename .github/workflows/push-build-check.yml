@@ -17,10 +17,9 @@ jobs:
       - uses: actions/checkout@v3
     
       - name: install qt static
-        uses: orestonce/install-qt-static@v0.4.2
+        uses: orestonce/install-qt@main
         with:
           version: Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104
-          dir: qt_static_install
       - name: Setup Go environment
         uses: actions/setup-go@v3.2.1
         with:
@@ -43,7 +42,6 @@ jobs:
         uses: orestonce/install-qt@main
         with:
           version: Qt5.15.7-Windows-x86_64-MinGW8.1.0-staticFull-20221104
-          dir: qt_static_install
       - name: Setup Go environment
         uses: actions/setup-go@v3.2.1
         with:
@@ -63,7 +61,6 @@ jobs:
         uses: orestonce/install-qt@main
         with:
           version: Qt5.15.14-macOS-Universal-AppleClang15.0.0-noFramework-20240527
-          dir: qt_install
       - name: Setup Go environment
         uses: actions/setup-go@v3.2.1
         with:
@@ -80,3 +77,15 @@ jobs:
           cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
           macdeployqt m3u8d-qt.app -dmg 
           ls -alh m3u8d-qt.dmg
+  build-macos-amd64:
+    runs-on: macos-13
+    steps:
+      - name: build
+        run: |
+          uname -a
+  build-macos-amd64_2:
+    runs-on: macos-12
+    steps:
+      - name: build
+        run: |
+          uname -a
