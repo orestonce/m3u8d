@@ -108,6 +108,8 @@ jobs:
           set -x
           set -e
           pwd
+          find `pwd` -name "macx-clang*"
+          echo "========================2"
           find `pwd` | grep -v qt_install | grep -v .git
           cd m3u8d-qt
           echo "========================1"
