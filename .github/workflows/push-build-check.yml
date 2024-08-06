@@ -101,7 +101,7 @@ jobs:
           pwd
           cd m3u8d-qt
           pwd
-          qmake
+          qmake -project
           make
           pwd
           cd ..
