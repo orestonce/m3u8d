@@ -7,7 +7,7 @@ on: push
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  build-windows-x86:
     # The type of runner that the job will run on
     runs-on: windows-latest
 
@@ -29,6 +29,56 @@ jobs:
       - name: build
         run: |
           go mod tidy
-          go run export/main.go check-only
+          go run export/main.go build-cli
+          go run export/main.go update-qt-version-rc
+          go run export/main.go create-qt-lib 386 c-archive
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
           dir m3u8d-qt\release\m3u8d-qt.exe
+  build-windows-x64:
+    runs-on: windows-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - name: install qt static
+        uses: orestonce/install-qt-static@v0.4.2
+        with:
+          version: Qt6.5.3-Windows-x86_64-MinGW13.2.0-ucrt-staticFull-20240527
+          dir: qt_static_install
+      - name: Setup Go environment
+        uses: actions/setup-go@v3.2.1
+        with:
+          # The Go version to download (if necessary) and use. Supports semver spec and ranges.
+          go-version: 1.18 # optional
+      - name: build
+        run: |
+          go mod tidy
+          go run export/main.go update-qt-version-rc
+          go run export/main.go create-qt-lib amd64 c-archive
+          cd m3u8d-qt && qmake && mingw32-make release && cd ..
+          dir m3u8d-qt\release\m3u8d-qt.exe
+  build-macos-arm64:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v3
+      - name: install qt
+        uses: orestonce/install-qt@main
+        with:
+          version: Qt5.15.14-macOS-Universal-AppleClang15.0.0-noFramework-20240527
+          dir: qt_install
+      - name: Setup Go environment
+        uses: actions/setup-go@v3.2.1
+        with:
+          # The Go version to download (if necessary) and use. Supports semver spec and ranges.
+          go-version: 1.18 # optional
+      - name: build
+        run: |
+          go mod tidy
+          go run export/main.go update-qt-version-rc
+          go run export/main.go create-qt-lib arm64 c-shared
+          cd m3u8d-qt && qmake && make release && cd ..
+          dir m3u8d-qt\release\m3u8d-qt.exe
+          install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
+          cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
+          macdeployqt m3u8d-qt.app -dmg 
+          ls -alh m3u8d-qt.dmg

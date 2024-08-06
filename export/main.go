@@ -10,40 +10,51 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	BuildCliBinary()                       // 编译命令行版本
 	if os.Getenv("GITHUB_ACTIONS") == "" { // 本地编译
+		BuildCliBinaryAllVersion()             // 编译命令行版本
 		CreateLibForQtUi("amd64", "c-archive") // 创建Qt需要使用的.a库文件
-		WriteVersionDotRc("1.5.20")
-	} else { // github actions 编译
-		if runtime.GOOS == "darwin" { // 编译darwin版本的dmg
-			CreateLibForQtUi("arm64", "c-shared")
-		} else { // 编译windows版本的exe
-			CreateLibForQtUi("386", "c-archive")
+	} else if len(os.Args) >= 2 { // github actions 编译
+		switch os.Args[1] {
+		case "build-cli":
+			BuildCliBinaryAllVersion() // 编译命令行版本
+		case "update-qt-version-rc":
+			refName := os.Getenv("GITHUB_REF_NAME")
+			WriteVersionDotRc(refName)
+		case "create-qt-lib":
+			goarch := os.Args[2]
+			buildMode := os.Args[3]
+			CreateLibForQtUi(goarch, buildMode)
+		default:
+			fmt.Println("help:")
+			fmt.Println("build-cli")
+			fmt.Println("update-qt-version-rc")
+			fmt.Println("create-qt-lib [goarch] [buildMode]")
+			fmt.Println("              goarch: 386, amd64, arm64...")
+			fmt.Println("              buildMode: c-shared, c-archive")
 		}
-		if len(os.Args) <= 1 || os.Args[1] != "check-only" {
-			version := strings.TrimPrefix(os.Getenv("GITHUB_REF_NAME"), "v")
-			WriteVersionDotRc(version)
-		}
+		//if runtime.GOOS == "darwin" { // 编译darwin版本的dmg
+		//	CreateLibForQtUi("arm64", "c-shared")
+		//} else { // 编译windows版本的exe
+		//	CreateLibForQtUi("386", "c-archive")
+		//}
 	}
 }
 
-func BuildCliBinary() {
-	wd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	type buildCfg struct {
-		GOOS   string
-		GOARCH string
-		Ext    string
-	}
-	var list = []buildCfg{
+type BuildCfg struct {
+	GOOS   string
+	GOARCH string
+	Ext    string
+}
+
+func BuildCliBinaryAllVersion() {
+	var list = []BuildCfg{
 		{
 			GOOS:   "linux",
 			GOARCH: "386",
@@ -66,25 +77,33 @@ func BuildCliBinary() {
 		},
 		{
 			GOOS:   "windows",
-			GOARCH: "386",
+			GOARCH: "amd64",
 			Ext:    ".exe",
 		},
 	}
 	for _, cfg := range list {
-		name := "m3u8d_cli_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
-		cmd := exec.Command("go", "build", "-trimpath", "-ldflags", "-s -w", "-o", filepath.Join(wd, "bin", name))
-		cmd.Dir = filepath.Join(wd, "cmd")
-		cmd.Env = append(os.Environ(), "GOOS="+cfg.GOOS)
-		cmd.Env = append(cmd.Env, "GOARCH="+cfg.GOARCH)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err = cmd.Run()
-		if err != nil {
-			fmt.Println(cmd.Dir)
-			panic(err)
-		}
-		fmt.Println("done", name)
+		BuildCliVersion(cfg)
 	}
+}
+
+func BuildCliVersion(cfg BuildCfg) {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	name := "m3u8d_cli_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
+	cmd := exec.Command("go", "build", "-trimpath", "-ldflags", "-s -w", "-o", filepath.Join(wd, "bin", name))
+	cmd.Dir = filepath.Join(wd, "cmd")
+	cmd.Env = append(os.Environ(), "GOOS="+cfg.GOOS)
+	cmd.Env = append(cmd.Env, "GOARCH="+cfg.GOARCH)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(cmd.Dir)
+		panic(err)
+	}
+	fmt.Println("done", name)
 }
 
 func CreateLibForQtUi(goarch string, buildmode string) {
@@ -113,25 +132,15 @@ func CreateLibForQtUi(goarch string, buildmode string) {
 	ctx.MustCreateLibrary("m3u8d-qt", goarch, buildmode, optionList...)
 }
 
+var gVersionReg = regexp.MustCompile(`^v([0-9]+)\.([0-9]+)\.([0-9]+)$`)
+
 func WriteVersionDotRc(version string) {
-	tmp := strings.Split(version, ".")
-	ok := len(tmp) == 3
-	for _, v := range tmp {
-		vi, err := strconv.Atoi(v)
-		if err != nil {
-			ok = false
-			break
-		}
-		if vi < 0 {
-			ok = false
-			break
-		}
-	}
-	if ok == false {
+	groups := gVersionReg.FindStringSubmatch(version)
+	if len(groups) == 0 {
 		panic("version invalid: " + strconv.Quote(version))
 	}
-	tmp = append(tmp, "0")
-	v1 := strings.Join(tmp, ",")
+	versionPart3 := append(groups[1:], "0")
+	v1 := strings.Join(versionPart3, ",")
 	// TODO: 这里写中文github action会乱码, 有空研究一下
 	data := []byte(`IDI_ICON1 ICON "favicon.ico"
 
