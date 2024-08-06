@@ -98,8 +98,10 @@ jobs:
           set -e
           go mod tidy
           go run export/main.go create-qt-lib amd64 c-shared
+          pwd
           cd m3u8d-qt && qmake && make && cd ..
-          find . | grep -v qt_install 
+          pwd
+          find . | grep -v qt_install
 #          cd m3u8d-qt
 #          install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
 #          cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
