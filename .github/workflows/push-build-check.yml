@@ -30,7 +30,6 @@ jobs:
         run: |
           go mod tidy
           go run export/main.go build-cli
-          go run export/main.go update-qt-version-rc
           go run export/main.go create-qt-lib 386 c-archive
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
           dir m3u8d-qt\release\m3u8d-qt.exe
@@ -41,7 +40,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: install qt static
-        uses: orestonce/install-qt-static@v0.4.2
+        uses: orestonce/install-qt@main
         with:
           version: Qt6.5.3-Windows-x86_64-MinGW13.2.0-ucrt-staticFull-20240527
           dir: qt_static_install
@@ -53,7 +52,6 @@ jobs:
       - name: build
         run: |
           go mod tidy
-          go run export/main.go update-qt-version-rc
           go run export/main.go create-qt-lib amd64 c-archive
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
           dir m3u8d-qt\release\m3u8d-qt.exe
@@ -74,7 +72,6 @@ jobs:
       - name: build
         run: |
           go mod tidy
-          go run export/main.go update-qt-version-rc
           go run export/main.go create-qt-lib arm64 c-shared
           cd m3u8d-qt && qmake && make release && cd ..
           install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
