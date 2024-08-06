@@ -101,6 +101,7 @@ jobs:
           pwd
           cd m3u8d-qt
           pwd
+          export QMAKE_XCODE_DEVELOPER_PATH="/Applications/Xcode.app/Contents/Developer"
           qmake -project
           make
           pwd
