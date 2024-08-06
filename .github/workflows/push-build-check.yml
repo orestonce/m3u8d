@@ -80,13 +80,13 @@ jobs:
           macdeployqt m3u8d-qt.app -dmg 
           ls -alh m3u8d-qt.dmg
   build-macos-amd64:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
       - name: install qt
         uses: orestonce/install-qt@main
         with:
-          version: Qt5.15.6-macOS-x86_64-AppleClang12.0.5-noFramework-20220914
+          version: Qt5.6.3-macOS-x86_64-AppleClang6.1.0-noFramework-20191202
       - name: Setup Go environment
         uses: actions/setup-go@v3.2.1
         with:
@@ -103,9 +103,6 @@ jobs:
           rm -f m3u8d-qt.pro.user
           pwd
           find `pwd` | grep -v qt_install
-          export QMAKE_XCODE_DEVELOPER_PATH="/Applications/Xcode.app/Contents/Developer"
-          echo $QMAKE_XCODE_DEVELOPER_PATH
-          ls -lad /Applications/Xcode.app/Contents/Developer
       - name: build-body
         run: |
           set -x
@@ -114,7 +111,7 @@ jobs:
           find `pwd` | grep -v qt_install | grep -v .git
           cd m3u8d-qt
           echo "========================1"
-          qmake -project m3u8d-qt.pro
+          qmake
           echo "========================2"
           find `pwd`
           echo "========================3"
@@ -126,6 +123,7 @@ jobs:
           echo "========================5"
           find . | grep -v qt_install | grep -v .git
           echo "========================6"
+#          -project m3u8d-qt.pro
 #          cd m3u8d-qt
 #          install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
 #          cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
