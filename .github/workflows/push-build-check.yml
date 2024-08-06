@@ -111,15 +111,21 @@ jobs:
           set -x
           set -e
           pwd
-          find . | grep -v qt_install | grep -v .git
+          find `pwd` | grep -v qt_install | grep -v .git
           cd m3u8d-qt
-          qmake -project m3u8d-qt.pro
-          find .
+          echo "========================1"
+          qmake release
+          echo "========================2"
+          find `pwd`
+          echo "========================3"
           make
+          echo "========================4"
           pwd
           cd ..
           pwd
+          echo "========================5"
           find . | grep -v qt_install | grep -v .git
+          echo "========================6"
 #          cd m3u8d-qt
 #          install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
 #          cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
