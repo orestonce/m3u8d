@@ -92,7 +92,7 @@ jobs:
         with:
           # The Go version to download (if necessary) and use. Supports semver spec and ranges.
           go-version: 1.18 # optional
-      - name: build
+      - name: build-pre
         run: |
           set -x
           set -e
@@ -106,6 +106,10 @@ jobs:
           export QMAKE_XCODE_DEVELOPER_PATH="/Applications/Xcode.app/Contents/Developer"
           echo $QMAKE_XCODE_DEVELOPER_PATH
           ls -lad /Applications/Xcode.app/Contents/Developer
+      - name: build-body
+        run: |
+          set -x
+          set -e
           qmake -project
           make
           pwd
