@@ -113,7 +113,7 @@ jobs:
           pwd
           find . | grep -v qt_install | grep -v .git
           cd m3u8d-qt
-          qmake -project
+          qmake -project m3u8d-qt.pro
           find .
           make
           pwd
