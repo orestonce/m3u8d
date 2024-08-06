@@ -74,6 +74,7 @@ jobs:
           go mod tidy
           go run export/main.go create-qt-lib arm64 c-shared
           cd m3u8d-qt && qmake && make && cd ..
+          find .
           install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
           cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
           macdeployqt m3u8d-qt.app -dmg 
