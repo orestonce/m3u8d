@@ -102,7 +102,7 @@ jobs:
           cd m3u8d-qt
           rm -f m3u8d-qt.pro.user
           pwd
-          find
+          find .
           export QMAKE_XCODE_DEVELOPER_PATH="/Applications/Xcode.app/Contents/Developer"
           xcode-select --install
           echo $QMAKE_XCODE_DEVELOPER_PATH
