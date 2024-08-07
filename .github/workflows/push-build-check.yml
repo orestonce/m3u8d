@@ -60,7 +60,7 @@ jobs:
       - name: install qt
         uses: orestonce/install-qt@main
         with:
-          version: Qt5.15.14-macOS-Universal-AppleClang15.0.0-noFramework-20240527
+          version: Qt6.7.2-macOS-Universal-AppleClang15.0.0-noFramework-20240621
       - name: Setup Go environment
         uses: actions/setup-go@v3.2.1
         with:
@@ -86,48 +86,21 @@ jobs:
       - name: install qt
         uses: orestonce/install-qt@main
         with:
-          version: Qt5.6.3-macOS-x86_64-AppleClang6.1.0-noFramework-20191202
+          version: Qt6.7.2-macOS-Universal-AppleClang15.0.0-noFramework-20240621
       - name: Setup Go environment
         uses: actions/setup-go@v3.2.1
         with:
           # The Go version to download (if necessary) and use. Supports semver spec and ranges.
           go-version: 1.18 # optional
-      - name: build-pre
+      - name: build
         run: |
           set -x
           set -e
           go mod tidy
           go run export/main.go create-qt-lib amd64 c-shared
-          pwd
+          cd m3u8d-qt && qmake && make && cd ..
           cd m3u8d-qt
-          rm -f m3u8d-qt.pro.user
-          pwd
-          find `pwd` | grep -v qt_install
-      - name: build-body
-        run: |
-          set -x
-          set -e
-          pwd
-          find `pwd` -name "macx-clang*"
-          echo "========================2"
-          find `pwd` | grep -v qt_install | grep -v .git
-          cd m3u8d-qt
-          echo "========================1"
-          qmake
-          echo "========================2"
-          find `pwd`
-          echo "========================3"
-          make
-          echo "========================4"
-          pwd
-          cd ..
-          pwd
-          echo "========================5"
-          find . | grep -v qt_install | grep -v .git
-          echo "========================6"
-#          -project m3u8d-qt.pro
-#          cd m3u8d-qt
-#          install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
-#          cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
-#          macdeployqt m3u8d-qt.app -dmg
-#          ls -alh m3u8d-qt.dmg
+          install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
+          cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
+          macdeployqt m3u8d-qt.app -dmg 
+          ls -alh m3u8d-qt.dmg
