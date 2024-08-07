@@ -79,7 +79,7 @@ jobs:
           cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
           macdeployqt m3u8d-qt.app -dmg 
           ls -alh m3u8d-qt.dmg
-          file m3u8d-qt.dmg
+          file m3u8d-qt.dmg m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
   build-macos-amd64:
     runs-on: macos-13
     steps:
@@ -104,5 +104,4 @@ jobs:
           install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
           cp m3u8d-impl m3u8d-qt.app/Contents/MacOS/
           macdeployqt m3u8d-qt.app -dmg 
-          ls -alh m3u8d-qt.dmg
-          file m3u8d-qt.dmg
+          file m3u8d-qt.dmg m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
