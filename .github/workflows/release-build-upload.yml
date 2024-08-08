@@ -1,13 +1,13 @@
 # This is a basic workflow to help you get started with Actions
 
-name: push-build-check
+name: release-build-upload
 
 # Controls when the workflow will run
 on: push
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build-windows-x86:
+  build-upload_windows-x86:
     # The type of runner that the job will run on
     runs-on: windows-latest
 
@@ -30,9 +30,60 @@ jobs:
           go mod tidy
           go run export/main.go build-cli
           go run export/main.go create-qt-lib 386 c-archive
+          go run export/main.go update-qt-version-rc
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
           dir m3u8d-qt\release\m3u8d-qt.exe
-  build-windows-x64:
+
+      - name: upload release windows_x86_qt
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_qt_windows_x86-${{ github.ref_name }}.exe
+          path: m3u8d-qt/release/m3u8d-qt.exe
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release windows_x86_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_windows_x86-${{ github.ref_name }}.exe
+          path: bin/m3u8d_cli_windows_386.exe
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release windows_x64_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_windows_x64-${{ github.ref_name }}.exe
+          path: bin/m3u8d_cli_windows_amd64.exe
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release linux_x86_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_linux_x86-${{ github.ref_name }}
+          path: bin/m3u8d_cli_linux_386
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release linux_arm_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_linux_arm-${{ github.ref_name }}
+          path: bin/m3u8d_cli_linux_arm
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release linux_mipsle_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_linux_mipsle-${{ github.ref_name }}
+          path: bin/m3u8d_cli_linux_mipsle
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release darwin_x64_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_darwin_x64-${{ github.ref_name }}
+          path: bin/m3u8d_cli_darwin_amd64
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release android_arm64_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_cli_android_arm64-${{ github.ref_name }}
+          path: bin/m3u8d_cli_android_arm64
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
+  build-upload_windows-x64:
     runs-on: windows-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -51,9 +102,16 @@ jobs:
         run: |
           go mod tidy
           go run export/main.go create-qt-lib amd64 c-archive
+          go run export/main.go update-qt-version-rc
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
           dir m3u8d-qt\release\m3u8d-qt.exe
-  build-macos-arm64:
+      - name: upload release windows_x64_qt
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_qt_windows_x64-${{ github.ref_name }}.exe
+          path: m3u8d-qt/release/m3u8d-qt.exe
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+  build-upload_macos-arm64:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v3
@@ -72,6 +130,7 @@ jobs:
           set -e
           go mod tidy
           go run export/main.go create-qt-lib arm64 c-shared
+          go run export/main.go update-qt-version-rc
           cd m3u8d-qt && qmake && make && cd ..
           cd m3u8d-qt
           install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
@@ -81,7 +140,13 @@ jobs:
           file m3u8d-qt.dmg m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
           cd ./m3u8d-qt.app
           ./Contents/MacOS/m3u8d-qt test-startup
-  build-macos-x64:
+      - name: upload release
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_qt_darwin_arm64-${{ github.ref_name }}.dmg
+          path: m3u8d-qt/m3u8d-qt.dmg
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+  build-upload_macos-amd64:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
@@ -100,6 +165,7 @@ jobs:
           set -e
           go mod tidy
           go run export/main.go create-qt-lib amd64 c-shared
+          go run export/main.go update-qt-version-rc
           cd m3u8d-qt && qmake && make && cd ..
           cd m3u8d-qt
           install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
@@ -108,3 +174,9 @@ jobs:
           file m3u8d-qt.dmg m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
           cd ./m3u8d-qt.app
           ./Contents/MacOS/m3u8d-qt test-startup
+      - name: upload release
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_qt_darwin_x64-${{ github.ref_name }}.dmg
+          path: m3u8d-qt/m3u8d-qt.dmg
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
