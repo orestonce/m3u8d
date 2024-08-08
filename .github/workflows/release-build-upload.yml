@@ -82,7 +82,7 @@ jobs:
         uses: Guerra24/upload-to-release@v1
         with:
           name: m3u8d_linux_mipsle_cli-${{ github.ref_name }}
-          path: bin/m3u8d_cli_linux_mipsle
+          path: bin/m3u8d_linux_mipsle_cli
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: upload release m3u8d_darwin_x64_cli
         uses: Guerra24/upload-to-release@v1
