@@ -61,6 +61,10 @@ func BuildCliBinaryAllVersion() {
 		},
 		{
 			GOOS:   "linux",
+			GOARCH: "amd64",
+		},
+		{
+			GOOS:   "linux",
 			GOARCH: "arm",
 		},
 		{
@@ -74,6 +78,11 @@ func BuildCliBinaryAllVersion() {
 		{
 			GOOS:   "darwin",
 			GOARCH: "amd64",
+		},
+		{
+			GOOS:   "windows",
+			GOARCH: "386",
+			Ext:    ".exe",
 		},
 		{
 			GOOS:   "windows",
