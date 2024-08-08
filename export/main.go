@@ -68,6 +68,10 @@ func BuildCliBinaryAllVersion() {
 			GOARCH: "arm",
 		},
 		{
+			GOOS:   "linux",
+			GOARCH: "arm64",
+		},
+		{
 			GOOS:   "android",
 			GOARCH: "arm64",
 		},
@@ -100,7 +104,7 @@ func BuildCliVersion(cfg BuildCfg) {
 	if err != nil {
 		panic(err)
 	}
-	name := "m3u8d_cli_" + cfg.GOOS + "_" + cfg.GOARCH + cfg.Ext
+	name := "m3u8d_" + cfg.GOOS + "_" + cfg.GOARCH + "_cli" + cfg.Ext
 	cmd := exec.Command("go", "build", "-trimpath", "-ldflags", "-s -w", "-o", filepath.Join(wd, "bin", name))
 	cmd.Dir = filepath.Join(wd, "cmd")
 	cmd.Env = append(os.Environ(), "GOOS="+cfg.GOOS)

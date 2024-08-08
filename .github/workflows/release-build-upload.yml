@@ -36,59 +36,65 @@ jobs:
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
           dir m3u8d-qt\release\m3u8d-qt.exe
 
-      - name: upload release windows_x86_qt
+      - name: upload release m3u8d_windows_x86_qt
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_qt_windows_x86-${{ github.ref_name }}.exe
+          name: m3u8d_windows_x86_qt-${{ github.ref_name }}.exe
           path: m3u8d-qt/release/m3u8d-qt.exe
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: upload release windows_x86_cli
+      - name: upload release m3u8d_windows_x86_cli
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_cli_windows_x86-${{ github.ref_name }}.exe
-          path: bin/m3u8d_cli_windows_386.exe
+          name: m3u8d_windows_x86_cli-${{ github.ref_name }}.exe
+          path: bin/m3u8d_windows_386_cli.exe
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: upload release windows_x64_cli
+      - name: upload release m3u8d_windows_x64_cli
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_cli_windows_x64-${{ github.ref_name }}.exe
-          path: bin/m3u8d_cli_windows_amd64.exe
+          name: m3u8d_windows_x64_cli-${{ github.ref_name }}.exe
+          path: bin/m3u8d_windows_amd64_cli.exe
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: upload release linux_x86_cli
+      - name: upload release m3u8d_linux_x86_cli
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_cli_linux_x86-${{ github.ref_name }}
-          path: bin/m3u8d_cli_linux_386
+          name: m3u8d_linux_x86_cli-${{ github.ref_name }}
+          path: bin/m3u8d_linux_386_cli
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: upload release linux_x64_cli
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_cli_linux_x64-${{ github.ref_name }}
-          path: bin/m3u8d_cli_linux_amd64
+          name: linux_x64_cli-${{ github.ref_name }}
+          path: bin/m3u8d_linux_amd64_cli
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: upload release linux_arm_cli
+      - name: upload release m3u8d_linux_arm_cli
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_cli_linux_arm-${{ github.ref_name }}
-          path: bin/m3u8d_cli_linux_arm
+          name: m3u8d_linux_arm_cli-${{ github.ref_name }}
+          path: bin/m3u8d_linux_arm_cli
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: upload release linux_mipsle_cli
+      - name: upload release m3u8d_linux_arm64_cli
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_cli_linux_mipsle-${{ github.ref_name }}
+          name: m3u8d_linux_arm64_cli-${{ github.ref_name }}
+          path: bin/m3u8d_linux_arm64_cli
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release m3u8d_linux_mipsle_cli
+        uses: Guerra24/upload-to-release@v1
+        with:
+          name: m3u8d_linux_mipsle_cli-${{ github.ref_name }}
           path: bin/m3u8d_cli_linux_mipsle
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: upload release darwin_x64_cli
+      - name: upload release m3u8d_darwin_x64_cli
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_cli_darwin_x64-${{ github.ref_name }}
-          path: bin/m3u8d_cli_darwin_amd64
+          name: m3u8d_darwin_x64_cli-${{ github.ref_name }}
+          path: bin/m3u8d_darwin_amd64_cli
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: upload release android_arm64_cli
+      - name: upload release m3u8d_android_arm64_cli
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_cli_android_arm64-${{ github.ref_name }}
-          path: bin/m3u8d_cli_android_arm64
+          name: m3u8d_android_arm64_cli-${{ github.ref_name }}
+          path: bin/m3u8d_android_arm64_cli
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           
   build-upload_windows-x64:
@@ -113,10 +119,10 @@ jobs:
           go run export/main.go update-qt-version-rc
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
           dir m3u8d-qt\release\m3u8d-qt.exe
-      - name: upload release windows_x64_qt
+      - name: upload release m3u8d_windows_x64_qt
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_qt_windows_x64-${{ github.ref_name }}.exe
+          name: m3u8d_windows_x64_qt-${{ github.ref_name }}.exe
           path: m3u8d-qt/release/m3u8d-qt.exe
           repo-token: ${{ secrets.GITHUB_TOKEN }}
   build-upload_macos-arm64:
@@ -148,10 +154,10 @@ jobs:
           file m3u8d-qt.dmg m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
           cd ./m3u8d-qt.app
           ./Contents/MacOS/m3u8d-qt test-startup
-      - name: upload release
+      - name: upload release m3u8d_darwin_arm64_qt
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_qt_darwin_arm64-${{ github.ref_name }}.dmg
+          name: m3u8d_darwin_arm64_qt-${{ github.ref_name }}.dmg
           path: m3u8d-qt/m3u8d-qt.dmg
           repo-token: ${{ secrets.GITHUB_TOKEN }}
   build-upload_macos-amd64:
@@ -182,9 +188,9 @@ jobs:
           file m3u8d-qt.dmg m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
           cd ./m3u8d-qt.app
           ./Contents/MacOS/m3u8d-qt test-startup
-      - name: upload release
+      - name: upload release m3u8d_darwin_x64_qt
         uses: Guerra24/upload-to-release@v1
         with:
-          name: m3u8d_qt_darwin_x64-${{ github.ref_name }}.dmg
+          name: m3u8d_darwin_x64_qt-${{ github.ref_name }}.dmg
           path: m3u8d-qt/m3u8d-qt.dmg
           repo-token: ${{ secrets.GITHUB_TOKEN }}
