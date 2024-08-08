@@ -3,10 +3,7 @@
 name: push-build-check
 
 # Controls when the workflow will run
-on:
-  push:
-    tags-ignore:
-      - v**
+on: push
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
