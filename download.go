@@ -2,6 +2,7 @@ package m3u8d
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
@@ -328,6 +329,15 @@ func (this *DownloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte
 		if err != nil {
 			return "", nil, err.Error()
 		}
+		err = ioutil.WriteFile(`D:/data_`+strconv.Itoa(idx)+`_url.txt`, []byte(urlS), 0777)
+		if err != nil {
+			panic(err)
+		}
+		err = ioutil.WriteFile(`D:/data_`+strconv.Itoa(idx)+`.txt`, content, 0777)
+		if err != nil {
+			panic(err)
+		}
+
 		if UrlHasSuffix(urlS, ".m3u8") {
 			// 看这个是不是嵌套的m3u8
 			var m3u8Url string
@@ -425,7 +435,23 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 	}
 	defer resp.Body.Close()
 
-	content, err := io.ReadAll(resp.Body)
+	var content []byte
+
+	if resp.Header.Get("Content-Encoding") == "gzip" {
+		var reader *gzip.Reader
+		reader, err = gzip.NewReader(resp.Body)
+		if err != nil {
+			fmt.Println("创建 gzip 读取器出错:", err)
+			return
+		}
+		defer reader.Close()
+
+		// 解压并读取内容
+		content, err = io.ReadAll(reader)
+	} else {
+		content, err = io.ReadAll(resp.Body)
+	}
+
 	if err != nil {
 		if logBuf != nil {
 			logBuf.WriteString("error2:" + err.Error() + "\n")
