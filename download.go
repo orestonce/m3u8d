@@ -441,8 +441,11 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 		var reader *gzip.Reader
 		reader, err = gzip.NewReader(resp.Body)
 		if err != nil {
-			fmt.Println("创建 gzip 读取器出错:", err)
-			return
+			if logBuf != nil {
+				logBuf.WriteString("create gzip reader error:" + err.Error() + "\n")
+				this.logToFile(logBuf.String())
+			}
+			return nil, err
 		}
 		defer reader.Close()
 
