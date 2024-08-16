@@ -2,6 +2,7 @@ package m3u8d
 
 import (
 	"bytes"
+	"compress/flate"
 	"compress/gzip"
 	"context"
 	"crypto/aes"
@@ -436,24 +437,26 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 	defer resp.Body.Close()
 
 	var content []byte
+	var readCloser io.ReadCloser
 
-	if resp.Header.Get("Content-Encoding") == "gzip" {
-		var reader *gzip.Reader
-		reader, err = gzip.NewReader(resp.Body)
-		if err != nil {
-			if logBuf != nil {
-				logBuf.WriteString("create gzip reader error:" + err.Error() + "\n")
-				this.logToFile(logBuf.String())
-			}
-			return nil, err
+	contentEncoding := resp.Header.Get("Content-Encoding")
+	switch contentEncoding {
+	case "gzip":
+		readCloser, err = gzip.NewReader(resp.Body)
+	case "deflate":
+		readCloser = flate.NewReader(resp.Body)
+	case "":
+		readCloser = resp.Body
+	default:
+		err = errors.New("error4: unsupported Content-Encoding " + strconv.Quote(contentEncoding))
+		if logBuf != nil {
+			logBuf.WriteString(err.Error() + "\n")
+			this.logToFile(logBuf.String())
 		}
-		defer reader.Close()
-
-		// 解压并读取内容
-		content, err = io.ReadAll(reader)
-	} else {
-		content, err = io.ReadAll(resp.Body)
+		return nil, err
 	}
+	content, err = io.ReadAll(readCloser)
+	_ = readCloser.Close()
 
 	if err != nil {
 		if logBuf != nil {

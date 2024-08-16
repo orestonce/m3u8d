@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
     loadUiConfig();
+    setWindowTitle("m3u8d-" + QString::fromStdString(GetVersion()));
 }
 
 MainWindow::~MainWindow()

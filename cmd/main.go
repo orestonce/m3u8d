@@ -134,6 +134,7 @@ func init() {
 	mergeCmd.Flags().StringVarP(&gMergeReq.InputTsDir, "InputTsDir", "", "", "存放ts文件的目录(默认为当前工作目录)")
 	mergeCmd.Flags().StringVarP(&gMergeReq.OutputMp4Name, "OutputMp4Name", "", "", "输出mp4文件名(默认为输入ts文件的目录下的all.mp4)")
 	rootCmd.AddCommand(mergeCmd)
+	rootCmd.Version = m3u8d.GetVersion()
 }
 
 func main() {

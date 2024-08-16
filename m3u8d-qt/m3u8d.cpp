@@ -87,6 +87,7 @@ extern __declspec(dllexport) void Go2cppFn_MergeTsDir(char* in, int inLen, char*
 extern __declspec(dllexport) void Go2cppFn_MergeStop(char* in, int inLen, char** out, int* outLen);
 extern __declspec(dllexport) void Go2cppFn_MergeGetProgressPercent(char* in, int inLen, char** out, int* outLen);
 extern __declspec(dllexport) void Go2cppFn_FindUrlInStr(char* in, int inLen, char** out, int* outLen);
+extern __declspec(dllexport) void Go2cppFn_GetVersion(char* in, int inLen, char** out, int* outLen);
 
 #ifdef __cplusplus
 }
@@ -858,6 +859,30 @@ std::string FindUrlInStr(std::string in0){
 		outIdx+=4;
 		retValue = std::string(out+outIdx, out+outIdx+tmp7);
 		outIdx+=tmp7;
+	}
+	if (out != NULL) {
+		free(out);
+	}
+	return retValue;
+}
+
+std::string GetVersion(){
+	std::string in;
+	char *out = NULL;
+	int outLen = 0;
+	Go2cppFn_GetVersion((char *)in.data(), in.length(), &out, &outLen);
+	std::string retValue;
+	int outIdx = 0;
+	{
+		uint32_t tmp2 = 0;
+		uint32_t tmp3 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+		uint32_t tmp4 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+		uint32_t tmp5 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+		uint32_t tmp6 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+		tmp2 = tmp3 | tmp4 | tmp5 | tmp6;
+		outIdx+=4;
+		retValue = std::string(out+outIdx, out+outIdx+tmp2);
+		outIdx+=tmp2;
 	}
 	if (out != NULL) {
 		free(out);

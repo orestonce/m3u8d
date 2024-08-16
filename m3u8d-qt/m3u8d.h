@@ -63,6 +63,7 @@ struct MergeGetProgressPercent_Resp{
 };
 MergeGetProgressPercent_Resp MergeGetProgressPercent();
 std::string FindUrlInStr(std::string in0);
+std::string GetVersion();
 #include <vector>
 #include <functional>
 #include <QMutex>

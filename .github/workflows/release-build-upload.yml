@@ -30,9 +30,9 @@ jobs:
       - name: build
         run: |
           go mod tidy
+          go run export/main.go update-version-info
           go run export/main.go build-cli
           go run export/main.go create-qt-lib 386 c-archive
-          go run export/main.go update-qt-version-rc
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
           dir m3u8d-qt\release\m3u8d-qt.exe
 
@@ -115,8 +115,8 @@ jobs:
       - name: build
         run: |
           go mod tidy
+          go run export/main.go update-version-info
           go run export/main.go create-qt-lib amd64 c-archive
-          go run export/main.go update-qt-version-rc
           cd m3u8d-qt && qmake && mingw32-make release && cd ..
           dir m3u8d-qt\release\m3u8d-qt.exe
       - name: upload release m3u8d_windows_x64_qt
@@ -143,8 +143,8 @@ jobs:
           set -x
           set -e
           go mod tidy
+          go run export/main.go update-version-info
           go run export/main.go create-qt-lib arm64 c-shared
-          go run export/main.go update-qt-version-rc
           cd m3u8d-qt && qmake && make && cd ..
           cd m3u8d-qt
           install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt
@@ -178,8 +178,8 @@ jobs:
           set -x
           set -e
           go mod tidy
+          go run export/main.go update-version-info
           go run export/main.go create-qt-lib amd64 c-shared
-          go run export/main.go update-qt-version-rc
           cd m3u8d-qt && qmake && make && cd ..
           cd m3u8d-qt
           install_name_tool -change m3u8d-impl @executable_path/m3u8d-impl m3u8d-qt.app/Contents/MacOS/m3u8d-qt

@@ -24,9 +24,11 @@ func main() {
 		switch os.Args[1] {
 		case "build-cli":
 			BuildCliBinaryAllVersion() // 编译命令行版本
-		case "update-qt-version-rc":
+		case "update-version-info":
 			refName := os.Getenv("GITHUB_REF_NAME")
 			WriteVersionDotRc(refName)
+			sha := os.Getenv("GITHUB_SHA")
+			WriteVersionDotGo(refName, sha)
 		case "create-qt-lib":
 			goarch := os.Args[2]
 			buildMode := os.Args[3]
@@ -39,11 +41,6 @@ func main() {
 			fmt.Println("              goarch: 386, amd64, arm64...")
 			fmt.Println("              buildMode: c-shared, c-archive")
 		}
-		//if runtime.GOOS == "darwin" { // 编译darwin版本的dmg
-		//	CreateLibForQtUi("arm64", "c-shared")
-		//} else { // 编译windows版本的exe
-		//	CreateLibForQtUi("386", "c-archive")
-		//}
 	}
 }
 
@@ -55,6 +52,16 @@ type BuildCfg struct {
 
 func BuildCliBinaryAllVersion() {
 	var list = []BuildCfg{
+		{
+			GOOS:   "windows",
+			GOARCH: "386",
+			Ext:    ".exe",
+		},
+		{
+			GOOS:   "windows",
+			GOARCH: "amd64",
+			Ext:    ".exe",
+		},
 		{
 			GOOS:   "linux",
 			GOARCH: "386",
@@ -72,26 +79,16 @@ func BuildCliBinaryAllVersion() {
 			GOARCH: "arm64",
 		},
 		{
-			GOOS:   "android",
-			GOARCH: "arm64",
-		},
-		{
 			GOOS:   "linux",
 			GOARCH: "mipsle",
 		},
 		{
+			GOOS:   "android",
+			GOARCH: "arm64",
+		},
+		{
 			GOOS:   "darwin",
 			GOARCH: "amd64",
-		},
-		{
-			GOOS:   "windows",
-			GOARCH: "386",
-			Ext:    ".exe",
-		},
-		{
-			GOOS:   "windows",
-			GOARCH: "amd64",
-			Ext:    ".exe",
 		},
 	}
 	for _, cfg := range list {
@@ -137,6 +134,7 @@ func CreateLibForQtUi(goarch string, buildmode string) {
 	ctx.Generate1(m3u8dcpp.MergeStop)
 	ctx.Generate1(m3u8dcpp.MergeGetProgressPercent)
 	ctx.Generate1(m3u8d.FindUrlInStr)
+	ctx.Generate1(m3u8d.GetVersion)
 
 	var optionList []string
 	if runtime.GOOS == "darwin" {
@@ -198,6 +196,21 @@ VS_VERSION_INFO VERSIONINFO
 		panic(err)
 	}
 	err = ioutil.WriteFile("m3u8d-qt/version.rc", data, 0777)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func WriteVersionDotGo(version string, commitId string) {
+	content := `//注意: 此文件将被export/main.go更新
+
+package m3u8d
+
+func GetVersion() string {
+	return "` + version + "-" + commitId + `"
+}
+`
+	err := ioutil.WriteFile("version.go", []byte(content), 0777)
 	if err != nil {
 		panic(err)
 	}
