@@ -330,14 +330,6 @@ func (this *DownloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte
 		if err != nil {
 			return "", nil, err.Error()
 		}
-		err = ioutil.WriteFile(`D:/data_`+strconv.Itoa(idx)+`_url.txt`, []byte(urlS), 0777)
-		if err != nil {
-			panic(err)
-		}
-		err = ioutil.WriteFile(`D:/data_`+strconv.Itoa(idx)+`.txt`, content, 0777)
-		if err != nil {
-			panic(err)
-		}
 
 		if UrlHasSuffix(urlS, ".m3u8") {
 			// 看这个是不是嵌套的m3u8
