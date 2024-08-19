@@ -2,6 +2,7 @@ package m3u8d
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 	"sync"
@@ -13,9 +14,11 @@ type SpeedStatus struct {
 	IsRunning bool
 
 	speedBeginTime  time.Time
+	speedIdAlloc    uint32
 	totalBlockCount int64
 	doneBlockCount  int64
 	downBlockMap    map[time.Time]downOneUnit
+	doingBlockMap   map[uint32]doingOneUnit
 
 	progressPercent  int
 	progressBarTitle string
@@ -32,11 +35,18 @@ type downOneUnit struct {
 	blockCount int64
 }
 
+type doingOneUnit struct {
+	startTime time.Time
+	doneBytes int
+}
+
 func (this *SpeedStatus) clearStatusNoLock() {
 	this.speedBeginTime = time.Time{}
 	this.totalBlockCount = 0
 	this.doneBlockCount = 0
+	this.speedIdAlloc = 0
 	this.downBlockMap = map[time.Time]downOneUnit{}
+	this.doingBlockMap = map[uint32]doingOneUnit{}
 
 	this.progressPercent = 0
 	this.progressBarTitle = ""
@@ -74,10 +84,8 @@ func (this *SpeedStatus) ResetTotalBlockCount(count int) {
 	this.doneBlockCount = 0
 }
 
-func (this *SpeedStatus) SpeedAdd1Block(byteCount int) {
+func (this *SpeedStatus) SpeedAdd1Block(now time.Time, byteCount int) {
 	this.Locker.Lock()
-
-	now := time.Now()
 
 	unit := this.downBlockMap[now]
 	unit.byteCount += int64(byteCount)
@@ -151,6 +159,8 @@ func (this *SpeedStatus) SpeedRecent5sGetAndUpdate() (speed SpeedInfo) {
 		realSecond = secondCount
 	}
 	bytePerSecond := float64(total.byteCount) / realSecond
+	bytePerSecond = this.addBytePerSecondWithDoing(now, bytePerSecond)
+
 	speed.BytePerSecond = int(bytePerSecond)
 
 	if bytePerSecond < 1024 {
@@ -190,4 +200,57 @@ func (this *SpeedStatus) SetProgressBarTitle(title string) {
 	this.Locker.Lock()
 	this.progressBarTitle = title
 	this.Locker.Unlock()
+}
+
+func (this *SpeedStatus) SpeedReadAll(r io.Reader) (b []byte, err error) {
+	b = make([]byte, 0, 512)
+	var n int
+	var unit doingOneUnit
+	unit.startTime = time.Now()
+
+	var id uint32
+	this.Locker.Lock()
+	this.speedIdAlloc++
+	id = this.speedIdAlloc
+	this.Locker.Unlock()
+
+	for {
+		n, err = r.Read(b[len(b):cap(b)])
+		b = b[:len(b)+n]
+		if err != nil {
+			if err == io.EOF {
+				err = nil
+			}
+			this.Locker.Lock()
+			delete(this.doingBlockMap, id)
+			this.Locker.Unlock()
+
+			return b, err
+		}
+
+		if len(b) == cap(b) {
+			// Add more capacity (let append pick how much).
+			b = append(b, 0)[:len(b)]
+		}
+		unit.doneBytes = len(b)
+		this.Locker.Lock()
+		if this.doingBlockMap == nil {
+			this.doingBlockMap = map[uint32]doingOneUnit{}
+		}
+		this.doingBlockMap[id] = unit
+		this.Locker.Unlock()
+	}
+}
+
+func (this *SpeedStatus) addBytePerSecondWithDoing(now time.Time, bytePerSecond float64) float64 {
+	sum := bytePerSecond
+
+	for _, one := range this.doingBlockMap {
+		second := now.Sub(one.startTime).Seconds()
+		if second < 1 {
+			continue
+		}
+		sum += float64(one.doneBytes) / second
+	}
+	return sum
 }

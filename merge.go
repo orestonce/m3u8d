@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"time"
 )
 
 type MergeTsFileListToSingleMp4_Req struct {
@@ -105,7 +106,7 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 			return OnFrameErr
 		}
 		if req.Status != nil {
-			req.Status.SpeedAdd1Block(len(buf))
+			req.Status.SpeedAdd1Block(time.Now(), len(buf))
 		}
 	}
 

@@ -181,9 +181,10 @@ func (this *DownloadEnv) downloadTsFile(ts TsInfo, downloadDir string, encInfo *
 	var stat os.FileInfo
 	stat, err = os.Stat(currPath)
 	if err == nil && stat.Mode().IsRegular() {
-		this.status.SpeedAdd1Block(int(stat.Size()))
+		this.status.SpeedAdd1Block(stat.ModTime(), int(stat.Size()))
 		return nil
 	}
+	beginTime := time.Now()
 	data, err := this.doGetRequest(ts.Url, false)
 	if err != nil {
 		return err
@@ -225,7 +226,7 @@ func (this *DownloadEnv) downloadTsFile(ts TsInfo, downloadDir string, encInfo *
 	if err != nil {
 		return err
 	}
-	this.status.SpeedAdd1Block(len(origData))
+	this.status.SpeedAdd1Block(beginTime, len(origData))
 	return nil
 }
 
@@ -413,10 +414,14 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 	}
 	this.logFileLocker.Unlock()
 
+	beginTime := time.Now()
+
 	resp, err := this.nowClient.Do(req)
 	if logBuf != nil && resp != nil {
 		respBytes, _ := httputil.DumpResponse(resp, false)
 		logBuf.WriteString("httpResp:\n" + string(respBytes) + "\n")
+		logBuf.WriteString("time1: " + time.Since(beginTime).String() + "\n")
+		beginTime = time.Now()
 	}
 
 	if err != nil {
@@ -435,24 +440,35 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 	switch contentEncoding {
 	case "gzip":
 		readCloser, err = gzip.NewReader(resp.Body)
+		if err != nil {
+			err = errors.New("error2: gzip.new error " + err.Error())
+			if logBuf != nil {
+				logBuf.WriteString(err.Error() + "\n")
+				this.logToFile(logBuf.String())
+			}
+			return nil, err
+		}
+		defer readCloser.Close()
 	case "deflate":
 		readCloser = flate.NewReader(resp.Body)
+		defer readCloser.Close()
 	case "":
 		readCloser = resp.Body
 	default:
-		err = errors.New("error4: unsupported Content-Encoding " + strconv.Quote(contentEncoding))
+		err = errors.New("error3: unsupported Content-Encoding " + strconv.Quote(contentEncoding))
 		if logBuf != nil {
 			logBuf.WriteString(err.Error() + "\n")
 			this.logToFile(logBuf.String())
 		}
 		return nil, err
 	}
-	content, err = io.ReadAll(readCloser)
-	_ = readCloser.Close()
-
+	content, err = this.status.SpeedReadAll(readCloser)
+	if logBuf != nil {
+		logBuf.WriteString("time4: " + time.Since(beginTime).String() + ", bytes: " + strconv.Itoa(len(content)) + "\n")
+	}
 	if err != nil {
 		if logBuf != nil {
-			logBuf.WriteString("error2:" + err.Error() + "\n")
+			logBuf.WriteString("error4:" + err.Error() + "\n")
 			this.logToFile(logBuf.String())
 		}
 		return nil, err
@@ -462,7 +478,7 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 	}
 	if resp.StatusCode != 200 {
 		if logBuf != nil {
-			logBuf.WriteString("error3\n")
+			logBuf.WriteString("error5\n")
 			this.logToFile(logBuf.String())
 		}
 		return content, errors.New("resp.Status: " + resp.Status + " " + urlS)
@@ -483,7 +499,10 @@ func (this *DownloadEnv) logToFile(body string) {
 
 	timeStr := time.Now().Format("2006-01-02_15:04:05")
 	this.logFile.WriteString("===>time: " + timeStr + "\n")
-	this.logFile.WriteString(body + "\n")
+	this.logFile.WriteString(body)
+	if strings.HasSuffix(body, "\n") == false {
+		this.logFile.WriteString("\n")
+	}
 }
 
 func (this *DownloadEnv) GetIsCancel() bool {

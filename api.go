@@ -230,6 +230,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUni
 			this.setErrMsg("os.WriteUrl error: " + err.Error())
 			return
 		}
+		this.logToFile("version: " + GetVersion())
 		this.logToFile("origin m3u8 url: " + req.M3u8Url)
 	}
 
@@ -384,7 +385,6 @@ func (this *DownloadEnv) setupClient(req StartDownload_Req, proxyUrlObj *url.URL
 	}
 	//关闭以前的空闲链接
 	this.nowClient.CloseIdleConnections()
-	this.nowClient.Timeout = time.Second * 20
 
 	if this.nowClient.Transport == nil {
 		this.nowClient.Transport = &http.Transport{
