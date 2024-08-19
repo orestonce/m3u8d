@@ -13,14 +13,18 @@ import (
 )
 
 func TestParseSkipTsExpr(t *testing.T) {
-	list, errMsg := ParseSkipTsExpr("12-17, 1,19 - 121 , 122-125, 100-1000")
+	info, errMsg := ParseSkipTsExpr("12-17, 1, 6, 19 - 121 , 122-125, 100-1000, http.code=403, http.code=404")
 	if errMsg != "" {
 		panic(errMsg)
 	}
-	reflect.DeepEqual(list, []SkipTsUnit{
+	ok1 := reflect.DeepEqual(info.SkipList, []SkipTsUnit{
 		{
 			StartIdx: 1,
 			EndIdx:   1,
+		},
+		{
+			StartIdx: 6,
+			EndIdx:   6,
 		},
 		{
 			StartIdx: 12,
@@ -31,6 +35,14 @@ func TestParseSkipTsExpr(t *testing.T) {
 			EndIdx:   1000,
 		},
 	})
+	if ok1 == false {
+		t.Fatal(info.SkipList)
+	}
+
+	ok2 := reflect.DeepEqual(info.HttpCodeList, []int{403, 404})
+	if ok2 == false {
+		t.Fatal()
+	}
 }
 
 func TestParseSkipTsExpr2(t *testing.T) {

@@ -1,6 +1,7 @@
 package m3u8d
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"crypto/tls"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -26,7 +28,7 @@ func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 		errMsg = "正在下载"
 		return errMsg
 	}
-	skipTsList, errMsg := ParseSkipTsExpr(req.SkipTsExpr)
+	skipInfo, errMsg := ParseSkipTsExpr(req.SkipTsExpr)
 	if errMsg != "" {
 		return "解析跳过ts的表达式错误: " + errMsg
 	}
@@ -48,7 +50,7 @@ func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 	this.ctx, this.cancelFn = context.WithCancel(context.Background())
 	this.status.IsRunning = true
 	go func() {
-		this.runDownload(req, skipTsList)
+		this.runDownload(req, skipInfo)
 		this.status.SetProgressBarTitle("下载进度")
 		this.status.DrawProgressBar(1, 0)
 
@@ -67,41 +69,62 @@ type SkipTsUnit struct {
 	EndIdx   uint32 // 包含
 }
 
-func ParseSkipTsExpr(expr string) (skipList []SkipTsUnit, errMsg string) {
+type SkipTsInfo struct {
+	HttpCodeList []int
+	SkipList     []SkipTsUnit
+}
+
+func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
 	expr = strings.TrimSpace(expr)
 	if expr == "" {
-		return nil, ""
+		return info, ""
 	}
 	list := strings.Split(expr, ",")
+	singleRe := regexp.MustCompile(`^([0-9]+)$`)
+	betweenRe := regexp.MustCompile(`^([0-9]+) *- *([0-9]+)$`)
+	httpCodeRe := regexp.MustCompile(`^http.code *= *([0-9]+)$`)
+
 	for _, one := range list {
-		part := strings.SplitN(one, "-", 2)
+		one = strings.TrimSpace(one)
+		var groups []string
+		var ok = false
 
-		var unit SkipTsUnit
-		value, err := strconv.ParseUint(strings.TrimSpace(part[0]), 10, 32)
-		if err != nil {
-			return nil, "parse expr part1 failed " + strconv.Quote(one)
-		}
-		unit.StartIdx = uint32(value)
-
-		if len(part) == 2 {
-			value, err = strconv.ParseUint(strings.TrimSpace(part[1]), 10, 32)
-			if err != nil {
-				return nil, "parse expr part2 failed " + strconv.Quote(one)
+		if groups = singleRe.FindStringSubmatch(one); len(groups) > 0 {
+			i, err := strconv.Atoi(groups[1])
+			if err == nil || i > 0 {
+				ok = true
+				info.SkipList = skipListAddUnit(info.SkipList, SkipTsUnit{
+					StartIdx: uint32(i),
+					EndIdx:   uint32(i),
+				})
 			}
-			unit.EndIdx = uint32(value)
-		} else {
-			unit.EndIdx = unit.StartIdx
+		} else if groups = betweenRe.FindStringSubmatch(one); len(groups) > 0 {
+			i1, err1 := strconv.Atoi(groups[1])
+			i2, err2 := strconv.Atoi(groups[2])
+			if err1 == nil && err2 == nil && i1 > 0 && i2 > 0 && i1 <= i2 {
+				ok = true
+				info.SkipList = skipListAddUnit(info.SkipList, SkipTsUnit{
+					StartIdx: uint32(i1),
+					EndIdx:   uint32(i2),
+				})
+			}
+		} else if groups = httpCodeRe.FindStringSubmatch(one); len(groups) > 0 {
+			i, err := strconv.Atoi(groups[1])
+			if err == nil && i > 0 {
+				ok = true
+				info.HttpCodeList = append(info.HttpCodeList, i)
+			}
 		}
-		if unit.StartIdx == 0 || unit.EndIdx < unit.StartIdx {
-			return nil, "parse expr part invalid " + strconv.Quote(one)
+		if ok == false {
+			return info, "parse expr part invalid " + strconv.Quote(one)
 		}
-		skipList = skipListAddUnit(skipList, unit)
 	}
-	sort.Slice(skipList, func(i, j int) bool {
-		a, b := skipList[i], skipList[j]
+	sort.Slice(info.SkipList, func(i, j int) bool {
+		a, b := info.SkipList[i], info.SkipList[j]
 		return a.StartIdx < b.StartIdx
 	})
-	return skipList, ""
+	sort.Ints(info.HttpCodeList)
+	return info, ""
 }
 
 func maxUint32(a uint32, b uint32) uint32 {
@@ -208,7 +231,7 @@ func (this *DownloadEnv) setSaveFileTo(to string, isSkipped bool) {
 
 var debugLogNo uint32
 
-func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUnit) {
+func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo) {
 	if !strings.HasPrefix(req.M3u8Url, "http") || req.M3u8Url == "" {
 		this.setErrMsg("M3u8Url not valid " + strconv.Quote(req.M3u8Url))
 		return
@@ -282,15 +305,27 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUni
 		this.setErrMsg("获取ts列表错误: " + errMsg)
 		return
 	}
-	tsList = skipApplyFilter(tsList, skipList, req.Skip_EXT_X_DISCONTINUITY)
+	tsList = skipApplyFilter(tsList, skipInfo.SkipList, req.Skip_EXT_X_DISCONTINUITY)
 	if len(tsList) <= 0 {
 		this.setErrMsg("需要下载的文件为空")
 		return
 	}
+	if req.DebugLog {
+		buf := bytes.NewBuffer(nil)
+		buf.WriteString(">tsList\n")
+		for _, one := range tsList {
+			urlObj, _ := url.Parse(one.Url)
+			if urlObj == nil {
+				continue
+			}
+			fmt.Fprintf(buf, "    %v : %v\n", one.Name, path.Base(urlObj.Path))
+		}
+		this.logToFile(buf.String())
+	}
 	// 下载ts
 	this.status.SetProgressBarTitle("[3/4]下载ts")
 	this.status.SpeedResetBytes()
-	err = this.downloader(tsList, videoDownloadDir, encInfo, req.ThreadCount)
+	err = this.downloader(tsList, skipInfo, videoDownloadDir, encInfo, req.ThreadCount)
 	this.status.SpeedResetBytes()
 	if err != nil {
 		this.setErrMsg("下载ts文件错误: " + err.Error())
@@ -302,6 +337,9 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipList []SkipTsUni
 	}
 	var tsFileList []string
 	for _, one := range tsList {
+		if one.SkipByHttpCode {
+			continue
+		}
 		tsFileList = append(tsFileList, filepath.Join(videoDownloadDir, one.Name))
 	}
 	var tmpOutputName string

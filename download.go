@@ -34,6 +34,7 @@ type TsInfo struct {
 	Url                         string
 	Seq                         uint64 // 如果是aes加密并且没有iv, 这个seq需要充当iv
 	Between_EXT_X_DISCONTINUITY bool
+	SkipByHttpCode              bool
 }
 
 type GetStatus_Resp struct {
@@ -112,9 +113,13 @@ func (this *DownloadEnv) getEncryptInfo(m3u8Url string, html string) (info *Encr
 		return nil, errors.New(errMsg)
 	}
 	var res []byte
-	res, err = this.doGetRequest(keyUrl, true)
+	var httpCode int
+	res, httpCode, err = this.doGetRequest(keyUrl, true)
 	if err != nil {
 		return nil, err
+	}
+	if httpCode != 200 {
+		return nil, errors.New("getEncryptInfo httpCode error " + strconv.Itoa(httpCode))
 	}
 	if method == EncryptMethod_AES128 && len(res) != 16 { // Aes 128
 		return nil, errors.New("getEncryptInfo invalid key " + strconv.Quote(string(res)))
@@ -176,7 +181,7 @@ func getTsList(beginSeq uint64, m38uUrl string, body string) (tsList []TsInfo, e
 
 // 下载ts文件
 // @modify: 2020-08-13 修复ts格式SyncByte合并不能播放问题
-func (this *DownloadEnv) downloadTsFile(ts TsInfo, downloadDir string, encInfo *EncryptInfo) (err error) {
+func (this *DownloadEnv) downloadTsFile(ts *TsInfo, skipInfo SkipTsInfo, downloadDir string, encInfo *EncryptInfo) (err error) {
 	currPath := fmt.Sprintf("%s/%s", downloadDir, ts.Name)
 	var stat os.FileInfo
 	stat, err = os.Stat(currPath)
@@ -185,9 +190,15 @@ func (this *DownloadEnv) downloadTsFile(ts TsInfo, downloadDir string, encInfo *
 		return nil
 	}
 	beginTime := time.Now()
-	data, err := this.doGetRequest(ts.Url, false)
+	data, httpCode, err := this.doGetRequest(ts.Url, false)
 	if err != nil {
 		return err
+	}
+	if len(skipInfo.HttpCodeList) > 0 && isInIntSlice(httpCode, skipInfo.HttpCodeList) {
+		this.status.SpeedAdd1Block(beginTime, 0)
+		ts.SkipByHttpCode = true
+		this.logToFile("skip ts " + strconv.Quote(ts.Name) + " byHttpCode: " + strconv.Itoa(httpCode))
+		return nil
 	}
 	// 校验长度是否合法
 	var origData []byte
@@ -230,6 +241,15 @@ func (this *DownloadEnv) downloadTsFile(ts TsInfo, downloadDir string, encInfo *
 	return nil
 }
 
+func isInIntSlice(i int, list []int) bool {
+	for _, one := range list {
+		if i == one {
+			return true
+		}
+	}
+	return false
+}
+
 func (this *DownloadEnv) SleepDur(d time.Duration) {
 	select {
 	case <-time.After(d):
@@ -237,7 +257,7 @@ func (this *DownloadEnv) SleepDur(d time.Duration) {
 	}
 }
 
-func (this *DownloadEnv) downloader(tsList []TsInfo, downloadDir string, encInfo *EncryptInfo, threadCount int) (err error) {
+func (this *DownloadEnv) downloader(tsList []TsInfo, skipInfo SkipTsInfo, downloadDir string, encInfo *EncryptInfo, threadCount int) (err error) {
 	if threadCount <= 0 || threadCount > 1000 {
 		return errors.New("DownloadEnv.threadCount invalid: " + strconv.Itoa(threadCount))
 	}
@@ -246,8 +266,8 @@ func (this *DownloadEnv) downloader(tsList []TsInfo, downloadDir string, encInfo
 
 	this.status.ResetTotalBlockCount(len(tsList))
 
-	for _, ts := range tsList {
-		ts := ts
+	for idx := range tsList {
+		ts := &tsList[idx]
 		task.AddJob(func() {
 			var lastErr error
 			for i := 0; i < 5; i++ {
@@ -262,7 +282,7 @@ func (this *DownloadEnv) downloader(tsList []TsInfo, downloadDir string, encInfo
 					this.SleepDur(time.Second * time.Duration(i))
 					atomic.AddInt32(&this.sleepTh, -1)
 				}
-				lastErr = this.downloadTsFile(ts, downloadDir, encInfo)
+				lastErr = this.downloadTsFile(ts, skipInfo, downloadDir, encInfo)
 				if lastErr == nil {
 					break
 				}
@@ -327,9 +347,13 @@ func AesDecrypt(seq uint64, encrypted []byte, encInfo *EncryptInfo) ([]byte, err
 func (this *DownloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte, errMsg string) {
 	for idx := 0; idx < 5; idx++ {
 		var err error
-		content, err = this.doGetRequest(urlS, true)
+		var httpCode int
+		content, httpCode, err = this.doGetRequest(urlS, true)
 		if err != nil {
 			return "", nil, err.Error()
+		}
+		if httpCode != 200 {
+			return "", nil, "invalid httpCode " + strconv.Itoa(httpCode)
 		}
 
 		if UrlHasSuffix(urlS, ".m3u8") {
@@ -395,10 +419,10 @@ func UrlHasSuffix(urlS string, suff string) bool {
 	return strings.HasSuffix(strings.ToLower(urlObj.Path), suff)
 }
 
-func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []byte, err error) {
+func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []byte, statusCode int, err error) {
 	req, err := http.NewRequest(http.MethodGet, urlS, nil)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	req = req.WithContext(this.ctx)
 	req.Header = this.header
@@ -429,7 +453,7 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 			logBuf.WriteString("error1:" + err.Error() + "\n")
 			this.logToFile(logBuf.String())
 		}
-		return nil, err
+		return nil, 0, err
 	}
 	defer resp.Body.Close()
 
@@ -446,7 +470,7 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 				logBuf.WriteString(err.Error() + "\n")
 				this.logToFile(logBuf.String())
 			}
-			return nil, err
+			return nil, 0, err
 		}
 		defer readCloser.Close()
 	case "deflate":
@@ -460,7 +484,7 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 			logBuf.WriteString(err.Error() + "\n")
 			this.logToFile(logBuf.String())
 		}
-		return nil, err
+		return nil, 0, err
 	}
 	content, err = this.status.SpeedReadAll(readCloser)
 	if logBuf != nil {
@@ -471,22 +495,15 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 			logBuf.WriteString("error4:" + err.Error() + "\n")
 			this.logToFile(logBuf.String())
 		}
-		return nil, err
+		return nil, 0, err
 	}
 	if logBuf != nil && dumpRespBody {
 		logBuf.WriteString("httpRespBody:\n" + string(content))
 	}
-	if resp.StatusCode != 200 {
-		if logBuf != nil {
-			logBuf.WriteString("error5\n")
-			this.logToFile(logBuf.String())
-		}
-		return content, errors.New("resp.Status: " + resp.Status + " " + urlS)
-	}
 	if logBuf != nil {
 		this.logToFile(logBuf.String())
 	}
-	return content, nil
+	return content, resp.StatusCode, nil
 }
 
 func (this *DownloadEnv) logToFile(body string) {
