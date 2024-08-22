@@ -344,7 +344,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		expectMp4Bytes += stat.Size()
 		tsFileList = append(tsFileList, fileNameFull)
 	}
-	if skipByHttpCodeLog.Len() > 0 && false {
+	if skipByHttpCodeLog.Len() > 0 {
 		err = os.WriteFile(filepath.Join(tsSaveDir, logFileName), skipByHttpCodeLog.Bytes(), 0777)
 		if err != nil {
 			this.setErrMsg("写入" + logFileName + "失败, " + err.Error())
