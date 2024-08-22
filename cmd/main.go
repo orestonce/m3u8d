@@ -102,11 +102,17 @@ var mergeCmd = &cobra.Command{
 		if gMergeReq.OutputMp4Name == "" {
 			gMergeReq.OutputMp4Name = filepath.Join(gMergeReq.InputTsDir, "all.mp4")
 		}
+		status := &m3u8d.SpeedStatus{
+			IsRunning:       true,
+			ProgressBarShow: true,
+		}
+		status.SetProgressBarTitle("合并ts")
+		status.ResetTotalBlockCount(len(tsFileList))
 		err = m3u8d.MergeTsFileListToSingleMp4(m3u8d.MergeTsFileListToSingleMp4_Req{
 			TsFileList: tsFileList,
 			OutputMp4:  gMergeReq.OutputMp4Name,
 			Ctx:        context.Background(),
-			Status:     nil,
+			Status:     status,
 		})
 		if err != nil {
 			log.Fatalln("合并失败", err)

@@ -18,7 +18,9 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -35,6 +37,7 @@ type TsInfo struct {
 	Seq                         uint64 // 如果是aes加密并且没有iv, 这个seq需要充当iv
 	Between_EXT_X_DISCONTINUITY bool
 	SkipByHttpCode              bool
+	HttpCode                    int
 }
 
 type GetStatus_Resp struct {
@@ -197,6 +200,7 @@ func (this *DownloadEnv) downloadTsFile(ts *TsInfo, skipInfo SkipTsInfo, downloa
 	if len(skipInfo.HttpCodeList) > 0 && isInIntSlice(httpCode, skipInfo.HttpCodeList) {
 		this.status.SpeedAdd1Block(beginTime, 0)
 		ts.SkipByHttpCode = true
+		ts.HttpCode = httpCode
 		this.logToFile("skip ts " + strconv.Quote(ts.Name) + " byHttpCode: " + strconv.Itoa(httpCode))
 		return nil
 	}
@@ -560,6 +564,40 @@ func (this *DownloadEnv) logFileClose() {
 		this.logFile.Close()
 		this.logFile = nil
 	}
+}
+
+func (this *DownloadEnv) writeFfmpegCmd(downloadingDir string, list []TsInfo) bool {
+	const listFileName = "filelist.txt"
+
+	var fileListLog bytes.Buffer
+	for _, one := range list {
+		if one.SkipByHttpCode {
+			continue
+		}
+		fileListLog.WriteString("file " + one.Name + "\n")
+	}
+	err := os.WriteFile(filepath.Join(downloadingDir, listFileName), fileListLog.Bytes(), 0777)
+	if err != nil {
+		this.setErrMsg("写入" + listFileName + "失败, " + err.Error())
+		return false
+	}
+
+	var ffmpegCmdContent = "ffmpeg -f concat -i " + listFileName + " -c copy -y output.mp4"
+	var ffmpegCmdFileName = "merge-by-ffmpeg"
+	if runtime.GOOS == `windows` {
+		ffmpegCmdContent += "\r\npause"
+		ffmpegCmdFileName += ".bat"
+	} else {
+		ffmpegCmdFileName += ".sh"
+	}
+
+	err = os.WriteFile(filepath.Join(downloadingDir, ffmpegCmdFileName), []byte(ffmpegCmdContent), 0777)
+	if err != nil {
+		this.setErrMsg("写入" + ffmpegCmdFileName + "失败, " + err.Error())
+		return false
+	}
+
+	return true
 }
 
 func IsContextCancel(ctx context.Context) bool {

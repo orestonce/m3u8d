@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -19,6 +18,8 @@ import (
 	"sync/atomic"
 	"time"
 )
+
+const logFileName = `skip_by_http_code.txt`
 
 func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 	this.status.Locker.Lock()
@@ -46,7 +47,7 @@ func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 
 	this.status.clearStatusNoLock()
 
-	this.status.progressBarShow = req.ProgressBarShow
+	this.status.ProgressBarShow = req.ProgressBarShow
 	this.ctx, this.cancelFn = context.WithCancel(context.Background())
 	this.status.IsRunning = true
 	go func() {
@@ -266,9 +267,9 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		return
 	}
 	videoId := req.getVideoId()
-	videoDownloadDir := filepath.Join(req.SaveDir, "downloading", videoId)
-	if !isDirExists(videoDownloadDir) {
-		err = os.MkdirAll(videoDownloadDir, os.ModePerm)
+	tsSaveDir := filepath.Join(req.SaveDir, "downloading", videoId)
+	if !isDirExists(tsSaveDir) {
+		err = os.MkdirAll(tsSaveDir, os.ModePerm)
 		if err != nil {
 			this.setErrMsg("os.MkdirAll error: " + err.Error())
 			return
@@ -278,7 +279,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	if this.logFile != nil {
 		this.logFile.Sync()
 		this.logFile.Close()
-		persistDebugFilePath := filepath.Join(videoDownloadDir, "debuglog.txt")
+		persistDebugFilePath := filepath.Join(tsSaveDir, "debuglog.txt")
 		err = os.Rename(tempDebugFilePath, persistDebugFilePath)
 		if err != nil {
 			this.setErrMsg("os.Rename set persistDebugFilePath " + strconv.Quote(persistDebugFilePath) + " error : " + err.Error())
@@ -310,22 +311,10 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		this.setErrMsg("需要下载的文件为空")
 		return
 	}
-	if req.DebugLog {
-		buf := bytes.NewBuffer(nil)
-		buf.WriteString(">tsList\n")
-		for _, one := range tsList {
-			urlObj, _ := url.Parse(one.Url)
-			if urlObj == nil {
-				continue
-			}
-			fmt.Fprintf(buf, "    %v : %v\n", one.Name, path.Base(urlObj.Path))
-		}
-		this.logToFile(buf.String())
-	}
 	// 下载ts
 	this.status.SetProgressBarTitle("[3/4]下载ts")
 	this.status.SpeedResetBytes()
-	err = this.downloader(tsList, skipInfo, videoDownloadDir, encInfo, req.ThreadCount)
+	err = this.downloader(tsList, skipInfo, tsSaveDir, encInfo, req.ThreadCount)
 	this.status.SpeedResetBytes()
 	if err != nil {
 		this.setErrMsg("下载ts文件错误: " + err.Error())
@@ -336,14 +325,49 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		return
 	}
 	var tsFileList []string
+	var skipByHttpCodeLog bytes.Buffer
+	var skipCount int
+	var expectMp4Bytes int64
 	for _, one := range tsList {
 		if one.SkipByHttpCode {
+			skipCount++
+			fmt.Fprintf(&skipByHttpCodeLog, "http.code=%v,filename=%v,url=%v\n", one.HttpCode, one.Name, one.Url)
 			continue
 		}
-		tsFileList = append(tsFileList, filepath.Join(videoDownloadDir, one.Name))
+		fileNameFull := filepath.Join(tsSaveDir, one.Name)
+		var stat os.FileInfo
+		stat, err = os.Stat(fileNameFull)
+		if err != nil {
+			this.setErrMsg("ts文件" + one.Name + "分析失败: " + err.Error())
+			return
+		}
+		expectMp4Bytes += stat.Size()
+		tsFileList = append(tsFileList, fileNameFull)
+	}
+	if skipByHttpCodeLog.Len() > 0 && false {
+		err = os.WriteFile(filepath.Join(tsSaveDir, logFileName), skipByHttpCodeLog.Bytes(), 0777)
+		if err != nil {
+			this.setErrMsg("写入" + logFileName + "失败, " + err.Error())
+			return
+		}
+		if this.writeFfmpegCmd(tsSaveDir, tsList) == false {
+			return
+		}
+		this.setErrMsg("使用http.code跳过了" + strconv.Itoa(skipCount) + "条ts记录，请自行合并")
+		return
+	}
+
+	//TODO: gomedia 暂未修复的bug,输出mp4超过4GB就会出错, 此处预估3.9GB
+	gbCount := float64(expectMp4Bytes) / 1024 / 1024 / 1024
+	if gbCount > 3.9 {
+		if this.writeFfmpegCmd(tsSaveDir, tsList) == false {
+			return
+		}
+		this.setErrMsg("预期大小" + strconv.FormatFloat(gbCount, 'f', 2, 64) + "GB, 合并4GB以上的mp4可能出错， 请自行合并。")
+		return
 	}
 	var tmpOutputName string
-	tmpOutputName = filepath.Join(videoDownloadDir, "all.merge.mp4")
+	tmpOutputName = filepath.Join(tsSaveDir, "all.merge.mp4")
 
 	this.status.SetProgressBarTitle("[4/4]合并ts为mp4")
 	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
@@ -384,7 +408,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	}
 	if req.SkipRemoveTs == false {
 		this.logFileClose()
-		err = os.RemoveAll(videoDownloadDir)
+		err = os.RemoveAll(tsSaveDir)
 		if err != nil {
 			this.setErrMsg("删除下载目录失败: " + err.Error())
 			return
