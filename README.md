@@ -12,7 +12,7 @@
 ## 实现说明
 * download.go 大部分抄自 [llychao/m3u8-downloader](https://github.com/llychao/m3u8-downloader)
 * 使用[gomedia](https://github.com/yapingcat/gomedia) 代替ffmpeg进行格式转换
-* 支持跳过前面几个ts文件(一般是广告, 嘿嘿)
+* 支持跳过ts文件
 * 支持跳过 #EXT-X-DISCONTINUITY 标签包裹的ts。有的网站会在视频中增加广告，广告内容在 #EXT-X-DISCONTINUITY 直接包裹
 * 程序会在下载保存目录创建:
     * downloading/ 目录, 用于存放正在下载的分段ts视频, 按照m3u8的url进行划分
@@ -34,7 +34,15 @@
   * 支持下载aes加密的m3u8
   * 内部使用多线程下载ts文件
   * 支持设置代理: http/socks5
-    * http代理解释: 要访问的真实url是http协议, 使用代理服务器可见的GET/POST/HEAD...形式; 如果要访问的真实url是https协议, 使用代理服务器不可见的CONNECT形式 
+    * http代理解释: 要访问的真实url是http协议, 使用代理服务器可见的GET/POST/HEAD...形式; 如果要访问的真实url是https协议, 使用代理服务器不可见的CONNECT形式
+  * 跳过ts的表达式使用英文逗号','隔开, 编写规则:
+    * ts列表文件名从1开始编号，例如第一个ts文件的编号就是1，第十个ts的编号就是10
+    * 想要跳过编号为10的ts: 10
+    * 想要跳过编号为23到199的ts: 23-199
+    * 想要跳过下载ts时，服务器返回http状态码为403,404的ts: http.code=403, http.code=404
+    * 使用服务器的http状态码跳过ts可能造成判断错误，所以默认情况不会合并下载的ts、不会删除下载的ts。 
+      * 如果要让http状态码跳过的ts也能被自动合并: if-http.code-merge_ts
+    
 ## TODO:
   * [ ] 多线程修改为自适应模式，在下载过程中动态调整线程池大小，以便达到最快的下载速度
   * [ ] 支持多国语言

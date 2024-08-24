@@ -71,8 +71,9 @@ type SkipTsUnit struct {
 }
 
 type SkipTsInfo struct {
-	HttpCodeList []int
-	SkipList     []SkipTsUnit
+	HttpCodeList      []int
+	SkipList          []SkipTsUnit
+	IfHttpCodeMergeTs bool
 }
 
 func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
@@ -115,6 +116,9 @@ func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
 				ok = true
 				info.HttpCodeList = append(info.HttpCodeList, i)
 			}
+		} else if one == `if-http.code-merge_ts` {
+			info.IfHttpCodeMergeTs = true
+			ok = true
 		}
 		if ok == false {
 			return info, "parse expr part invalid " + strconv.Quote(one)
@@ -321,13 +325,9 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		return
 	}
 	this.status.DrawProgressBar(1, 1)
-	if req.SkipMergeTs {
-		return
-	}
 	var tsFileList []string
 	var skipByHttpCodeLog bytes.Buffer
 	var skipCount int
-	var expectMp4Bytes int64
 	for _, one := range tsList {
 		if one.SkipByHttpCode {
 			skipCount++
@@ -335,35 +335,25 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 			continue
 		}
 		fileNameFull := filepath.Join(tsSaveDir, one.Name)
-		var stat os.FileInfo
-		stat, err = os.Stat(fileNameFull)
-		if err != nil {
-			this.setErrMsg("ts文件" + one.Name + "分析失败: " + err.Error())
-			return
-		}
-		expectMp4Bytes += stat.Size()
 		tsFileList = append(tsFileList, fileNameFull)
 	}
+	// 写入ffmpeg合并命令
+	if this.writeFfmpegCmd(tsSaveDir, tsList) == false {
+		return
+	}
 	if skipByHttpCodeLog.Len() > 0 {
-		err = os.WriteFile(filepath.Join(tsSaveDir, logFileName), skipByHttpCodeLog.Bytes(), 0777)
+		// 写入通过http.code跳过的ts文件列表
+		err = os.WriteFile(filepath.Join(tsSaveDir, logFileName), skipByHttpCodeLog.Bytes(), 0666)
 		if err != nil {
 			this.setErrMsg("写入" + logFileName + "失败, " + err.Error())
 			return
 		}
-		if this.writeFfmpegCmd(tsSaveDir, tsList) == false {
+		if skipInfo.IfHttpCodeMergeTs == false {
+			this.setErrMsg("使用http.code跳过了" + strconv.Itoa(skipCount) + "条ts记录，请自行合并")
 			return
 		}
-		this.setErrMsg("使用http.code跳过了" + strconv.Itoa(skipCount) + "条ts记录，请自行合并")
-		return
 	}
-
-	//TODO: gomedia 暂未修复的bug,输出mp4超过4GB就会出错, 此处预估3.9GB
-	gbCount := float64(expectMp4Bytes) / 1024 / 1024 / 1024
-	if gbCount > 3.9 {
-		if this.writeFfmpegCmd(tsSaveDir, tsList) == false {
-			return
-		}
-		this.setErrMsg("预期大小" + strconv.FormatFloat(gbCount, 'f', 2, 64) + "GB, 合并4GB以上的mp4可能出错， 请自行合并。")
+	if req.SkipMergeTs {
 		return
 	}
 	var tmpOutputName string
@@ -405,6 +395,15 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	if err != nil {
 		this.setErrMsg("重命名失败: " + err.Error())
 		return
+	}
+	if skipByHttpCodeLog.Len() > 0 {
+		// 写入通过http.code跳过的ts文件列表
+		saveFileName := name + "_" + logFileName
+		err = os.WriteFile(saveFileName, skipByHttpCodeLog.Bytes(), 0666)
+		if err != nil {
+			this.setErrMsg("写入" + saveFileName + "失败, " + err.Error())
+			return
+		}
 	}
 	if req.SkipRemoveTs == false {
 		this.logFileClose()
