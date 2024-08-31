@@ -37,6 +37,8 @@ private slots:
 
     void on_lineEdit_M3u8Url_editingFinished();
 
+    void on_pushButton_TsTempDir_clicked();
+
 private:
     void updateDownloadUi(bool runing);
     void updateMergeUi(bool runing);

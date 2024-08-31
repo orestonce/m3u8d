@@ -23,6 +23,7 @@ struct StartDownload_Req{
 	bool SkipMergeTs;
 	bool Skip_EXT_X_DISCONTINUITY;
 	bool DebugLog;
+	std::string TsTempDir;
 	StartDownload_Req(): Insecure(false),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false),SkipMergeTs(false),Skip_EXT_X_DISCONTINUITY(false),DebugLog(false){}
 };
 std::string StartDownload(StartDownload_Req in0);

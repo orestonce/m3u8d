@@ -68,6 +68,7 @@ type StartDownload_Req struct {
 	SkipMergeTs              bool                // 不合并ts为mp4
 	Skip_EXT_X_DISCONTINUITY bool                // 跳过 #EXT-X-DISCONTINUITY 标签包裹的ts
 	DebugLog                 bool                // 调试日志
+	TsTempDir                string              // 临时ts文件目录
 }
 
 type DownloadEnv struct {

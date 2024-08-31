@@ -73,6 +73,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.M3u8Url = ui->lineEdit_M3u8Url->text().toStdString();
     req.Insecure = ui->checkBox_Insecure->isChecked();
     req.SaveDir = ui->lineEdit_SaveDir->text().toStdString();
+    req.TsTempDir = ui->lineEdit_TsTempDir->text().toStdString();
     req.FileName = ui->lineEdit_FileName->text().toStdString();
     req.SkipTsExpr = ui->lineEdit_SkipTsExpr->text().toStdString();
     req.SetProxy = ui->lineEdit_SetProxy->text().toStdString();
@@ -190,6 +191,7 @@ void MainWindow::updateDownloadUi(bool runing)
 {
     ui->lineEdit_M3u8Url->setEnabled(!runing);
     ui->lineEdit_SaveDir->setEnabled(!runing);
+    ui->lineEdit_TsTempDir->setEnabled(!runing);
     ui->pushButton_SaveDir->setEnabled(!runing);
     ui->lineEdit_FileName->setEnabled(!runing);
     ui->lineEdit_SkipTsExpr->setEnabled(!runing);
@@ -200,6 +202,7 @@ void MainWindow::updateDownloadUi(bool runing)
     ui->lineEdit_SetProxy->setEnabled(!runing);
     ui->pushButton_StopDownload->setEnabled(runing);
     ui->pushButton_curlMode->setEnabled(!runing);
+    ui->pushButton_TsTempDir->setEnabled(!runing);
     ui->checkBox_SkipRemoveTs->setEnabled(!runing);
     ui->lineEdit_ThreadCount->setEnabled(!runing);
     ui->checkBox_SkipMergeTs->setEnabled(!runing);
@@ -230,6 +233,7 @@ void MainWindow::saveUiConfig()
 
     obj["M3u8Url"] = ui->lineEdit_M3u8Url->text();
     obj["SaveDir"] = ui->lineEdit_SaveDir->text();
+    obj["TsTempDir"] = ui->lineEdit_TsTempDir->text();
     obj["FileName"]= ui->lineEdit_FileName->text();
     obj["SkipTsExpr"] = ui->lineEdit_SkipTsExpr->text();
     obj["SetProxy"] = ui->lineEdit_SetProxy->text();
@@ -289,6 +293,10 @@ void MainWindow::loadUiConfig()
     QString saveDir = obj["SaveDir"].toString();
     if(!saveDir.isEmpty()) {
         ui->lineEdit_SaveDir->setText(saveDir);
+    }
+    QString tsTempDir = obj["TsTempDir"].toString();
+    if(!tsTempDir.isEmpty()) {
+        ui->lineEdit_TsTempDir->setText(tsTempDir);
     }
     QString fileName = obj["FileName"].toString();
     if(!fileName.isEmpty()) {
@@ -383,4 +391,14 @@ void MainWindow::on_lineEdit_M3u8Url_editingFinished()
         return;
     }
     ui->lineEdit_FileName->setPlaceholderText(fileName);
+}
+
+void MainWindow::on_pushButton_TsTempDir_clicked()
+{
+    QString saveDir = ui->lineEdit_SaveDir->text();
+    if(saveDir.isEmpty())
+        saveDir = ui->lineEdit_SaveDir->placeholderText();
+
+    QString dir = QFileDialog::getExistingDirectory(this, "", saveDir);
+    ui->lineEdit_TsTempDir->setText(dir);
 }

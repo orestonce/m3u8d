@@ -242,7 +242,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		return
 	}
 	var err error
-	downloadingDir := filepath.Join(req.SaveDir, "downloading")
+	downloadingDir := filepath.Join(req.TsTempDir, "downloading")
 	if !isDirExists(downloadingDir) {
 		err = os.MkdirAll(downloadingDir, os.ModePerm)
 		if err != nil {
@@ -250,10 +250,10 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 			return
 		}
 	}
-	var tempDebugFilePath string
+	var tmpDebugFilePath string
 	if req.DebugLog {
-		tempDebugFilePath = filepath.Join(downloadingDir, fmt.Sprintf("temp_debuglog_%08d-%05d.txt", os.Getpid(), atomic.AddUint32(&debugLogNo, 1)))
-		this.logFile, err = os.OpenFile(tempDebugFilePath, os.O_APPEND|os.O_CREATE, 0666)
+		tmpDebugFilePath = filepath.Join(downloadingDir, fmt.Sprintf("temp_debuglog_%08d-%05d.txt", os.Getpid(), atomic.AddUint32(&debugLogNo, 1)))
+		this.logFile, err = os.OpenFile(tmpDebugFilePath, os.O_APPEND|os.O_CREATE, 0666)
 		if err != nil {
 			this.setErrMsg("os.WriteUrl error: " + err.Error())
 			return
@@ -271,7 +271,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		return
 	}
 	videoId := req.getVideoId()
-	tsSaveDir := filepath.Join(req.SaveDir, "downloading", videoId)
+	tsSaveDir := filepath.Join(downloadingDir, videoId)
 	if !isDirExists(tsSaveDir) {
 		err = os.MkdirAll(tsSaveDir, os.ModePerm)
 		if err != nil {
@@ -284,7 +284,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		this.logFile.Sync()
 		this.logFile.Close()
 		persistDebugFilePath := filepath.Join(tsSaveDir, "debuglog.txt")
-		err = os.Rename(tempDebugFilePath, persistDebugFilePath)
+		err = os.Rename(tmpDebugFilePath, persistDebugFilePath)
 		if err != nil {
 			this.setErrMsg("os.Rename set persistDebugFilePath " + strconv.Quote(persistDebugFilePath) + " error : " + err.Error())
 			return
@@ -356,22 +356,9 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	if req.SkipMergeTs {
 		return
 	}
-	var tmpOutputName string
-	tmpOutputName = filepath.Join(tsSaveDir, "all.merge.mp4")
-
-	this.status.SetProgressBarTitle("[4/4]合并ts为mp4")
-	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
-		TsFileList: tsFileList,
-		OutputMp4:  tmpOutputName,
-		Ctx:        this.ctx,
-		Status:     &this.status,
-	})
-	this.status.SpeedResetBytes()
-	if err != nil {
-		this.setErrMsg("合并错误: " + err.Error())
-		return
-	}
 	var name string
+	var tmpOutputName string
+
 	for idx := 0; ; idx++ {
 		idxS := strconv.Itoa(idx)
 		if len(idxS) < 4 {
@@ -384,6 +371,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 			name = filepath.Join(req.SaveDir, req.FileName+idxS+".mp4")
 		}
 		if !isFileExists(name) {
+			tmpOutputName = name + ".temp"
 			break
 		}
 		if idx > 10000 { // 超过1万就不找了
@@ -391,6 +379,19 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 			return
 		}
 	}
+	this.status.SetProgressBarTitle("[4/4]合并ts为mp4")
+	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
+		TsFileList: tsFileList,
+		OutputMp4:  tmpOutputName,
+		Ctx:        this.ctx,
+		Status:     &this.status,
+	})
+	this.status.SpeedResetBytes()
+	if err != nil {
+		this.setErrMsg("合并错误: " + err.Error())
+		return
+	}
+
 	err = os.Rename(tmpOutputName, name)
 	if err != nil {
 		this.setErrMsg("重命名失败: " + err.Error())
@@ -413,7 +414,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 			return
 		}
 		// 如果downloading目录为空,就删除掉,否则忽略
-		_ = os.Remove(filepath.Join(req.SaveDir, "downloading"))
+		_ = os.Remove(downloadingDir)
 	}
 	this.setSaveFileTo(name, false)
 	return
@@ -461,17 +462,38 @@ func (this *DownloadEnv) setupClient(req StartDownload_Req, proxyUrlObj *url.URL
 	}
 }
 
-func (this *DownloadEnv) prepareReqAndHeader(req *StartDownload_Req) (errMsg string) {
-	if req.SaveDir == "" {
+func prepareDir(dir string) (dirAbs string, errMsg string) {
+	if dir == "" {
 		var err error
-		req.SaveDir, err = os.Getwd()
+		dir, err = os.Getwd()
 		if err != nil {
-			return "os.Getwd error: " + err.Error()
+			return "", "os.Getwd error: " + err.Error()
 		}
+	}
+	if filepath.IsAbs(dir) == false {
+		var err error
+		dir, err = filepath.Abs(dir)
+		if err != nil {
+			return "", "filepath.Abs error: " + err.Error()
+		}
+	}
+	dir = filepath.Clean(dir)
+	return dir, ""
+}
+
+func (this *DownloadEnv) prepareReqAndHeader(req *StartDownload_Req) (errMsg string) {
+	req.SaveDir, errMsg = prepareDir(req.SaveDir)
+	if errMsg != "" {
+		return errMsg
+	}
+	req.TsTempDir, errMsg = prepareDir(req.TsTempDir)
+	if errMsg != "" {
+		return errMsg
 	}
 	if req.FileName == "" {
 		req.FileName = GetFileNameFromUrl(req.M3u8Url)
 	}
+
 	host, err := getHost(req.M3u8Url)
 	if err != nil {
 		return "getHost0: " + err.Error()
