@@ -242,18 +242,14 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		return
 	}
 	var err error
-	if !isDirExists(req.SaveDir) {
-		err = os.Mkdir(req.SaveDir, os.ModePerm)
-		if err != nil {
-			this.setErrMsg("os.Mkdir error1: " + err.Error())
-			return
-		}
-	}
 	downloadingDir := filepath.Join(req.TsTempDir, "downloading")
-	if !isDirExists(downloadingDir) {
-		err = os.Mkdir(downloadingDir, os.ModePerm)
+	for _, dir := range []string{req.SaveDir, req.TsTempDir, downloadingDir} {
+		if isDirExists(dir) {
+			continue
+		}
+		err = os.Mkdir(dir, 0755)
 		if err != nil {
-			this.setErrMsg("os.Mkdir error2: " + err.Error())
+			this.setErrMsg("os.Mkdir " + strconv.Quote(dir) + " error: " + err.Error())
 			return
 		}
 	}
