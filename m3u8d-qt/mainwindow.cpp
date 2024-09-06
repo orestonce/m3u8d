@@ -53,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     loadUiConfig();
     setWindowTitle("m3u8d-" + QString::fromStdString(GetVersion()));
+    ui->lineEdit_M3u8Url->setFocus();
 }
 
 MainWindow::~MainWindow()
