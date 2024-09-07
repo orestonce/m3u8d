@@ -34,7 +34,8 @@ import (
 type TsInfo struct {
 	Name                        string
 	Url                         string
-	Seq                         uint64 // 如果是aes加密并且没有iv, 这个seq需要充当iv
+	Seq                         uint64  // 如果是aes加密并且没有iv, 这个seq需要充当iv
+	TimeSec                     float64 // 此ts片段占用多少秒
 	Between_EXT_X_DISCONTINUITY bool
 	SkipByHttpCode              bool
 	HttpCode                    int
@@ -156,12 +157,21 @@ func getTsList(beginSeq uint64, m38uUrl string, body string) (tsList []TsInfo, e
 	index := 0
 
 	var between_EXT_X_DISCONTINUITY = false // 正在跳过 #EXT-X-DISCONTINUITY 标签间的ts
+	var timeSec float64
+	var reExtInf = regexp.MustCompile(`^#EXTINF *: *([0-9.]+)`)
 
 	for _, line := range splitLineWithTrimSpace(body) {
 		line = strings.TrimSpace(line)
 		if line == "#EXT-X-DISCONTINUITY" {
 			if len(tsList) > 0 {
 				between_EXT_X_DISCONTINUITY = !between_EXT_X_DISCONTINUITY
+			}
+			continue
+		}
+		if groups := reExtInf.FindStringSubmatch(line); len(groups) > 0 {
+			f, err := strconv.ParseFloat(groups[1], 64)
+			if err == nil {
+				timeSec = f
 			}
 			continue
 		}
@@ -177,7 +187,9 @@ func getTsList(beginSeq uint64, m38uUrl string, body string) (tsList []TsInfo, e
 				Url:                         after,
 				Seq:                         beginSeq + uint64(index-1),
 				Between_EXT_X_DISCONTINUITY: between_EXT_X_DISCONTINUITY,
+				TimeSec:                     timeSec,
 			})
+			timeSec = 0
 		}
 	}
 	return tsList, ""

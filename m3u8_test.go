@@ -75,7 +75,7 @@ func TestM3u8Parse3(t *testing.T) {
 	if errMsg != "" {
 		t.Fatal(errMsg)
 	}
-	after := skipApplyFilter(list, nil, true)
+	after := skipApplyFilter(list, SkipTsInfo{}, true)
 	if len(after) != 11 {
 		t.Fatal()
 	}
@@ -171,3 +171,40 @@ const m3u8Sample3 = `#EXTM3U
 0001414.ts
 #EXT-X-ENDLIST
 `
+
+func TestM3u8Parse4(t *testing.T) {
+	beginSeq := parseBeginSeq([]byte(m3u8Sample4))
+	list, errMsg := getTsList(beginSeq, `https://www.example.com`, m3u8Sample4)
+	if errMsg != "" {
+		t.Fatal(errMsg)
+	}
+	after := skipApplyFilter(list, SkipTsInfo{
+		SkipByTimeList: []SkipByTimeUnit{
+			{
+				StartSec: 6,
+				EndSec:   10,
+			},
+		},
+	}, false)
+	if len(after) != 3 || after[0].Seq != 0 || after[1].Seq != 3 || after[2].Seq != 4 {
+		t.Fatal(after)
+	}
+}
+
+const m3u8Sample4 = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:6
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-KEY:METHOD=AES-128,URI="key.key"
+#EXTINF:5.867,
+1.ts
+#EXTINF:2.933,
+2.ts
+#EXTINF:2.933,
+3.ts
+#EXTINF:2.933,
+4.ts
+#EXTINF:2.933,
+5.ts
+#EXT-X-ENDLIST`

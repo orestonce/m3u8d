@@ -6,7 +6,9 @@ import (
 	"crypto/sha256"
 	"crypto/tls"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -70,10 +72,16 @@ type SkipTsUnit struct {
 	EndIdx   uint32 // 包含
 }
 
+type SkipByTimeUnit struct {
+	StartSec uint32
+	EndSec   uint32
+}
+
 type SkipTsInfo struct {
 	HttpCodeList      []int
 	SkipList          []SkipTsUnit
 	IfHttpCodeMergeTs bool
+	SkipByTimeList    []SkipByTimeUnit
 }
 
 func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
@@ -85,6 +93,7 @@ func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
 	singleRe := regexp.MustCompile(`^([0-9]+)$`)
 	betweenRe := regexp.MustCompile(`^([0-9]+) *- *([0-9]+)$`)
 	httpCodeRe := regexp.MustCompile(`^http.code *= *([0-9]+)$`)
+	betweenTimeRe := regexp.MustCompile(`^time *: *(\d{2}:\d{2}:\d{2}) *- *(\d{2}:\d{2}:\d{2})$`)
 
 	for _, one := range list {
 		one = strings.TrimSpace(one)
@@ -119,6 +128,16 @@ func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
 		} else if one == `if-http.code-merge_ts` {
 			info.IfHttpCodeMergeTs = true
 			ok = true
+		} else if groups = betweenTimeRe.FindStringSubmatch(one); len(groups) > 0 {
+			startSec, err1 := getTimeSecFromStr(groups[1])
+			endSec, err2 := getTimeSecFromStr(groups[2])
+			if err1 == nil && err2 == nil && startSec < endSec {
+				ok = true
+				info.SkipByTimeList = append(info.SkipByTimeList, SkipByTimeUnit{
+					StartSec: startSec,
+					EndSec:   endSec,
+				})
+			}
 		}
 		if ok == false {
 			return info, "parse expr part invalid " + strconv.Quote(one)
@@ -130,6 +149,20 @@ func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
 	})
 	sort.Ints(info.HttpCodeList)
 	return info, ""
+}
+
+func getTimeSecFromStr(str string) (sec uint32, err error) {
+	var h, m, s uint32
+
+	_, err = fmt.Sscanf(str, `%d:%d:%d`, &h, &m, &s)
+	if err != nil {
+		return 0, err
+	}
+	if m >= 60 || s >= 60 {
+		return 0, errors.New("invalid str " + strconv.Quote(str))
+	}
+	sec = h*60*60 + m*60 + s
+	return sec, nil
 }
 
 func maxUint32(a uint32, b uint32) uint32 {
@@ -313,7 +346,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		this.setErrMsg("获取ts列表错误: " + errMsg)
 		return
 	}
-	tsList = skipApplyFilter(tsList, skipInfo.SkipList, req.Skip_EXT_X_DISCONTINUITY)
+	tsList = skipApplyFilter(tsList, skipInfo, req.Skip_EXT_X_DISCONTINUITY)
 	if len(tsList) <= 0 {
 		this.setErrMsg("需要下载的文件为空")
 		return
@@ -422,21 +455,50 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	this.setSaveFileTo(name, false)
 	return
 }
+func isSkipByTsTime(beginSec float64, endSec float64, list []SkipByTimeUnit) bool {
+	for _, unit := range list {
+		newBegin := math.Max(float64(unit.StartSec), beginSec)
+		newEnd := math.Min(float64(unit.EndSec), endSec)
 
-func skipApplyFilter(list []TsInfo, skipList []SkipTsUnit, skip_EXT_X_DISCONTINUITY bool) (after []TsInfo) {
-	isSkip := func(idx uint32) bool {
-		for _, unit := range skipList {
+		if newEnd > newBegin {
+			return true
+		}
+	}
+	return false
+}
+
+func skipApplyFilter(list []TsInfo, skipInfo SkipTsInfo, skip_EXT_X_DISCONTINUITY bool) (after []TsInfo) {
+	var hasEmptyExtinf bool
+	for _, ts := range list {
+		if ts.TimeSec < 1e-5 {
+			hasEmptyExtinf = true
+		}
+	}
+	isSkipByTsIndex := func(idx uint32) bool {
+		for _, unit := range skipInfo.SkipList {
 			if unit.StartIdx <= idx && idx <= unit.EndIdx {
 				return true
 			}
 		}
 		return false
 	}
+
+	var timeBegin float64
+	var timeEnd float64
+
 	for idx, ts := range list {
-		if isSkip(uint32(idx) + 1) {
+		if idx > 0 {
+			timeBegin += list[idx-1].TimeSec
+		}
+		timeEnd += ts.TimeSec
+
+		if isSkipByTsIndex(uint32(idx) + 1) {
 			continue
 		}
 		if skip_EXT_X_DISCONTINUITY && ts.Between_EXT_X_DISCONTINUITY {
+			continue
+		}
+		if hasEmptyExtinf == false && isSkipByTsTime(timeBegin, timeEnd, skipInfo.SkipByTimeList) {
 			continue
 		}
 		after = append(after, ts)

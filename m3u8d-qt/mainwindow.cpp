@@ -21,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     ui->lineEdit_SaveDir->setPlaceholderText(QString::fromStdString(GetWd()));
+    ui->lineEdit_TsTempDir->setPlaceholderText(QString::fromStdString(GetWd()));
+
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, [this](){
         //更新ui1

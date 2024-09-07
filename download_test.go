@@ -50,7 +50,7 @@ func TestParseSkipTsExpr2(t *testing.T) {
 	if errMsg != "" {
 		panic(errMsg)
 	}
-	reflect.DeepEqual(list, []SkipTsUnit{
+	ok := reflect.DeepEqual(list, []SkipTsUnit{
 		{
 			StartIdx: 1,
 			EndIdx:   1,
@@ -68,6 +68,29 @@ func TestParseSkipTsExpr2(t *testing.T) {
 			EndIdx:   1000000000,
 		},
 	})
+	if ok == false {
+		t.Fatal()
+	}
+}
+
+func TestParseSkipTsExpr3(t *testing.T) {
+	info, errMsg := ParseSkipTsExpr("12-17, time:01:23:45-12:34:56,time:00:00:00-00:00:43")
+	if errMsg != "" {
+		t.Fatal(errMsg)
+	}
+	ok := reflect.DeepEqual(info.SkipByTimeList, []SkipByTimeUnit{
+		{
+			StartSec: (1 * 60 * 60) + (23 * 60) + 45,
+			EndSec:   (12 * 60 * 60) + (34 * 60) + 56,
+		},
+		{
+			StartSec: 0,
+			EndSec:   43,
+		},
+	})
+	if ok == false {
+		t.Fatal()
+	}
 }
 
 func TestUrlHasSuffix(t *testing.T) {
