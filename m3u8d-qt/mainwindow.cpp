@@ -21,7 +21,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     ui->lineEdit_SaveDir->setPlaceholderText(QString::fromStdString(GetWd()));
-    ui->lineEdit_TsTempDir->setPlaceholderText(QString::fromStdString(GetWd()));
 
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, [this](){
@@ -247,22 +246,6 @@ void MainWindow::saveUiConfig()
     obj["Skip_EXT_X_DISCONTINUITY"] = ui->checkBox_Skip_EXT_X_DISCONTINUITY->isChecked();
     obj["DebugLog"] = ui->checkBox_DebugLog->isChecked();
 
-    QJsonObject headerMap;
-    for(auto it = m_HeaderMap.begin(); it != m_HeaderMap.end(); it++)
-    {
-        QString key = QString::fromStdString(it->first);
-        QJsonArray valueList;
-        for(auto vit = it->second.begin(); vit != it->second.end(); vit++)
-        {
-            valueList.push_back(QString::fromStdString(*vit));
-        }
-        headerMap[key] = valueList;
-    }
-    if(headerMap.empty() == false)
-    {
-        obj["HeaderMap"] = headerMap;
-    }
-
     QJsonDocument doc;
     doc.setObject(obj);
     QByteArray data = doc.toJson();
@@ -327,21 +310,6 @@ void MainWindow::loadUiConfig()
     ui->checkBox_Skip_EXT_X_DISCONTINUITY->setChecked(skip_EXT_X_DISCONTINUITY);
     bool debugLog = obj["DebugLog"].toBool();
     ui->checkBox_DebugLog->setChecked(debugLog);
-
-    QJsonObject headerMap = obj["HeaderMap"].toObject();
-    m_HeaderMap.clear();
-    for(auto it = headerMap.begin(); it != headerMap.end(); it++)
-    {
-        std::string key = it.key().toStdString();
-        std::vector<std::string> vList;
-        QJsonArray valueList = it.value().toArray();
-        for(auto vit = valueList.begin(); vit != valueList.end(); vit++)
-        {
-            std::string value = (*vit).toString().toStdString();
-            vList.push_back(value);
-        }
-        m_HeaderMap[key] = vList;
-    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

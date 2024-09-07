@@ -528,13 +528,6 @@ func (this *DownloadEnv) setupClient(req StartDownload_Req, proxyUrlObj *url.URL
 }
 
 func prepareDir(dir string) (dirAbs string, errMsg string) {
-	if dir == "" {
-		var err error
-		dir, err = os.Getwd()
-		if err != nil {
-			return "", "os.Getwd error: " + err.Error()
-		}
-	}
 	if filepath.IsAbs(dir) == false {
 		var err error
 		dir, err = filepath.Abs(dir)
@@ -547,13 +540,25 @@ func prepareDir(dir string) (dirAbs string, errMsg string) {
 }
 
 func (this *DownloadEnv) prepareReqAndHeader(req *StartDownload_Req) (errMsg string) {
-	req.SaveDir, errMsg = prepareDir(req.SaveDir)
-	if errMsg != "" {
-		return errMsg
+	if req.SaveDir == "" {
+		var err error
+		req.SaveDir, err = os.Getwd()
+		if err != nil {
+			return "os.Getwd error: " + err.Error()
+		}
+	} else {
+		req.SaveDir, errMsg = prepareDir(req.SaveDir)
+		if errMsg != "" {
+			return errMsg
+		}
 	}
-	req.TsTempDir, errMsg = prepareDir(req.TsTempDir)
-	if errMsg != "" {
-		return errMsg
+	if req.TsTempDir == "" {
+		req.TsTempDir = req.SaveDir
+	} else {
+		req.TsTempDir, errMsg = prepareDir(req.TsTempDir)
+		if errMsg != "" {
+			return errMsg
+		}
 	}
 	if req.FileName == "" {
 		req.FileName = GetFileNameFromUrl(req.M3u8Url)
