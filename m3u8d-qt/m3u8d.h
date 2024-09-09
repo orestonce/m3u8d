@@ -24,7 +24,8 @@ struct StartDownload_Req{
 	bool Skip_EXT_X_DISCONTINUITY;
 	bool DebugLog;
 	std::string TsTempDir;
-	StartDownload_Req(): Insecure(false),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false),SkipMergeTs(false),Skip_EXT_X_DISCONTINUITY(false),DebugLog(false){}
+	bool UseServerSideTime;
+	StartDownload_Req(): Insecure(false),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false),SkipMergeTs(false),Skip_EXT_X_DISCONTINUITY(false),DebugLog(false),UseServerSideTime(false){}
 };
 std::string StartDownload(StartDownload_Req in0);
 void CloseOldEnv();

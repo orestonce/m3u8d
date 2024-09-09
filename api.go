@@ -354,7 +354,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	// 下载ts
 	this.status.SetProgressBarTitle("[3/4]下载ts")
 	this.status.SpeedResetBytes()
-	err = this.downloader(tsList, skipInfo, tsSaveDir, encInfo, req.ThreadCount)
+	err = this.downloader(tsList, skipInfo, tsSaveDir, encInfo, req)
 	this.status.SpeedResetBytes()
 	if err != nil {
 		this.setErrMsg("下载ts文件错误: " + err.Error())
@@ -433,6 +433,28 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		this.setErrMsg("重命名失败: " + err.Error())
 		return
 	}
+	if req.UseServerSideTime && len(tsFileList) > 0 {
+		var stat os.FileInfo
+		stat, err = os.Stat(tsFileList[0])
+		if err != nil {
+			this.setErrMsg("读取文件状态失败: " + err.Error())
+			return
+		}
+		mTime := stat.ModTime()
+		err = os.Chtimes(name, mTime, mTime)
+		if err != nil {
+			this.setErrMsg("更新文件创建时间失败: " + err.Error())
+			return
+		}
+		this.logToFile("更新mp4创建时间：" + mTime.String())
+		err = updateMp4CreateTime(name, mTime)
+		if err != nil {
+			this.setErrMsg("更新mp4创建时间失败: " + err.Error())
+			return
+		}
+		this.logToFile("更新成功")
+	}
+
 	if skipByHttpCodeLog.Len() > 0 {
 		// 写入通过http.code跳过的ts文件列表
 		saveFileName := name + "_" + logFileName

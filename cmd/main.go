@@ -135,6 +135,7 @@ func init() {
 	downloadCmd.Flags().BoolVarP(&gRunReq.Skip_EXT_X_DISCONTINUITY, "Skip_EXT_X_DISCONTINUITY", "", false, "跳过 #EXT-X-DISCONTINUITY 标签包裹的ts")
 	downloadCmd.Flags().BoolVarP(&gRunReq.DebugLog, "DebugLog", "", false, "调试日志")
 	downloadCmd.Flags().StringVarP(&gRunReq.TsTempDir, "TsTempDir", "", "", "临时ts文件目录")
+	downloadCmd.Flags().BoolVarP(&gRunReq.UseServerSideTime, "UseServerSideTime", "", false, "使用服务端提供的文件时间")
 	rootCmd.AddCommand(downloadCmd)
 	curlCmd.DisableFlagParsing = true
 	rootCmd.AddCommand(curlCmd)

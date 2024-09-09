@@ -85,6 +85,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.SkipMergeTs = ui->checkBox_SkipMergeTs->isChecked();
     req.Skip_EXT_X_DISCONTINUITY = ui->checkBox_Skip_EXT_X_DISCONTINUITY->isChecked();
     req.DebugLog = ui->checkBox_DebugLog->isChecked();
+    req.UseServerSideTime = ui->checkBox_UseServerSideTime->isChecked();
 
     std::string errMsg = StartDownload(req);
     if(!errMsg.empty()) {
@@ -210,6 +211,7 @@ void MainWindow::updateDownloadUi(bool runing)
     ui->checkBox_SkipMergeTs->setEnabled(!runing);
     ui->checkBox_Skip_EXT_X_DISCONTINUITY->setEnabled(!runing);
     ui->checkBox_DebugLog->setEnabled(!runing);
+    ui->checkBox_UseServerSideTime->setEnabled(!runing);
 
     if(runing == false)
         ui->progressBar->setValue(0);
@@ -245,6 +247,7 @@ void MainWindow::saveUiConfig()
     obj["SkipMergeTs"] = ui->checkBox_SkipMergeTs->isChecked();
     obj["Skip_EXT_X_DISCONTINUITY"] = ui->checkBox_Skip_EXT_X_DISCONTINUITY->isChecked();
     obj["DebugLog"] = ui->checkBox_DebugLog->isChecked();
+    obj["UseServerSideTime"] = ui->checkBox_UseServerSideTime->isChecked();
 
     QJsonDocument doc;
     doc.setObject(obj);
@@ -310,6 +313,8 @@ void MainWindow::loadUiConfig()
     ui->checkBox_Skip_EXT_X_DISCONTINUITY->setChecked(skip_EXT_X_DISCONTINUITY);
     bool debugLog = obj["DebugLog"].toBool();
     ui->checkBox_DebugLog->setChecked(debugLog);
+    bool useServerSideTime = obj["UseServerSideTime"].toBool();
+    ui->checkBox_UseServerSideTime->setChecked(useServerSideTime);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
