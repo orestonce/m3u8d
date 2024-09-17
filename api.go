@@ -441,15 +441,15 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 			return
 		}
 		mTime := stat.ModTime()
-		err = os.Chtimes(name, mTime, mTime)
-		if err != nil {
-			this.setErrMsg("更新文件创建时间失败: " + err.Error())
-			return
-		}
-		this.logToFile("更新mp4创建时间：" + mTime.String())
+		this.logToFile("更新文件时间为:" + mTime.String())
 		err = updateMp4CreateTime(name, mTime)
 		if err != nil {
 			this.setErrMsg("更新mp4创建时间失败: " + err.Error())
+			return
+		}
+		err = os.Chtimes(name, mTime, mTime)
+		if err != nil {
+			this.setErrMsg("更新文件创建时间失败: " + err.Error())
 			return
 		}
 		this.logToFile("更新成功")
