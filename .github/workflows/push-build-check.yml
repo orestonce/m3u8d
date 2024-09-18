@@ -21,10 +21,13 @@ jobs:
         with:
           version: Qt5.6.3-Windows-x86-MinGW4.9.4-staticFull-20200104
       - name: Setup Go environment
-        uses: actions/setup-go@v3.2.1
+        uses: actions/setup-go@v5
         with:
-          # The Go version to download (if necessary) and use. Supports semver spec and ranges.
-          go-version: 1.18 # optional
+            go-version: '1.18'
+            cache-dependency-path: |
+             ./go.sum
+             ./go.sum
+             
       - name: build
         run: |
           go mod tidy
