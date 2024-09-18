@@ -211,12 +211,15 @@ func (this *DownloadEnv) downloadTsFile(ts *TsInfo, skipInfo SkipTsInfo, downloa
 	if err != nil {
 		return err
 	}
-	if len(skipInfo.HttpCodeList) > 0 && isInIntSlice(httpResp.StatusCode, skipInfo.HttpCodeList) {
-		this.status.SpeedAdd1Block(beginTime, 0)
-		ts.SkipByHttpCode = true
-		ts.HttpCode = httpResp.StatusCode
-		this.logToFile("skip ts " + strconv.Quote(ts.Name) + " byHttpCode: " + strconv.Itoa(httpResp.StatusCode))
-		return nil
+	if httpResp.StatusCode != 200 {
+		if len(skipInfo.HttpCodeList) > 0 && isInIntSlice(httpResp.StatusCode, skipInfo.HttpCodeList) {
+			this.status.SpeedAdd1Block(beginTime, 0)
+			ts.SkipByHttpCode = true
+			ts.HttpCode = httpResp.StatusCode
+			this.logToFile("skip ts " + strconv.Quote(ts.Name) + " byHttpCode: " + strconv.Itoa(httpResp.StatusCode))
+			return nil
+		}
+		return errors.New(`invalid http status code: ` + strconv.Itoa(httpResp.StatusCode) + ` url: ` + ts.Url)
 	}
 	var mTime time.Time
 	if mStr := httpResp.Header.Get("Last-Modified"); mStr != "" && useServerSideTime {
