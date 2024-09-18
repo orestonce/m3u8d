@@ -179,10 +179,10 @@ func TestM3u8Parse4(t *testing.T) {
 		t.Fatal(errMsg)
 	}
 	after := skipApplyFilter(list, SkipTsInfo{
-		SkipByTimeList: []SkipByTimeUnit{
+		SkipByTimeSecList: []SkipTsUnit{
 			{
-				StartSec: 6,
-				EndSec:   10,
+				Start: 6,
+				End:   10,
 			},
 		},
 	}, false)

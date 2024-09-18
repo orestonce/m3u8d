@@ -15,50 +15,50 @@ func TestFindUrlInStr(t *testing.T) {
 }
 
 func TestSkip(t *testing.T) {
-	skip := isSkipByTsTime(10, 20, []SkipByTimeUnit{
+	skip := isSkipByTsTime(10, 20, []SkipTsUnit{
 		{
-			StartSec: 0,
-			EndSec:   6,
+			Start: 0,
+			End:   6,
 		},
 	})
 	if skip {
 		t.Fatal()
 	}
 
-	skip = isSkipByTsTime(10, 20, []SkipByTimeUnit{
+	skip = isSkipByTsTime(10, 20, []SkipTsUnit{
 		{
-			StartSec: 6,
-			EndSec:   11,
+			Start: 6,
+			End:   11,
 		},
 	})
 	if skip == false {
 		t.Fatal()
 	}
 
-	skip = isSkipByTsTime(10, 20, []SkipByTimeUnit{
+	skip = isSkipByTsTime(10, 20, []SkipTsUnit{
 		{
-			StartSec: 12,
-			EndSec:   17,
+			Start: 12,
+			End:   17,
 		},
 	})
 	if skip == false {
 		t.Fatal()
 	}
 
-	skip = isSkipByTsTime(10, 20, []SkipByTimeUnit{
+	skip = isSkipByTsTime(10, 20, []SkipTsUnit{
 		{
-			StartSec: 18,
-			EndSec:   28,
+			Start: 18,
+			End:   28,
 		},
 	})
 	if skip == false {
 		t.Fatal()
 	}
 
-	skip = isSkipByTsTime(10, 20, []SkipByTimeUnit{
+	skip = isSkipByTsTime(10, 20, []SkipTsUnit{
 		{
-			StartSec: 21,
-			EndSec:   28,
+			Start: 21,
+			End:   28,
 		},
 	})
 	if skip {
