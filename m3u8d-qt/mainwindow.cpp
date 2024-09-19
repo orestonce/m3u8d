@@ -378,3 +378,12 @@ void MainWindow::on_pushButton_TsTempDir_clicked()
     QString dir = QFileDialog::getExistingDirectory(this, "", saveDir);
     ui->lineEdit_TsTempDir->setText(dir);
 }
+
+void MainWindow::on_pushButton_SetOutputMp4Name_clicked()
+{
+    QString mp4Name = QFileDialog::getSaveFileName(this, "", ui->lineEdit_mergeDir->text(), "(*.mp4)");
+    if(mp4Name.isEmpty()) {
+        return;
+    }
+    ui->lineEdit_mergeFileName->setText(mp4Name);
+}

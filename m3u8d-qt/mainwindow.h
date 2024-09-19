@@ -39,6 +39,8 @@ private slots:
 
     void on_pushButton_TsTempDir_clicked();
 
+    void on_pushButton_SetOutputMp4Name_clicked();
+
 private:
     void updateDownloadUi(bool runing);
     void updateMergeUi(bool runing);
