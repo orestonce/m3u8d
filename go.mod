@@ -6,6 +6,7 @@ require (
 	github.com/orestonce/go2cpp v0.0.0-20240804085624-460ecb5af956
 	github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171
 	github.com/spf13/cobra v1.8.0
+	github.com/xiaoqidun/setft v0.0.0-20220310121541-be86327699ad
 	github.com/yapingcat/gomedia v0.0.0-20240823161909-e61bbaf17c9a
 	golang.org/x/text v0.3.3
 )

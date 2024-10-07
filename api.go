@@ -295,25 +295,9 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		return
 	}
 	if req.UseServerSideTime && len(tsFileList) > 0 {
-		var stat os.FileInfo
-		stat, err = os.Stat(tsFileList[0])
-		if err != nil {
-			this.setErrMsg("读取文件状态失败: " + err.Error())
+		if this.updateMp4Time(tsFileList[0], name) == false {
 			return
 		}
-		mTime := stat.ModTime()
-		this.logToFile("更新文件时间为:" + mTime.String())
-		err = updateMp4CreateTime(name, mTime)
-		if err != nil {
-			this.setErrMsg("更新mp4创建时间失败: " + err.Error())
-			return
-		}
-		err = os.Chtimes(name, mTime, mTime)
-		if err != nil {
-			this.setErrMsg("更新文件创建时间失败: " + err.Error())
-			return
-		}
-		this.logToFile("更新成功")
 	}
 
 	if skipByHttpCodeLog.Len() > 0 {

@@ -3,11 +3,35 @@ package m3u8d
 import (
 	"encoding/binary"
 	"errors"
+	"github.com/xiaoqidun/setft"
 	"github.com/yapingcat/gomedia/go-mp4"
 	"io"
 	"os"
 	"time"
 )
+
+func (this *DownloadEnv) updateMp4Time(firstTsName string, mp4FileName string) bool {
+	stat, err := os.Stat(firstTsName)
+	if err != nil {
+		this.setErrMsg("读取文件状态失败: " + err.Error())
+		return false
+	}
+	mTime := stat.ModTime()
+	this.logToFile("更新文件时间为:" + mTime.String())
+	err = updateMp4CreateTime(mp4FileName, mTime)
+	if err != nil {
+		this.setErrMsg("更新mp4创建时间失败: " + err.Error())
+		return false
+	}
+
+	err = setft.SetFileTime(mp4FileName, mTime, mTime, mTime)
+	if err != nil {
+		this.setErrMsg("更新文件时间属性失败: " + err.Error())
+		return false
+	}
+	this.logToFile("更新成功")
+	return true
+}
 
 func mov_tag(tag [4]byte) uint32 {
 	return binary.LittleEndian.Uint32(tag[:])
