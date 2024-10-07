@@ -331,7 +331,7 @@ func (this *DownloadEnv) downloader(tsList []TsInfo, skipInfo SkipTsInfo, downlo
 			if lastErr != nil {
 				locker.Lock()
 				if err == nil {
-					err = lastErr
+					err = fmt.Errorf("%v, %v", ts.Name, lastErr.Error())
 				}
 				locker.Unlock()
 			}
