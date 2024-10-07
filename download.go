@@ -309,6 +309,10 @@ func (this *DownloadEnv) downloader(tsList []TsInfo, skipInfo SkipTsInfo, downlo
 		task.AddJob(func() {
 			var lastErr error
 			for i := 0; i < 5; i++ {
+				if this.GetIsCancel() {
+					break
+				}
+
 				locker.Lock()
 				if err != nil {
 					locker.Unlock()
@@ -324,14 +328,11 @@ func (this *DownloadEnv) downloader(tsList []TsInfo, skipInfo SkipTsInfo, downlo
 				if lastErr == nil {
 					break
 				}
-				if this.GetIsCancel() {
-					break
-				}
 			}
 			if lastErr != nil {
 				locker.Lock()
 				if err == nil {
-					err = fmt.Errorf("%v, %v", ts.Name, lastErr.Error())
+					err = fmt.Errorf("%v: %v", ts.Name, lastErr.Error())
 				}
 				locker.Unlock()
 			}
