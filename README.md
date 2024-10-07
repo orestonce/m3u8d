@@ -57,6 +57,8 @@
 ## 开发支持
  * 本项目由 jetbrains 开源开发许可证-社区版([Licenses for Open Source Development](https://jb.gg/OpenSourceSupport)) 提供goland开发支持
  * 感谢 [gomedia](https://github.com/yapingcat/gomedia) 开发者提供的ts转mp4逻辑
+ * 感谢 [cobra](https://github.com/spf13/cobra) 提供的命令行解析支持
+ * 感谢 [setft](https://github.com/xiaoqidun/setft) 开发者提供的更新文件创建时间的逻辑
  
 ----------------------------------
 ## 关于为什么使用 gomedia 替代 ffmpeg
