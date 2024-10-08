@@ -30,7 +30,7 @@ func beginMerge() bool {
 	return true
 }
 
-func MergeTsDir(InputTsDir string, OutputMp4Name string) (resp MergeTsDir_Resp) {
+func MergeTsDir(InputTsDir string, OutputMp4Name string, UseFirstTsMTime bool) (resp MergeTsDir_Resp) {
 	if !beginMerge() {
 		return resp
 	}
@@ -78,6 +78,9 @@ func MergeTsDir(InputTsDir string, OutputMp4Name string) (resp MergeTsDir_Resp) 
 		Ctx:        ctx,
 		Status:     &gMergeStatus,
 	})
+	if err == nil && UseFirstTsMTime {
+		err = m3u8d.UpdateMp4Time(tsFileList[0], OutputMp4Name)
+	}
 	if err != nil {
 		resp.ErrMsg = "合并错误: " + err.Error()
 		resp.IsCancel = m3u8d.IsContextCancel(ctx)

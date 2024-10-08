@@ -161,11 +161,12 @@ void MainWindow::on_pushButton_startMerge_clicked()
     if(fileName.isEmpty())
         fileName = ui->lineEdit_mergeFileName->placeholderText();
     QString dir = ui->lineEdit_mergeDir->text();
+    bool UseFirstTsMTime = ui->checkBox_UseFirstTsMTime->isChecked();
 
     this->updateMergeUi(true);
 
     m_syncUi.AddRunFnOn_OtherThread([=](){
-        auto resp = MergeTsDir(dir.toStdString(), fileName.toStdString());
+        auto resp = MergeTsDir(dir.toStdString(), fileName.toStdString(), UseFirstTsMTime);
 
         m_syncUi.AddRunFnOn_UiThread([=](){
             this->updateMergeUi(false);
@@ -227,6 +228,7 @@ void MainWindow::updateMergeUi(bool runing)
     ui->pushButton_startMerge->setEnabled(!runing);
     ui->lineEdit_mergeFileName->setEnabled(!runing);
     ui->pushButton_returnDownload->setEnabled(!runing);
+    ui->checkBox_UseFirstTsMTime->setEnabled(!runing);
 }
 
 static const QString configPath = "m3u8d_config.json";
@@ -248,6 +250,7 @@ void MainWindow::saveUiConfig()
     obj["Skip_EXT_X_DISCONTINUITY"] = ui->checkBox_Skip_EXT_X_DISCONTINUITY->isChecked();
     obj["DebugLog"] = ui->checkBox_DebugLog->isChecked();
     obj["UseServerSideTime"] = ui->checkBox_UseServerSideTime->isChecked();
+    obj["UseFirstTsMTime"] = ui->checkBox_UseFirstTsMTime->isChecked();
 
     QJsonDocument doc;
     doc.setObject(obj);
@@ -315,6 +318,8 @@ void MainWindow::loadUiConfig()
     ui->checkBox_DebugLog->setChecked(debugLog);
     bool useServerSideTime = obj["UseServerSideTime"].toBool();
     ui->checkBox_UseServerSideTime->setChecked(useServerSideTime);
+    bool UseFirstTsMTime = obj["UseFirstTsMTime"].toBool();
+    ui->checkBox_UseFirstTsMTime->setChecked(UseFirstTsMTime);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

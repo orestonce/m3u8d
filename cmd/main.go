@@ -68,8 +68,9 @@ var curlCmd = &cobra.Command{
 var gRunReq m3u8d.StartDownload_Req
 
 var gMergeReq struct {
-	InputTsDir    string
-	OutputMp4Name string
+	InputTsDir      string
+	OutputMp4Name   string
+	UseFirstTsMTime bool
 }
 
 var mergeCmd = &cobra.Command{
@@ -114,6 +115,9 @@ var mergeCmd = &cobra.Command{
 			Ctx:        context.Background(),
 			Status:     status,
 		})
+		if err == nil && gMergeReq.UseFirstTsMTime {
+			err = m3u8d.UpdateMp4Time(tsFileList[0], gMergeReq.OutputMp4Name)
+		}
 		if err != nil {
 			log.Fatalln("合并失败", err)
 			return
@@ -141,6 +145,7 @@ func init() {
 	rootCmd.AddCommand(curlCmd)
 	mergeCmd.Flags().StringVarP(&gMergeReq.InputTsDir, "InputTsDir", "", "", "存放ts文件的目录(默认为当前工作目录)")
 	mergeCmd.Flags().StringVarP(&gMergeReq.OutputMp4Name, "OutputMp4Name", "", "", "输出mp4文件名(默认为输入ts文件的目录下的all.mp4)")
+	mergeCmd.Flags().BoolVarP(&gMergeReq.UseFirstTsMTime, "UseFirstTsMTime", "", false, "使用第一个ts文件的修改时间作为输出mp4文件的创建时间")
 	rootCmd.AddCommand(mergeCmd)
 	rootCmd.Version = m3u8d.GetVersion()
 }

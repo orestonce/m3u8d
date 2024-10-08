@@ -55,7 +55,7 @@ struct MergeTsDir_Resp{
 	bool IsCancel;
 	MergeTsDir_Resp(): IsCancel(false){}
 };
-MergeTsDir_Resp MergeTsDir(std::string in0, std::string in1);
+MergeTsDir_Resp MergeTsDir(std::string in0, std::string in1, bool in2);
 void MergeStop();
 struct MergeGetProgressPercent_Resp{
 	int32_t Percent;

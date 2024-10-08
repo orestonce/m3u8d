@@ -10,27 +10,22 @@ import (
 	"time"
 )
 
-func (this *DownloadEnv) updateMp4Time(firstTsName string, mp4FileName string) bool {
+func UpdateMp4Time(firstTsName string, mp4FileName string) error {
 	stat, err := os.Stat(firstTsName)
 	if err != nil {
-		this.setErrMsg("读取文件状态失败: " + err.Error())
-		return false
+		return errors.New("读取文件状态失败: " + err.Error())
 	}
 	mTime := stat.ModTime()
-	this.logToFile("更新文件时间为:" + mTime.String())
 	err = updateMp4CreateTime(mp4FileName, mTime)
 	if err != nil {
-		this.setErrMsg("更新mp4创建时间失败: " + err.Error())
-		return false
+		return errors.New("更新mp4创建时间失败: " + err.Error())
 	}
 
 	err = setft.SetFileTime(mp4FileName, mTime, mTime, mTime)
 	if err != nil {
-		this.setErrMsg("更新文件时间属性失败: " + err.Error())
-		return false
+		return errors.New("更新文件时间属性失败: " + err.Error())
 	}
-	this.logToFile("更新成功")
-	return true
+	return nil
 }
 
 func mov_tag(tag [4]byte) uint32 {

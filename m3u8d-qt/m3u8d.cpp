@@ -773,28 +773,29 @@ std::string GetFileNameFromUrl(std::string in0){
 	return retValue;
 }
 
-MergeTsDir_Resp MergeTsDir(std::string in0, std::string in1){
+MergeTsDir_Resp MergeTsDir(std::string in0, std::string in1, bool in2){
 	std::string in;
 	{
-		uint32_t tmp9 = in0.length();
-		char tmp10[4];
-		tmp10[0] = (uint32_t(tmp9) >> 24) & 0xFF;
-		tmp10[1] = (uint32_t(tmp9) >> 16) & 0xFF;
-		tmp10[2] = (uint32_t(tmp9) >> 8) & 0xFF;
-		tmp10[3] = (uint32_t(tmp9) >> 0) & 0xFF;
-		in.append(tmp10, 4);
+		uint32_t tmp10 = in0.length();
+		char tmp11[4];
+		tmp11[0] = (uint32_t(tmp10) >> 24) & 0xFF;
+		tmp11[1] = (uint32_t(tmp10) >> 16) & 0xFF;
+		tmp11[2] = (uint32_t(tmp10) >> 8) & 0xFF;
+		tmp11[3] = (uint32_t(tmp10) >> 0) & 0xFF;
+		in.append(tmp11, 4);
 		in.append(in0);
 	}
 	{
-		uint32_t tmp11 = in1.length();
-		char tmp12[4];
-		tmp12[0] = (uint32_t(tmp11) >> 24) & 0xFF;
-		tmp12[1] = (uint32_t(tmp11) >> 16) & 0xFF;
-		tmp12[2] = (uint32_t(tmp11) >> 8) & 0xFF;
-		tmp12[3] = (uint32_t(tmp11) >> 0) & 0xFF;
-		in.append(tmp12, 4);
+		uint32_t tmp12 = in1.length();
+		char tmp13[4];
+		tmp13[0] = (uint32_t(tmp12) >> 24) & 0xFF;
+		tmp13[1] = (uint32_t(tmp12) >> 16) & 0xFF;
+		tmp13[2] = (uint32_t(tmp12) >> 8) & 0xFF;
+		tmp13[3] = (uint32_t(tmp12) >> 0) & 0xFF;
+		in.append(tmp13, 4);
 		in.append(in1);
 	}
+	in.append((char*)(&in2), 1);
 	char *out = NULL;
 	int outLen = 0;
 	Go2cppFn_MergeTsDir((char *)in.data(), in.length(), &out, &outLen);
@@ -802,15 +803,15 @@ MergeTsDir_Resp MergeTsDir(std::string in0, std::string in1){
 	int outIdx = 0;
 	{
 		{
-			uint32_t tmp13 = 0;
-			uint32_t tmp14 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp15 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp16 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp13 = tmp14 | tmp15 | tmp16 | tmp17;
+			uint32_t tmp14 = 0;
+			uint32_t tmp15 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp16 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp18 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp14 = tmp15 | tmp16 | tmp17 | tmp18;
 			outIdx+=4;
-			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp13);
-			outIdx+=tmp13;
+			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp14);
+			outIdx+=tmp14;
 		}
 		retValue.IsCancel = (bool) out[outIdx];
 		outIdx++;

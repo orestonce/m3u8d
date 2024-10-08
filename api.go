@@ -295,7 +295,10 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		return
 	}
 	if req.UseServerSideTime && len(tsFileList) > 0 {
-		if this.updateMp4Time(tsFileList[0], name) == false {
+		this.logToFile("更新mp4时间")
+		err = UpdateMp4Time(tsFileList[0], name)
+		if err != nil {
+			this.setErrMsg("更新mp4文件时间失败: " + err.Error())
 			return
 		}
 	}
