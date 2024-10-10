@@ -20,6 +20,8 @@ type SpeedStatus struct {
 	downBlockMap    map[time.Time]downOneUnit
 	doingBlockMap   map[uint32]doingOneUnit
 
+	tsNotWriteReasonMap map[string]tsNotWriteReasonUnit
+
 	progressPercent  int
 	progressBarTitle string
 	ProgressBarShow  bool
@@ -28,6 +30,12 @@ type SpeedStatus struct {
 	errMsg     string
 	saveFileTo string
 	isSkipped  bool
+}
+
+type tsNotWriteReasonUnit struct {
+	fileName    string
+	downloadUrl string
+	reason      string
 }
 
 type downOneUnit struct {
@@ -47,6 +55,8 @@ func (this *SpeedStatus) clearStatusNoLock() {
 	this.speedIdAlloc = 0
 	this.downBlockMap = map[time.Time]downOneUnit{}
 	this.doingBlockMap = map[uint32]doingOneUnit{}
+
+	this.tsNotWriteReasonMap = map[string]tsNotWriteReasonUnit{}
 
 	this.progressPercent = 0
 	this.progressBarTitle = ""
@@ -253,4 +263,20 @@ func (this *SpeedStatus) addBytePerSecondWithDoing(now time.Time, bytePerSecond 
 		sum += float64(one.doneBytes) / second
 	}
 	return sum
+}
+
+func (this *SpeedStatus) setTsNotWriteReason(ts *TsInfo, reason string) {
+	this.Locker.Lock()
+	defer this.Locker.Unlock()
+
+	unit := tsNotWriteReasonUnit{
+		fileName:    ts.Name,
+		downloadUrl: ts.Url,
+		reason:      reason,
+	}
+
+	if this.tsNotWriteReasonMap == nil {
+		this.tsNotWriteReasonMap = map[string]tsNotWriteReasonUnit{}
+	}
+	this.tsNotWriteReasonMap[unit.fileName] = unit
 }

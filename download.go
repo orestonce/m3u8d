@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -335,6 +336,12 @@ func (this *DownloadEnv) downloader(tsList []TsInfo, skipInfo SkipTsInfo, downlo
 					err = fmt.Errorf("%v: %v", ts.Name, lastErr.Error())
 				}
 				locker.Unlock()
+
+				this.status.setTsNotWriteReason(ts, "download: "+lastErr.Error())
+			} else if ts.SkipByHttpCode {
+				this.status.setTsNotWriteReason(ts, "skipByHttpCode: "+strconv.Itoa(ts.HttpCode))
+			} else if this.GetIsCancel() {
+				this.status.setTsNotWriteReason(ts, "用户取消")
 			}
 		})
 	}
@@ -559,6 +566,45 @@ func (this *DownloadEnv) logToFile(body string) {
 	if strings.HasSuffix(body, "\n") == false {
 		this.logFile.WriteString("\n")
 	}
+}
+
+func (this *DownloadEnv) logToFile_TsNotWriteReason() {
+	var list []tsNotWriteReasonUnit
+
+	this.status.Locker.Lock()
+	for _, one := range this.status.tsNotWriteReasonMap {
+		list = append(list, one)
+	}
+	this.status.Locker.Unlock()
+
+	if len(list) == 0 {
+		return
+	}
+
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].fileName < list[j].fileName
+	})
+
+	this.logFileLocker.Lock()
+	defer this.logFileLocker.Unlock()
+
+	if this.logFile == nil {
+		return
+	}
+
+	this.logFile.WriteString("---- ERROR TS ----\n")
+	for idx, one := range list {
+		if idx > 0 {
+			this.logFile.WriteString("\n")
+		}
+		this.logFile.WriteString(one.fileName)
+		this.logFile.WriteString("\n")
+		this.logFile.WriteString(one.downloadUrl)
+		this.logFile.WriteString("\n")
+		this.logFile.WriteString(one.reason)
+		this.logFile.WriteString("\n")
+	}
+	this.logFile.WriteString("---- END ----\n")
 }
 
 func (this *DownloadEnv) GetIsCancel() bool {

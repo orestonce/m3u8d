@@ -75,7 +75,7 @@ func TestM3u8Parse3(t *testing.T) {
 	if errMsg != "" {
 		t.Fatal(errMsg)
 	}
-	after := skipApplyFilter(list, SkipTsInfo{}, true)
+	after, _ := skipApplyFilter(list, SkipTsInfo{}, true)
 	if len(after) != 11 {
 		t.Fatal()
 	}
@@ -178,7 +178,7 @@ func TestM3u8Parse4(t *testing.T) {
 	if errMsg != "" {
 		t.Fatal(errMsg)
 	}
-	after := skipApplyFilter(list, SkipTsInfo{
+	after, _ := skipApplyFilter(list, SkipTsInfo{
 		SkipByTimeSecList: []SkipTsUnit{
 			{
 				Start: 6,

@@ -18,8 +18,8 @@ import (
 
 func main() {
 	if os.Getenv("GITHUB_ACTIONS") == "" { // 本地编译
-		BuildCliBinaryAllVersion()             // 编译命令行版本
 		CreateLibForQtUi("amd64", "c-archive") // 创建Qt需要使用的.a库文件
+		BuildCliBinaryAllVersion()             // 编译命令行版本
 	} else if len(os.Args) >= 2 { // github actions 编译
 		switch os.Args[1] {
 		case "build-cli":

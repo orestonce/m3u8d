@@ -169,7 +169,7 @@ func isSkipByTsTime(beginSec float64, endSec float64, list []SkipTsUnit) bool {
 	return false
 }
 
-func skipApplyFilter(list []TsInfo, skipInfo SkipTsInfo, skip_EXT_X_DISCONTINUITY bool) (after []TsInfo) {
+func skipApplyFilter(list []TsInfo, skipInfo SkipTsInfo, skip_EXT_X_DISCONTINUITY bool) (after []TsInfo, skipList []TsInfo) {
 	var hasEmptyExtinf bool
 	for _, ts := range list {
 		if ts.TimeSec < 1e-5 {
@@ -195,15 +195,18 @@ func skipApplyFilter(list []TsInfo, skipInfo SkipTsInfo, skip_EXT_X_DISCONTINUIT
 		timeEnd += ts.TimeSec
 
 		if isSkipByTsIndex(uint32(idx) + 1) {
+			skipList = append(skipList, ts)
 			continue
 		}
 		if skip_EXT_X_DISCONTINUITY && ts.Between_EXT_X_DISCONTINUITY {
+			skipList = append(skipList, ts)
 			continue
 		}
 		if hasEmptyExtinf == false && isSkipByTsTime(timeBegin, timeEnd, skipInfo.SkipByTimeSecList) {
+			skipList = append(skipList, ts)
 			continue
 		}
 		after = append(after, ts)
 	}
-	return after
+	return after, skipList
 }

@@ -207,16 +207,22 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		this.setErrMsg("获取ts列表错误: " + errMsg)
 		return
 	}
-	tsList = skipApplyFilter(tsList, skipInfo, req.Skip_EXT_X_DISCONTINUITY)
+	tsList, skipTsList := skipApplyFilter(tsList, skipInfo, req.Skip_EXT_X_DISCONTINUITY)
 	if len(tsList) <= 0 {
 		this.setErrMsg("需要下载的文件为空")
 		return
 	}
+
+	for _, ts := range skipTsList {
+		this.status.setTsNotWriteReason(&ts, "触发跳过表达式")
+	}
+
 	// 下载ts
 	this.status.SetProgressBarTitle("[3/4]下载ts")
 	this.status.SpeedResetBytes()
 	err = this.downloader(tsList, skipInfo, tsSaveDir, encInfo, req)
 	this.status.SpeedResetBytes()
+	this.logToFile_TsNotWriteReason()
 	if err != nil {
 		this.setErrMsg("下载ts文件错误: " + err.Error())
 		return
