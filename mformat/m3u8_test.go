@@ -246,22 +246,22 @@ https://bobo.example.com/20240816/mU723LBo/2000kb/hls/wDuqI6ER.ts
 	}
 
 	p0 := info.PartList[0].Key
-	if p0 == nil || p0.Method != "AES-128" || p0.URI != `/20240916/yOPVFSK2/2000kb/hls/key.key` {
+	if p0 == nil || p0.Method != EncryptMethod_AES128 || p0.URI != `/20240916/yOPVFSK2/2000kb/hls/key.key` {
 		t.Fatal()
 	}
 
 	p5 := info.PartList[5].Key
-	if p5 == nil || p5.Method != "NONE" {
+	if p5 == nil || p5.Method != EncryptMethod_NONE {
 		t.Fatal()
 	}
 
 	p14 := info.PartList[14].Key
-	if p14 == nil || p14.Method != "AES-128" || p14.URI != `/20240916/yOPVFSK2/2000kb/hls/key.key` {
+	if p14 == nil || p14.Method != EncryptMethod_AES128 || p14.URI != `/20240916/yOPVFSK2/2000kb/hls/key.key` {
 		t.Fatal()
 	}
 
 	p21 := info.PartList[5].Key
-	if p21 == nil || p21.Method != "NONE" {
+	if p21 == nil || p21.Method != EncryptMethod_NONE {
 		t.Fatal()
 	}
 }

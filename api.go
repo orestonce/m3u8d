@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
+	"github.com/orestonce/m3u8d/mformat"
 	"net/http"
 	"net/url"
 	"os"
@@ -160,9 +161,9 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	}
 
 	this.status.SetProgressBarTitle("[1/4]嗅探m3u8")
-	var m3u8Body []byte
+	var info mformat.M3U8File
 	var errMsg string
-	req.M3u8Url, m3u8Body, errMsg = this.sniffM3u8(req.M3u8Url)
+	req.M3u8Url, info, errMsg = this.sniffM3u8(req.M3u8Url)
 	if errMsg != "" {
 		this.setErrMsg("sniffM3u8: " + errMsg)
 		return
@@ -194,22 +195,17 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		this.logToFile("refresh m3u8 url: " + req.M3u8Url)
 	}
 
-	beginSeq := parseBeginSeq(m3u8Body)
-	// 获取m3u8地址的内容体
-	encInfo, err := this.getEncryptInfo(req.M3u8Url, string(m3u8Body))
-	if err != nil {
-		this.setErrMsg("getEncryptInfo: " + err.Error())
-		return
-	}
 	this.status.SetProgressBarTitle("[2/4]获取ts列表")
-	tsList, errMsg := getTsList(beginSeq, req.M3u8Url, string(m3u8Body))
-	if errMsg != "" {
-		this.setErrMsg("获取ts列表错误: " + errMsg)
-		return
-	}
-	tsList, skipTsList := skipApplyFilter(tsList, skipInfo, req.Skip_EXT_X_DISCONTINUITY)
+	tsList := info.GetTsList()
+	tsList, skipTsList := skipApplyFilter(tsList, skipInfo)
 	if len(tsList) <= 0 {
 		this.setErrMsg("需要下载的文件为空")
+		return
+	}
+	// 获取m3u8地址的内容体
+	err = this.updateMedia(req.M3u8Url, tsList)
+	if err != nil {
+		this.setErrMsg("getEncryptInfo: " + err.Error())
 		return
 	}
 
@@ -220,7 +216,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	// 下载ts
 	this.status.SetProgressBarTitle("[3/4]下载ts")
 	this.status.SpeedResetBytes()
-	err = this.downloader(tsList, skipInfo, tsSaveDir, encInfo, req)
+	err = this.downloader(tsList, skipInfo, tsSaveDir, req)
 	this.status.SpeedResetBytes()
 	this.logToFile_TsNotWriteReason()
 	if err != nil {

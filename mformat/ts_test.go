@@ -8,9 +8,9 @@ import (
 
 func TestAesDecrypt(t *testing.T) {
 	encInfo := TsKeyInfo{
-		Method: EncryptMethod_AES128,
-		Key:    []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6},
-		Iv:     make([]byte, 16),
+		Method:     EncryptMethod_AES128,
+		KeyContent: []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6},
+		Iv:         make([]byte, 16),
 	}
 	binary.BigEndian.PutUint64(encInfo.Iv[8:], 1)
 	before := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 4}

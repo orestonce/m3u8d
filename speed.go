@@ -2,6 +2,7 @@ package m3u8d
 
 import (
 	"fmt"
+	"github.com/orestonce/m3u8d/mformat"
 	"io"
 	"strconv"
 	"strings"
@@ -265,7 +266,7 @@ func (this *SpeedStatus) addBytePerSecondWithDoing(now time.Time, bytePerSecond 
 	return sum
 }
 
-func (this *SpeedStatus) setTsNotWriteReason(ts *TsInfo, reason string) {
+func (this *SpeedStatus) setTsNotWriteReason(ts *mformat.TsInfo, reason string) {
 	this.Locker.Lock()
 	defer this.Locker.Unlock()
 

@@ -5,12 +5,9 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"context"
-	"crypto/aes"
-	"crypto/cipher"
-	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/orestonce/m3u8d/mformat"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -85,16 +82,6 @@ type DownloadEnv struct {
 	logFileLocker sync.Mutex
 }
 
-func parseBeginSeq(body []byte) uint64 {
-	data := M3u8Parse(string(body))
-	seq := data.GetPart(`#EXT-X-MEDIA-SEQUENCE`).TextFull
-	u, err := strconv.ParseUint(seq, 10, 64)
-	if err != nil {
-		return 0
-	}
-	return u
-}
-
 // 获取m3u8地址的host
 func getHost(Url string) (host string, err error) {
 	u, err := url.Parse(Url)
@@ -104,46 +91,44 @@ func getHost(Url string) (host string, err error) {
 	return u.Scheme + "://" + u.Host, nil
 }
 
-// 获取m3u8加密的密钥, 可能存在iv
-func (this *DownloadEnv) getEncryptInfo(m3u8Url string, html string) (info *EncryptInfo, err error) {
-	keyPart := M3u8Parse(html).GetPart("#EXT-X-KEY")
-	uri := keyPart.KeyValue["URI"]
-	if uri == "" {
-		return nil, nil
-	}
-	method := keyPart.KeyValue["METHOD"]
-	if method == EncryptMethod_NONE {
-		return nil, nil
-	}
-	keyUrl, errMsg := resolveRefUrl(m3u8Url, uri)
-	if errMsg != "" {
-		return nil, errors.New(errMsg)
-	}
-	var keyContent []byte
-	var httpResp *http.Response
-	keyContent, httpResp, err = this.doGetRequest(keyUrl, true)
-	if err != nil {
-		return nil, err
-	}
-	if httpResp.StatusCode != 200 {
-		return nil, errors.New("getEncryptInfo httpCode error " + strconv.Itoa(httpResp.StatusCode))
-	}
-	if method == EncryptMethod_AES128 && len(keyContent) != 16 { // Aes 128
-		return nil, errors.New("getEncryptInfo invalid key " + strconv.Quote(string(keyContent)))
-	}
-	var iv []byte
-	ivs := keyPart.KeyValue["IV"]
-	if ivs != "" {
-		iv, err = hex.DecodeString(strings.TrimPrefix(ivs, "0x"))
-		if err != nil {
-			return nil, err
+// updateMedia 更新ts媒体的URL、key的URL、key的内容
+func (this *DownloadEnv) updateMedia(m3u8Url string, tsList []mformat.TsInfo) (err error) {
+	uriToContentMap := map[string][]byte{}
+
+	for idx := range tsList {
+		ts := &tsList[idx]
+		var errMsg string
+		ts.Url, errMsg = ResolveRefUrl(m3u8Url, ts.URI)
+		if errMsg != "" {
+			return errors.New(errMsg)
+		}
+		if ts.Key.Method != `` {
+			keyContent, ok := uriToContentMap[ts.Key.KeyURI]
+			if ok {
+				ts.Key.KeyContent = keyContent
+			} else {
+				var keyUrl string
+				keyUrl, errMsg = ResolveRefUrl(m3u8Url, ts.Key.KeyURI)
+				if errMsg != "" {
+					return errors.New(errMsg)
+				}
+				var httpResp *http.Response
+				keyContent, httpResp, err = this.doGetRequest(keyUrl, true)
+				if err != nil {
+					return err
+				}
+				if httpResp.StatusCode != 200 {
+					return errors.New("http code error " + strconv.Itoa(httpResp.StatusCode))
+				}
+				if ts.Key.Method == mformat.EncryptMethod_AES128 && len(keyContent) != 16 { // Aes 128
+					return errors.New("invalid key " + strconv.Quote(string(keyContent)))
+				}
+				ts.Key.KeyContent = keyContent
+				uriToContentMap[ts.Key.KeyURI] = keyContent
+			}
 		}
 	}
-	return &EncryptInfo{
-		Method: method,
-		Key:    keyContent,
-		Iv:     iv,
-	}, nil
+	return nil
 }
 
 func splitLineWithTrimSpace(s string) []string {
@@ -155,51 +140,9 @@ func splitLineWithTrimSpace(s string) []string {
 	return tmp
 }
 
-func getTsList(beginSeq uint64, m38uUrl string, body string) (tsList []TsInfo, errMsg string) {
-	index := 0
-
-	var between_EXT_X_DISCONTINUITY = false // 正在跳过 #EXT-X-DISCONTINUITY 标签间的ts
-	var timeSec float64
-	var reExtInf = regexp.MustCompile(`^#EXTINF *: *([0-9.]+)`)
-
-	for _, line := range splitLineWithTrimSpace(body) {
-		line = strings.TrimSpace(line)
-		if line == "#EXT-X-DISCONTINUITY" {
-			if len(tsList) > 0 {
-				between_EXT_X_DISCONTINUITY = !between_EXT_X_DISCONTINUITY
-			}
-			continue
-		}
-		if groups := reExtInf.FindStringSubmatch(line); len(groups) > 0 {
-			f, err := strconv.ParseFloat(groups[1], 64)
-			if err == nil {
-				timeSec = f
-			}
-			continue
-		}
-		if !strings.HasPrefix(line, "#") && line != "" {
-			index++
-			var after string
-			after, errMsg = resolveRefUrl(m38uUrl, line)
-			if errMsg != "" {
-				return nil, errMsg
-			}
-			tsList = append(tsList, TsInfo{
-				Name:                        fmt.Sprintf("%05d.ts", index), // ts视频片段命名规则
-				Url:                         after,
-				Seq:                         beginSeq + uint64(index-1),
-				Between_EXT_X_DISCONTINUITY: between_EXT_X_DISCONTINUITY,
-				TimeSec:                     timeSec,
-			})
-			timeSec = 0
-		}
-	}
-	return tsList, ""
-}
-
 // 下载ts文件
 // @modify: 2020-08-13 修复ts格式SyncByte合并不能播放问题
-func (this *DownloadEnv) downloadTsFile(ts *TsInfo, skipInfo SkipTsInfo, downloadDir string, encInfo *EncryptInfo, useServerSideTime bool) (err error) {
+func (this *DownloadEnv) downloadTsFile(ts *mformat.TsInfo, skipInfo SkipTsInfo, downloadDir string, useServerSideTime bool) (err error) {
 	currPath := filepath.Join(downloadDir, ts.Name)
 	var stat os.FileInfo
 	stat, err = os.Stat(currPath)
@@ -236,9 +179,9 @@ func (this *DownloadEnv) downloadTsFile(ts *TsInfo, skipInfo SkipTsInfo, downloa
 	var origData []byte
 	origData = data
 	// 解密出视频 ts 源文件
-	if encInfo != nil {
+	if ts.Key.Method != "" {
 		//解密 ts 文件，算法：aes 128 cbc pack5
-		origData, err = AesDecrypt(ts.Seq, origData, encInfo)
+		origData, err = mformat.AesDecrypt(origData, ts.Key)
 		if err != nil {
 			return err
 		}
@@ -296,7 +239,7 @@ func (this *DownloadEnv) SleepDur(d time.Duration) {
 	}
 }
 
-func (this *DownloadEnv) downloader(tsList []TsInfo, skipInfo SkipTsInfo, downloadDir string, encInfo *EncryptInfo, req StartDownload_Req) (err error) {
+func (this *DownloadEnv) downloader(tsList []mformat.TsInfo, skipInfo SkipTsInfo, downloadDir string, req StartDownload_Req) (err error) {
 	if req.ThreadCount <= 0 || req.ThreadCount > 1000 {
 		return errors.New("DownloadEnv.threadCount invalid: " + strconv.Itoa(req.ThreadCount))
 	}
@@ -325,7 +268,7 @@ func (this *DownloadEnv) downloader(tsList []TsInfo, skipInfo SkipTsInfo, downlo
 					this.SleepDur(time.Second * time.Duration(i))
 					atomic.AddInt32(&this.sleepTh, -1)
 				}
-				lastErr = this.downloadTsFile(ts, skipInfo, downloadDir, encInfo, req.UseServerSideTime)
+				lastErr = this.downloadTsFile(ts, skipInfo, downloadDir, req.UseServerSideTime)
 				if lastErr == nil {
 					break
 				}
@@ -360,92 +303,45 @@ func isDirExists(path string) bool {
 	return err == nil && stat.IsDir()
 }
 
-// ============================== 加解密相关 ==============================
-
-func AesDecrypt(seq uint64, encrypted []byte, encInfo *EncryptInfo) ([]byte, error) {
-	block, err := aes.NewCipher(encInfo.Key)
-	if err != nil {
-		return nil, err
-	}
-	iv := encInfo.Iv
-	if len(iv) == 0 {
-		if encInfo.Method == EncryptMethod_AES128 {
-			iv = make([]byte, 16)
-			binary.BigEndian.PutUint64(iv[8:], seq)
-		} else {
-			return nil, errors.New("AesDecrypt method not support " + strconv.Quote(encInfo.Method))
-		}
-	}
-	blockMode := cipher.NewCBCDecrypter(block, iv)
-	if len(iv) == 0 || len(encrypted)%len(iv) != 0 {
-		return nil, errors.New("AesDecrypt invalid encrypted data len " + strconv.Itoa(len(encrypted)))
-	}
-	origData := make([]byte, len(encrypted))
-	blockMode.CryptBlocks(origData, encrypted)
-	length := len(origData)
-	unpadding := int(origData[length-1])
-	if length-unpadding < 0 {
-		return nil, fmt.Errorf(`invalid length of unpadding %v - %v`, length, unpadding)
-	}
-	return origData[:(length - unpadding)], nil
-}
-
-func (this *DownloadEnv) sniffM3u8(urlS string) (afterUrl string, content []byte, errMsg string) {
+func (this *DownloadEnv) sniffM3u8(urlS string) (afterUrl string, info mformat.M3U8File, errMsg string) {
 	for idx := 0; idx < 5; idx++ {
-		var err error
-		var httpResp *http.Response
-		content, httpResp, err = this.doGetRequest(urlS, true)
+		content, httpResp, err := this.doGetRequest(urlS, true)
 		if err != nil {
-			return "", nil, err.Error()
+			return "", info, err.Error()
 		}
 		if httpResp.StatusCode != 200 {
-			return "", nil, "invalid httpCode " + strconv.Itoa(httpResp.StatusCode)
+			return "", info, "invalid httpCode " + strconv.Itoa(httpResp.StatusCode)
 		}
-
-		if UrlHasSuffix(urlS, ".m3u8") {
+		var ok bool
+		info, ok = mformat.M3U8Parse(content)
+		if ok {
 			// 看这个是不是嵌套的m3u8
-			var m3u8Url string
-			containsTs := false
-			for _, line := range splitLineWithTrimSpace(string(content)) {
-				if strings.HasPrefix(line, "#") {
-					continue
+			if info.IsNestedPlaylists() {
+				playlist := info.LookupHDPlaylist()
+				if playlist == nil {
+					return "", info, "lookup playlist failed"
 				}
-				if UrlHasSuffix(line, ".m3u8") {
-					m3u8Url = line
-					break
+				urlS, errMsg = ResolveRefUrl(urlS, playlist.URI)
+				if errMsg != "" {
+					return "", info, errMsg
 				}
-				for _, supportSuffix := range []string{".ts", ".png", ".jpeg", ".jpg"} {
-					if UrlHasSuffix(line, supportSuffix) {
-						containsTs = true
-						break
-					}
-				}
-				if containsTs {
-					break
-				}
+				continue
 			}
-			if containsTs {
-				return urlS, content, ""
+			if info.ContainsMediaSegment() {
+				return urlS, info, ""
 			}
-			if m3u8Url == "" {
-				return "", nil, "未发现m3u8资源_1"
-			}
-			urlS, errMsg = resolveRefUrl(urlS, m3u8Url)
-			if errMsg != "" {
-				return "", nil, errMsg
-			}
-			continue
+			return "", info, "未发现m3u8资源_1"
 		}
 		groups := regexp.MustCompile(`http[s]://[a-zA-Z0-9/\\.%_-]+.m3u8`).FindSubmatch(content)
 		if len(groups) == 0 {
-			return "", nil, "未发现m3u8资源_2"
+			return "", info, "未发现m3u8资源_2"
 		}
 		urlS = string(groups[0])
 	}
-	return "", nil, "未发现m3u8资源_3"
+	return "", info, "未发现m3u8资源_3"
 }
 
-func resolveRefUrl(baseUrl string, extUrl string) (after string, errMsg string) {
+func ResolveRefUrl(baseUrl string, extUrl string) (after string, errMsg string) {
 	urlObj, err := url.Parse(baseUrl)
 	if err != nil {
 		return "", err.Error()
@@ -569,6 +465,14 @@ func (this *DownloadEnv) logToFile(body string) {
 }
 
 func (this *DownloadEnv) logToFile_TsNotWriteReason() {
+	this.logFileLocker.Lock()
+	skip := this.logFile == nil
+	this.logFileLocker.Unlock()
+
+	if skip {
+		return
+	}
+
 	var list []tsNotWriteReasonUnit
 
 	this.status.Locker.Lock()
@@ -647,7 +551,7 @@ func (this *DownloadEnv) logFileClose() {
 	}
 }
 
-func (this *DownloadEnv) writeFfmpegCmd(downloadingDir string, list []TsInfo) bool {
+func (this *DownloadEnv) writeFfmpegCmd(downloadingDir string, list []mformat.TsInfo) bool {
 	const listFileName = "filelist.txt"
 
 	var fileListLog bytes.Buffer

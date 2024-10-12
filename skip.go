@@ -3,6 +3,7 @@ package m3u8d
 import (
 	"errors"
 	"fmt"
+	"github.com/orestonce/m3u8d/mformat"
 	"math"
 	"regexp"
 	"sort"
@@ -169,7 +170,7 @@ func isSkipByTsTime(beginSec float64, endSec float64, list []SkipTsUnit) bool {
 	return false
 }
 
-func skipApplyFilter(list []TsInfo, skipInfo SkipTsInfo, skip_EXT_X_DISCONTINUITY bool) (after []TsInfo, skipList []TsInfo) {
+func skipApplyFilter(list []mformat.TsInfo, skipInfo SkipTsInfo) (after []mformat.TsInfo, skipList []mformat.TsInfo) {
 	var hasEmptyExtinf bool
 	for _, ts := range list {
 		if ts.TimeSec < 1e-5 {
@@ -195,10 +196,6 @@ func skipApplyFilter(list []TsInfo, skipInfo SkipTsInfo, skip_EXT_X_DISCONTINUIT
 		timeEnd += ts.TimeSec
 
 		if isSkipByTsIndex(uint32(idx) + 1) {
-			skipList = append(skipList, ts)
-			continue
-		}
-		if skip_EXT_X_DISCONTINUITY && ts.Between_EXT_X_DISCONTINUITY {
 			skipList = append(skipList, ts)
 			continue
 		}

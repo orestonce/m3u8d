@@ -20,13 +20,16 @@ type TsInfo struct {
 	TimeSec                 float64 // 此ts片段占用多少秒
 	Idx_EXT_X_DISCONTINUITY int     // 分段编号
 	Key                     TsKeyInfo
+
+	SkipByHttpCode bool
+	HttpCode       int
 }
 
 type TsKeyInfo struct {
-	Method string
-	Key    []byte
-	KeyURI string // 后续填充
-	Iv     []byte
+	Method     string
+	KeyContent []byte // 后续填充
+	KeyURI     string
+	Iv         []byte
 }
 
 // IsNestedPlaylists 返回是否为 嵌套播放列表
@@ -112,10 +115,10 @@ func (this *M3U8File) GetTsList() (list []TsInfo) {
 					}
 				}
 				info.Key = TsKeyInfo{
-					Method: curKey.Method,
-					Key:    nil, // 之后填充
-					KeyURI: curKey.URI,
-					Iv:     iv,
+					Method:     curKey.Method,
+					KeyContent: nil, // 之后填充
+					KeyURI:     curKey.URI,
+					Iv:         iv,
 				}
 			}
 			list = append(list, info)
@@ -126,7 +129,7 @@ func (this *M3U8File) GetTsList() (list []TsInfo) {
 
 // AesDecrypt 解密加密后的ts文件
 func AesDecrypt(encrypted []byte, key TsKeyInfo) ([]byte, error) {
-	block, err := aes.NewCipher(key.Key)
+	block, err := aes.NewCipher(key.KeyContent)
 	if err != nil {
 		return nil, err
 	}
