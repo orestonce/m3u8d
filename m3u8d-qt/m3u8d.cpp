@@ -769,29 +769,30 @@ std::string GetFileNameFromUrl(std::string in0){
 	return retValue;
 }
 
-MergeTsDir_Resp MergeTsDir(std::string in0, std::string in1, bool in2){
+MergeTsDir_Resp MergeTsDir(std::string in0, std::string in1, bool in2, bool in3){
 	std::string in;
 	{
-		uint32_t tmp10 = in0.length();
-		char tmp11[4];
-		tmp11[0] = (uint32_t(tmp10) >> 24) & 0xFF;
-		tmp11[1] = (uint32_t(tmp10) >> 16) & 0xFF;
-		tmp11[2] = (uint32_t(tmp10) >> 8) & 0xFF;
-		tmp11[3] = (uint32_t(tmp10) >> 0) & 0xFF;
-		in.append(tmp11, 4);
+		uint32_t tmp11 = in0.length();
+		char tmp12[4];
+		tmp12[0] = (uint32_t(tmp11) >> 24) & 0xFF;
+		tmp12[1] = (uint32_t(tmp11) >> 16) & 0xFF;
+		tmp12[2] = (uint32_t(tmp11) >> 8) & 0xFF;
+		tmp12[3] = (uint32_t(tmp11) >> 0) & 0xFF;
+		in.append(tmp12, 4);
 		in.append(in0);
 	}
 	{
-		uint32_t tmp12 = in1.length();
-		char tmp13[4];
-		tmp13[0] = (uint32_t(tmp12) >> 24) & 0xFF;
-		tmp13[1] = (uint32_t(tmp12) >> 16) & 0xFF;
-		tmp13[2] = (uint32_t(tmp12) >> 8) & 0xFF;
-		tmp13[3] = (uint32_t(tmp12) >> 0) & 0xFF;
-		in.append(tmp13, 4);
+		uint32_t tmp13 = in1.length();
+		char tmp14[4];
+		tmp14[0] = (uint32_t(tmp13) >> 24) & 0xFF;
+		tmp14[1] = (uint32_t(tmp13) >> 16) & 0xFF;
+		tmp14[2] = (uint32_t(tmp13) >> 8) & 0xFF;
+		tmp14[3] = (uint32_t(tmp13) >> 0) & 0xFF;
+		in.append(tmp14, 4);
 		in.append(in1);
 	}
 	in.append((char*)(&in2), 1);
+	in.append((char*)(&in3), 1);
 	char *out = NULL;
 	int outLen = 0;
 	Go2cppFn_MergeTsDir((char *)in.data(), in.length(), &out, &outLen);
@@ -799,15 +800,15 @@ MergeTsDir_Resp MergeTsDir(std::string in0, std::string in1, bool in2){
 	int outIdx = 0;
 	{
 		{
-			uint32_t tmp14 = 0;
-			uint32_t tmp15 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp16 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp18 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp14 = tmp15 | tmp16 | tmp17 | tmp18;
+			uint32_t tmp15 = 0;
+			uint32_t tmp16 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp18 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp19 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp15 = tmp16 | tmp17 | tmp18 | tmp19;
 			outIdx+=4;
-			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp14);
-			outIdx+=tmp14;
+			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp15);
+			outIdx+=tmp15;
 		}
 		retValue.IsCancel = (bool) out[outIdx];
 		outIdx++;
@@ -837,23 +838,34 @@ MergeGetProgressPercent_Resp MergeGetProgressPercent(){
 	int outIdx = 0;
 	{
 		{
-			uint32_t tmp4 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp5 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp6 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp7 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			retValue.Percent = tmp4 | tmp5 | tmp6 | tmp7;
+			uint32_t tmp5 = 0;
+			uint32_t tmp6 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp7 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp8 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp9 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp5 = tmp6 | tmp7 | tmp8 | tmp9;
+			outIdx+=4;
+			retValue.Title = std::string(out+outIdx, out+outIdx+tmp5);
+			outIdx+=tmp5;
+		}
+		{
+			uint32_t tmp10 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp11 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp12 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp13 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			retValue.Percent = tmp10 | tmp11 | tmp12 | tmp13;
 			outIdx+=4;
 		}
 		{
-			uint32_t tmp8 = 0;
-			uint32_t tmp9 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp10 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp11 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp12 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp8 = tmp9 | tmp10 | tmp11 | tmp12;
+			uint32_t tmp14 = 0;
+			uint32_t tmp15 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp16 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp18 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp14 = tmp15 | tmp16 | tmp17 | tmp18;
 			outIdx+=4;
-			retValue.SpeedText = std::string(out+outIdx, out+outIdx+tmp8);
-			outIdx+=tmp8;
+			retValue.SpeedText = std::string(out+outIdx, out+outIdx+tmp14);
+			outIdx+=tmp14;
 		}
 		retValue.IsRunning = (bool) out[outIdx];
 		outIdx++;

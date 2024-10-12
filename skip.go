@@ -2,6 +2,7 @@ package m3u8d
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/orestonce/m3u8d/mformat"
@@ -272,4 +273,40 @@ func (this *DownloadEnv) removeSkipList(tsSaveDir string, list []mformat.TsInfo)
 		return resp, err
 	}
 	return resp, nil
+}
+
+func AnalyzeTs(status *SpeedStatus, tsFileList []string, OutputMp4Name string, ctx context.Context) (mergeList []string, err error) {
+	var skipByResolutionFpsBuffer bytes.Buffer
+	status.SetProgressBarTitle("分析ts文件")
+	status.SpeedResetTotalBlockCount(len(tsFileList))
+
+	var inputVideoInfo *TsVideoInfo
+
+	for _, one := range tsFileList {
+		if IsContextCancel(ctx) {
+			return nil, errors.New("用户取消")
+		}
+		vInfo := GetTsVideoInfo(one)
+		if inputVideoInfo == nil {
+			inputVideoInfo = &vInfo
+		}
+		if vInfo.Fps == inputVideoInfo.Fps && vInfo.Width == inputVideoInfo.Width && vInfo.Height == inputVideoInfo.Height {
+			mergeList = append(mergeList, one)
+		} else {
+			if skipByResolutionFpsBuffer.Len() == 0 {
+				skipByResolutionFpsBuffer.WriteString("skipByResolutionFps\n")
+			}
+			fmt.Fprintf(&skipByResolutionFpsBuffer, "filename=%v,resolution=%vx%v,fps=%v\n", one, vInfo.Width, vInfo.Height, vInfo.Fps)
+		}
+		status.SpeedAdd1Block(time.Now(), 0)
+	}
+
+	if skipByResolutionFpsBuffer.Len() > 0 {
+		skipName := OutputMp4Name + "_skip.txt"
+		err = os.WriteFile(skipName, skipByResolutionFpsBuffer.Bytes(), 0666)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return mergeList, nil
 }

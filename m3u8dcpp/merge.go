@@ -30,7 +30,7 @@ func beginMerge() bool {
 	return true
 }
 
-func MergeTsDir(InputTsDir string, OutputMp4Name string, UseFirstTsMTime bool) (resp MergeTsDir_Resp) {
+func MergeTsDir(InputTsDir string, OutputMp4Name string, UseFirstTsMTime bool, SkipBadResolutionFps bool) (resp MergeTsDir_Resp) {
 	if !beginMerge() {
 		return resp
 	}
@@ -72,6 +72,17 @@ func MergeTsDir(InputTsDir string, OutputMp4Name string, UseFirstTsMTime bool) (
 	gMergeCancel = cancelFn
 	gMergeCancelLocker.Unlock()
 
+	if SkipBadResolutionFps {
+		tsFileList, err = m3u8d.AnalyzeTs(&gMergeStatus, tsFileList, OutputMp4Name, ctx)
+		if err != nil {
+			resp.ErrMsg = "分析ts失败: " + err.Error()
+			resp.IsCancel = m3u8d.IsContextCancel(ctx)
+			return
+		}
+	}
+	gMergeStatus.SetProgressBarTitle("合并ts")
+	gMergeStatus.SpeedResetTotalBlockCount(len(tsFileList))
+
 	err = m3u8d.MergeTsFileListToSingleMp4(m3u8d.MergeTsFileListToSingleMp4_Req{
 		TsFileList: tsFileList,
 		OutputMp4:  OutputMp4Name,
@@ -90,16 +101,23 @@ func MergeTsDir(InputTsDir string, OutputMp4Name string, UseFirstTsMTime bool) (
 }
 
 type MergeGetProgressPercent_Resp struct {
+	Title     string
 	Percent   int
 	SpeedText string
 	IsRunning bool
 }
 
 func MergeGetProgressPercent() (resp MergeGetProgressPercent_Resp) {
+	gMergeStatus.Locker.Lock()
 	resp.IsRunning = gMergeStatus.IsRunning
+	gMergeStatus.Locker.Unlock()
+
 	if resp.IsRunning {
 		resp.Percent = gMergeStatus.GetPercent()
 		resp.SpeedText = gMergeStatus.SpeedRecent5sGetAndUpdate().ToString()
+		resp.Title = gMergeStatus.GetTitle()
+	} else {
+		resp.Title = "进度"
 	}
 	return resp
 }

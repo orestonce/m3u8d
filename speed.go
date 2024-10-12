@@ -18,7 +18,7 @@ type SpeedStatus struct {
 	speedIdAlloc    uint32
 	totalBlockCount int64
 	doneBlockCount  int64
-	downBlockMap    map[time.Time]downOneUnit
+	doneBlockMap    map[time.Time]downOneUnit
 	doingBlockMap   map[uint32]doingOneUnit
 
 	tsNotWriteReasonMap map[string]tsNotWriteReasonUnit
@@ -54,7 +54,7 @@ func (this *SpeedStatus) clearStatusNoLock() {
 	this.totalBlockCount = 0
 	this.doneBlockCount = 0
 	this.speedIdAlloc = 0
-	this.downBlockMap = map[time.Time]downOneUnit{}
+	this.doneBlockMap = map[time.Time]downOneUnit{}
 	this.doingBlockMap = map[uint32]doingOneUnit{}
 
 	this.tsNotWriteReasonMap = map[string]tsNotWriteReasonUnit{}
@@ -98,10 +98,13 @@ func (this *SpeedStatus) SpeedResetTotalBlockCount(count int) {
 func (this *SpeedStatus) SpeedAdd1Block(now time.Time, byteCount int) {
 	this.Locker.Lock()
 
-	unit := this.downBlockMap[now]
+	unit := this.doneBlockMap[now]
 	unit.byteCount += int64(byteCount)
 	unit.blockCount++
-	this.downBlockMap[now] = unit
+	if this.doneBlockMap == nil {
+		this.doneBlockMap = map[time.Time]downOneUnit{}
+	}
+	this.doneBlockMap[now] = unit
 	this.doneBlockCount++
 
 	cur := this.doneBlockCount
@@ -120,7 +123,7 @@ func (this *SpeedStatus) SpeedResetBytes() {
 	this.speedBeginTime = time.Now()
 	this.totalBlockCount = 0
 	this.doneBlockCount = 0
-	this.downBlockMap = map[time.Time]downOneUnit{}
+	this.doneBlockMap = map[time.Time]downOneUnit{}
 }
 
 type SpeedInfo struct {
@@ -157,9 +160,9 @@ func (this *SpeedStatus) SpeedRecent5sGetAndUpdate() (speed SpeedInfo) {
 	expireTime := now.Add(-secondCount * time.Second) // 5秒内的
 	var total downOneUnit
 
-	for ct, v := range this.downBlockMap {
+	for ct, v := range this.doneBlockMap {
 		if ct.Before(expireTime) {
-			delete(this.downBlockMap, ct)
+			delete(this.doneBlockMap, ct)
 			continue
 		}
 		total.byteCount += v.byteCount

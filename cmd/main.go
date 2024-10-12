@@ -68,9 +68,10 @@ var curlCmd = &cobra.Command{
 var gRunReq m3u8d.StartDownload_Req
 
 var gMergeReq struct {
-	InputTsDir      string
-	OutputMp4Name   string
-	UseFirstTsMTime bool
+	InputTsDir           string
+	OutputMp4Name        string
+	UseFirstTsMTime      bool
+	SkipBadResolutionFps bool
 }
 
 var mergeCmd = &cobra.Command{
@@ -95,18 +96,37 @@ var mergeCmd = &cobra.Command{
 				tsFileList = append(tsFileList, filepath.Join(gMergeReq.InputTsDir, f.Name()))
 			}
 		}
+		sort.Strings(tsFileList) // 按照字典顺序排序
 		if len(tsFileList) == 0 {
 			log.Fatalln("目录下不存在ts文件", gMergeReq.InputTsDir)
 			return
 		}
-		sort.Strings(tsFileList) // 按照字典顺序排序
-		if gMergeReq.OutputMp4Name == "" {
-			gMergeReq.OutputMp4Name = filepath.Join(gMergeReq.InputTsDir, "all.mp4")
-		}
+
 		status := &m3u8d.SpeedStatus{
 			IsRunning:       true,
 			ProgressBarShow: true,
 		}
+
+		if len(tsFileList) == 0 {
+			log.Fatalln("目录下不存在ts文件", gMergeReq.InputTsDir)
+			return
+		}
+		if gMergeReq.OutputMp4Name == "" {
+			gMergeReq.OutputMp4Name = filepath.Join(gMergeReq.InputTsDir, "all.mp4")
+		}
+		if gMergeReq.SkipBadResolutionFps {
+			tsFileList, err = m3u8d.AnalyzeTs(status, tsFileList, gMergeReq.OutputMp4Name, context.Background())
+			if err != nil {
+				log.Fatalln("分析ts失败", err)
+				return
+			}
+		}
+
+		if len(tsFileList) == 0 {
+			log.Fatalln("目录下不存在ts文件2", gMergeReq.InputTsDir)
+			return
+		}
+
 		status.SetProgressBarTitle("合并ts")
 		status.SpeedResetTotalBlockCount(len(tsFileList))
 		err = m3u8d.MergeTsFileListToSingleMp4(m3u8d.MergeTsFileListToSingleMp4_Req{
@@ -115,12 +135,16 @@ var mergeCmd = &cobra.Command{
 			Ctx:        context.Background(),
 			Status:     status,
 		})
-		if err == nil && gMergeReq.UseFirstTsMTime {
-			err = m3u8d.UpdateMp4Time(tsFileList[0], gMergeReq.OutputMp4Name)
-		}
 		if err != nil {
 			log.Fatalln("合并失败", err)
 			return
+		}
+		if gMergeReq.UseFirstTsMTime {
+			err = m3u8d.UpdateMp4Time(tsFileList[0], gMergeReq.OutputMp4Name)
+			if err != nil {
+				log.Fatalln("更新mp4文件时间失败", err)
+				return
+			}
 		}
 		log.Println("合并成功", gMergeReq.OutputMp4Name)
 	},
@@ -145,6 +169,7 @@ func init() {
 	mergeCmd.Flags().StringVarP(&gMergeReq.InputTsDir, "InputTsDir", "", "", "存放ts文件的目录(默认为当前工作目录)")
 	mergeCmd.Flags().StringVarP(&gMergeReq.OutputMp4Name, "OutputMp4Name", "", "", "输出mp4文件名(默认为输入ts文件的目录下的all.mp4)")
 	mergeCmd.Flags().BoolVarP(&gMergeReq.UseFirstTsMTime, "UseFirstTsMTime", "", false, "使用第一个ts文件的修改时间作为输出mp4文件的创建时间")
+	mergeCmd.Flags().BoolVarP(&gMergeReq.SkipBadResolutionFps, "SkipBadResolutionFps", "", true, "跳过分辨率、fps异常的ts文件")
 	rootCmd.AddCommand(mergeCmd)
 	rootCmd.Version = m3u8d.GetVersion()
 }

@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->progressBar_merge->setValue(resp.Percent);
             if(!resp.SpeedText.empty())
                 ui->statusBar->showMessage(QString::fromStdString(resp.SpeedText), 5*1000);
+            ui->label_mergeProgressBar->setText(QString::fromStdString(resp.Title));
         }
     });
     m_timer->start(50);
@@ -161,11 +162,12 @@ void MainWindow::on_pushButton_startMerge_clicked()
         fileName = ui->lineEdit_mergeFileName->placeholderText();
     QString dir = ui->lineEdit_mergeDir->text();
     bool UseFirstTsMTime = ui->checkBox_UseFirstTsMTime->isChecked();
+    bool SkipBadResolutionFps = ui->checkBox_SkipBadResolutionFps->isChecked();
 
     this->updateMergeUi(true);
 
     m_syncUi.AddRunFnOn_OtherThread([=](){
-        auto resp = MergeTsDir(dir.toStdString(), fileName.toStdString(), UseFirstTsMTime);
+        auto resp = MergeTsDir(dir.toStdString(), fileName.toStdString(), UseFirstTsMTime, SkipBadResolutionFps);
 
         m_syncUi.AddRunFnOn_UiThread([=](){
             this->updateMergeUi(false);
@@ -227,6 +229,7 @@ void MainWindow::updateMergeUi(bool runing)
     ui->lineEdit_mergeFileName->setEnabled(!runing);
     ui->pushButton_returnDownload->setEnabled(!runing);
     ui->checkBox_UseFirstTsMTime->setEnabled(!runing);
+    ui->checkBox_SkipBadResolutionFps->setEnabled(!runing);
 }
 
 static const QString configPath = "m3u8d_config.json";
@@ -248,6 +251,7 @@ void MainWindow::saveUiConfig()
     obj["DebugLog"] = ui->checkBox_DebugLog->isChecked();
     obj["UseServerSideTime"] = ui->checkBox_UseServerSideTime->isChecked();
     obj["UseFirstTsMTime"] = ui->checkBox_UseFirstTsMTime->isChecked();
+    obj["SkipBadResolutionFps"] = ui->checkBox_SkipBadResolutionFps->isChecked();
 
     QJsonDocument doc;
     doc.setObject(obj);
@@ -258,6 +262,14 @@ void MainWindow::saveUiConfig()
     }
     file.write(data);
     file.close();
+}
+
+void setupCheckbox(QJsonObject& obj,QCheckBox *box, QString key)
+{
+    if(obj[key].isBool()) {
+        bool value = obj[key].toBool();
+        box->setChecked(value);
+    }
 }
 
 void MainWindow::loadUiConfig()
@@ -303,18 +315,13 @@ void MainWindow::loadUiConfig()
     if(threadCount > 0) {
         ui->lineEdit_ThreadCount->setText(QString::number(threadCount));
     }
-    bool insecure = obj["Insecure"].toBool();
-    ui->checkBox_Insecure->setChecked(insecure);
-    bool skipRemoveTs = obj["SkipRemoveTs"].toBool();
-    ui->checkBox_SkipRemoveTs->setChecked(skipRemoveTs);
-    bool skipMergeTs = obj["SkipMergeTs"].toBool();
-    ui->checkBox_SkipMergeTs->setChecked(skipMergeTs);
-    bool debugLog = obj["DebugLog"].toBool();
-    ui->checkBox_DebugLog->setChecked(debugLog);
-    bool useServerSideTime = obj["UseServerSideTime"].toBool();
-    ui->checkBox_UseServerSideTime->setChecked(useServerSideTime);
-    bool UseFirstTsMTime = obj["UseFirstTsMTime"].toBool();
-    ui->checkBox_UseFirstTsMTime->setChecked(UseFirstTsMTime);
+    setupCheckbox(obj, ui->checkBox_Insecure,  "Insecure");
+    setupCheckbox(obj, ui->checkBox_SkipRemoveTs, "SkipRemoveTs");
+    setupCheckbox(obj, ui->checkBox_SkipMergeTs, "SkipMergeTs");
+    setupCheckbox(obj, ui->checkBox_DebugLog, "DebugLog");
+    setupCheckbox(obj, ui->checkBox_UseServerSideTime, "UseServerSideTime");
+    setupCheckbox(obj, ui->checkBox_UseFirstTsMTime, "UseFirstTsMTime");
+    setupCheckbox(obj, ui->checkBox_SkipBadResolutionFps, "SkipBadResolutionFps");
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

@@ -209,17 +209,17 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="checkBox_DebugLog">
-            <property name="text">
-             <string>调试日志</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
            <widget class="QCheckBox" name="checkBox_UseServerSideTime">
             <property name="text">
              <string>使用服务端提供的文件时间</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="checkBox_DebugLog">
+            <property name="text">
+             <string>调试日志</string>
             </property>
            </widget>
           </item>
@@ -405,6 +405,16 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_SkipBadResolutionFps">
+             <property name="text">
+              <string>跳过分辨率、fps异常的ts文件</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -424,7 +434,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QLabel" name="label_8">
+           <widget class="QLabel" name="label_mergeProgressBar">
             <property name="minimumSize">
              <size>
               <width>80</width>
