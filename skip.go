@@ -1,14 +1,18 @@
 package m3u8d
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/orestonce/m3u8d/mformat"
 	"math"
+	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const SkipTimeSecEnd = 99 * 60 * 60
@@ -206,4 +210,66 @@ func skipApplyFilter(list []mformat.TsInfo, skipInfo SkipTsInfo) (after []mforma
 		after = append(after, ts)
 	}
 	return after, skipList
+}
+
+type removeSkipListResp struct {
+	mergeTsList         []mformat.TsInfo
+	skipByHttpCodeCount int
+	skipLogFileName     string
+	skipLogContent      []byte
+}
+
+func (this *DownloadEnv) removeSkipList(tsSaveDir string, list []mformat.TsInfo) (resp removeSkipListResp, err error) {
+	if len(list) == 0 {
+		return resp, errors.New("ts list is empty")
+	}
+
+	var inputVideoInfo *TsVideoInfo
+	var skipByHttpCodeBuffer bytes.Buffer
+	var skipByResolutionFpsBuffer bytes.Buffer
+
+	this.status.SpeedResetBytes()
+	this.status.SpeedResetTotalBlockCount(len(list))
+
+	for _, one := range list {
+		if this.GetIsCancel() {
+			return resp, errors.New("用户取消")
+		}
+		this.status.SpeedAdd1Block(time.Now(), 0)
+		if one.SkipByHttpCode {
+			resp.skipByHttpCodeCount++
+			if skipByHttpCodeBuffer.Len() == 0 {
+				skipByHttpCodeBuffer.WriteString("skipByHttpCode\n")
+			}
+			fmt.Fprintf(&skipByHttpCodeBuffer, "filename=%v,url=%v，http.code=%v\n", one.Name, one.Url, one.HttpCode)
+			continue
+		}
+		vInfo := GetTsVideoInfo(filepath.Join(tsSaveDir, one.Name))
+		if inputVideoInfo == nil {
+			inputVideoInfo = &vInfo
+		}
+		if vInfo.Fps == inputVideoInfo.Fps && vInfo.Width == inputVideoInfo.Width && vInfo.Height == inputVideoInfo.Height {
+			resp.mergeTsList = append(resp.mergeTsList, one)
+		} else {
+			if skipByResolutionFpsBuffer.Len() == 0 {
+				skipByResolutionFpsBuffer.WriteString("skipByResolutionFps\n")
+			}
+			fmt.Fprintf(&skipByResolutionFpsBuffer, "filename=%v,url=%v,resolution=%vx%v,fps=%v\n", one.Name, one.Url, vInfo.Width, vInfo.Height, vInfo.Fps)
+		}
+	}
+	if skipByHttpCodeBuffer.Len() > 0 || skipByResolutionFpsBuffer.Len() > 0 {
+		resp.skipLogFileName = filepath.Join(tsSaveDir, logFileName)
+		resp.skipLogContent = append(skipByHttpCodeBuffer.Bytes(), skipByResolutionFpsBuffer.Bytes()...)
+		err = os.WriteFile(resp.skipLogFileName, resp.skipLogContent, 0666)
+		if err != nil {
+			return resp, err
+		}
+	}
+
+	// 写入ffmpeg合并命令
+	err = this.writeFfmpegCmd(tsSaveDir, resp.mergeTsList)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
 }

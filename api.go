@@ -1,7 +1,6 @@
 package m3u8d
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"crypto/tls"
@@ -19,7 +18,7 @@ import (
 	"time"
 )
 
-const logFileName = `skip_by_http_code.txt`
+const logFileName = `skip.txt`
 
 func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 	this.status.Locker.Lock()
@@ -160,7 +159,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		this.logToFile("origin m3u8 url: " + req.M3u8Url)
 	}
 
-	this.status.SetProgressBarTitle("[1/4]嗅探m3u8")
+	this.status.SetProgressBarTitle("[1/5]嗅探m3u8")
 	var info mformat.M3U8File
 	var errMsg string
 	req.M3u8Url, info, errMsg = this.sniffM3u8(req.M3u8Url)
@@ -195,7 +194,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		this.logToFile("refresh m3u8 url: " + req.M3u8Url)
 	}
 
-	this.status.SetProgressBarTitle("[2/4]获取ts列表")
+	this.status.SetProgressBarTitle("[2/5]获取ts列表")
 	tsList := info.GetTsList()
 	tsList, skipTsList := skipApplyFilter(tsList, skipInfo)
 	if len(tsList) <= 0 {
@@ -214,7 +213,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	}
 
 	// 下载ts
-	this.status.SetProgressBarTitle("[3/4]下载ts")
+	this.status.SetProgressBarTitle("[3/5]下载ts")
 	this.status.SpeedResetBytes()
 	err = this.downloader(tsList, skipInfo, tsSaveDir, req)
 	this.status.SpeedResetBytes()
@@ -224,36 +223,31 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		return
 	}
 	this.status.DrawProgressBar(1, 1)
-	var tsFileList []string
-	var skipByHttpCodeLog bytes.Buffer
-	var skipCount int
-	for _, one := range tsList {
-		if one.SkipByHttpCode {
-			skipCount++
-			fmt.Fprintf(&skipByHttpCodeLog, "http.code=%v,filename=%v,url=%v\n", one.HttpCode, one.Name, one.Url)
-			continue
-		}
-		fileNameFull := filepath.Join(tsSaveDir, one.Name)
-		tsFileList = append(tsFileList, fileNameFull)
-	}
-	// 写入ffmpeg合并命令
-	if this.writeFfmpegCmd(tsSaveDir, tsList) == false {
+
+	this.status.SetProgressBarTitle("[4/5]分析ts列表")
+	resp, err := this.removeSkipList(tsSaveDir, tsList)
+	if err != nil {
+		this.setErrMsg("写入" + logFileName + "失败, " + err.Error())
 		return
 	}
-	if skipByHttpCodeLog.Len() > 0 {
-		// 写入通过http.code跳过的ts文件列表
-		err = os.WriteFile(filepath.Join(tsSaveDir, logFileName), skipByHttpCodeLog.Bytes(), 0666)
-		if err != nil {
-			this.setErrMsg("写入" + logFileName + "失败, " + err.Error())
-			return
-		}
-		if skipInfo.IfHttpCodeMergeTs == false {
-			this.setErrMsg("使用http.code跳过了" + strconv.Itoa(skipCount) + "条ts记录，请自行合并")
-			return
-		}
+
+	if resp.skipByHttpCodeCount > 0 && skipInfo.IfHttpCodeMergeTs == false {
+		this.setErrMsg("使用http.code跳过了" + strconv.Itoa(resp.skipByHttpCodeCount) + "条ts记录，请自行合并")
+		return
 	}
+
+	if len(resp.mergeTsList) == 0 {
+		this.setErrMsg("ts文件列表为空")
+		return
+	}
+
 	if req.SkipMergeTs {
 		return
+	}
+
+	var tsFileList []string
+	for _, one := range resp.mergeTsList {
+		tsFileList = append(tsFileList, filepath.Join(tsSaveDir, one.Name))
 	}
 	var name string
 	var tmpOutputName string
@@ -278,7 +272,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 			return
 		}
 	}
-	this.status.SetProgressBarTitle("[4/4]合并ts为mp4")
+	this.status.SetProgressBarTitle("[5/5]合并ts为mp4")
 	err = MergeTsFileListToSingleMp4(MergeTsFileListToSingleMp4_Req{
 		TsFileList: tsFileList,
 		OutputMp4:  tmpOutputName,
@@ -305,10 +299,10 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		}
 	}
 
-	if skipByHttpCodeLog.Len() > 0 {
-		// 写入通过http.code跳过的ts文件列表
+	if len(resp.skipLogContent) > 0 {
 		saveFileName := name + "_" + logFileName
-		err = os.WriteFile(saveFileName, skipByHttpCodeLog.Bytes(), 0666)
+		this.logToFile("写入文件" + saveFileName)
+		err = os.WriteFile(saveFileName, resp.skipLogContent, 0666)
 		if err != nil {
 			this.setErrMsg("写入" + saveFileName + "失败, " + err.Error())
 			return

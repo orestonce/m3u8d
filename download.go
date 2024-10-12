@@ -53,22 +53,21 @@ type GetStatus_Resp struct {
 var PNG_SIGN = []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
 
 type StartDownload_Req struct {
-	M3u8Url                  string
-	Insecure                 bool                // "是否允许不安全的请求(默认为false)"
-	SaveDir                  string              // "文件保存路径(默认为当前路径)"
-	FileName                 string              // 文件名
-	SkipTsExpr               string              // 跳过ts信息，ts编号从1开始，可以以逗号","为分隔符跳过多部分ts，例如: 1,92-100 表示跳过第1号ts、跳过92到100号ts
-	SetProxy                 string              //代理
-	HeaderMap                map[string][]string // 自定义http头信息
-	SkipRemoveTs             bool                // 不删除ts文件
-	ProgressBarShow          bool                // 在控制台打印进度条
-	ThreadCount              int                 // 线程数
-	SkipCacheCheck           bool                // 不缓存已下载的m3u8的文件信息
-	SkipMergeTs              bool                // 不合并ts为mp4
-	Skip_EXT_X_DISCONTINUITY bool                // 跳过 #EXT-X-DISCONTINUITY 标签包裹的ts
-	DebugLog                 bool                // 调试日志
-	TsTempDir                string              // 临时ts文件目录
-	UseServerSideTime        bool                // 使用服务端提供的文件时间
+	M3u8Url           string
+	Insecure          bool                // "是否允许不安全的请求(默认为false)"
+	SaveDir           string              // "文件保存路径(默认为当前路径)"
+	FileName          string              // 文件名
+	SkipTsExpr        string              // 跳过ts信息，ts编号从1开始，可以以逗号","为分隔符跳过多部分ts，例如: 1,92-100 表示跳过第1号ts、跳过92到100号ts
+	SetProxy          string              //代理
+	HeaderMap         map[string][]string // 自定义http头信息
+	SkipRemoveTs      bool                // 不删除ts文件
+	ProgressBarShow   bool                // 在控制台打印进度条
+	ThreadCount       int                 // 线程数
+	SkipCacheCheck    bool                // 不缓存已下载的m3u8的文件信息
+	SkipMergeTs       bool                // 不合并ts为mp4
+	DebugLog          bool                // 调试日志
+	TsTempDir         string              // 临时ts文件目录
+	UseServerSideTime bool                // 使用服务端提供的文件时间
 }
 
 type DownloadEnv struct {
@@ -129,15 +128,6 @@ func (this *DownloadEnv) updateMedia(m3u8Url string, tsList []mformat.TsInfo) (e
 		}
 	}
 	return nil
-}
-
-func splitLineWithTrimSpace(s string) []string {
-	tmp := strings.Split(s, "\n")
-	for idx, str := range tmp {
-		str = strings.TrimSpace(str)
-		tmp[idx] = str
-	}
-	return tmp
 }
 
 // 下载ts文件
@@ -246,7 +236,7 @@ func (this *DownloadEnv) downloader(tsList []mformat.TsInfo, skipInfo SkipTsInfo
 	task := gopool.NewThreadPool(req.ThreadCount)
 	var locker sync.Mutex
 
-	this.status.ResetTotalBlockCount(len(tsList))
+	this.status.SpeedResetTotalBlockCount(len(tsList))
 
 	for idx := range tsList {
 		ts := &tsList[idx]
@@ -551,7 +541,7 @@ func (this *DownloadEnv) logFileClose() {
 	}
 }
 
-func (this *DownloadEnv) writeFfmpegCmd(downloadingDir string, list []mformat.TsInfo) bool {
+func (this *DownloadEnv) writeFfmpegCmd(downloadingDir string, list []mformat.TsInfo) (err error) {
 	const listFileName = "filelist.txt"
 
 	var fileListLog bytes.Buffer
@@ -561,10 +551,9 @@ func (this *DownloadEnv) writeFfmpegCmd(downloadingDir string, list []mformat.Ts
 		}
 		fileListLog.WriteString("file " + one.Name + "\n")
 	}
-	err := os.WriteFile(filepath.Join(downloadingDir, listFileName), fileListLog.Bytes(), 0777)
+	err = os.WriteFile(filepath.Join(downloadingDir, listFileName), fileListLog.Bytes(), 0777)
 	if err != nil {
-		this.setErrMsg("写入" + listFileName + "失败, " + err.Error())
-		return false
+		return errors.New("写入" + listFileName + "失败, " + err.Error())
 	}
 
 	var ffmpegCmdContent = "ffmpeg -f concat -i " + listFileName + " -c copy -y output.mp4"
@@ -578,11 +567,18 @@ func (this *DownloadEnv) writeFfmpegCmd(downloadingDir string, list []mformat.Ts
 
 	err = os.WriteFile(filepath.Join(downloadingDir, ffmpegCmdFileName), []byte(ffmpegCmdContent), 0777)
 	if err != nil {
-		this.setErrMsg("写入" + ffmpegCmdFileName + "失败, " + err.Error())
-		return false
+		return errors.New("写入" + ffmpegCmdFileName + "失败, " + err.Error())
 	}
 
-	return true
+	return nil
+}
+
+func (this *DownloadEnv) writeSkipByHttpCodeInfoTxt(tsSaveDir string, list []mformat.TsInfo) error {
+	var skipByHttpCodeLog bytes.Buffer
+	for _, one := range list {
+		fmt.Fprintf(&skipByHttpCodeLog, "http.code=%v,filename=%v,url=%v\n", one.HttpCode, one.Name, one.Url)
+	}
+	return os.WriteFile(filepath.Join(tsSaveDir, logFileName), skipByHttpCodeLog.Bytes(), 0666)
 }
 
 func IsContextCancel(ctx context.Context) bool {

@@ -85,7 +85,7 @@ func MergeTsFileListToSingleMp4(req MergeTsFileListToSingleMp4_Req) (err error) 
 	}
 
 	if req.Status != nil {
-		req.Status.ResetTotalBlockCount(len(req.TsFileList))
+		req.Status.SpeedResetTotalBlockCount(len(req.TsFileList))
 	}
 	for _, tsFile := range req.TsFileList {
 		select {

@@ -87,7 +87,7 @@ func (this *SpeedStatus) DrawProgressBar(total int, current int) {
 	this.Locker.Unlock()
 }
 
-func (this *SpeedStatus) ResetTotalBlockCount(count int) {
+func (this *SpeedStatus) SpeedResetTotalBlockCount(count int) {
 	this.Locker.Lock()
 	defer this.Locker.Unlock()
 

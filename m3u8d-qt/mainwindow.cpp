@@ -83,7 +83,6 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.SkipRemoveTs = ui->checkBox_SkipRemoveTs->isChecked();
     req.ThreadCount = ui->lineEdit_ThreadCount->text().toInt();
     req.SkipMergeTs = ui->checkBox_SkipMergeTs->isChecked();
-    req.Skip_EXT_X_DISCONTINUITY = ui->checkBox_Skip_EXT_X_DISCONTINUITY->isChecked();
     req.DebugLog = ui->checkBox_DebugLog->isChecked();
     req.UseServerSideTime = ui->checkBox_UseServerSideTime->isChecked();
 
@@ -210,7 +209,6 @@ void MainWindow::updateDownloadUi(bool runing)
     ui->checkBox_SkipRemoveTs->setEnabled(!runing);
     ui->lineEdit_ThreadCount->setEnabled(!runing);
     ui->checkBox_SkipMergeTs->setEnabled(!runing);
-    ui->checkBox_Skip_EXT_X_DISCONTINUITY->setEnabled(!runing);
     ui->checkBox_DebugLog->setEnabled(!runing);
     ui->checkBox_UseServerSideTime->setEnabled(!runing);
 
@@ -247,7 +245,6 @@ void MainWindow::saveUiConfig()
     obj["Insecure"] = ui->checkBox_Insecure->isChecked();
     obj["SkipRemoveTs"] = ui->checkBox_SkipRemoveTs->isChecked();
     obj["SkipMergeTs"] = ui->checkBox_SkipMergeTs->isChecked();
-    obj["Skip_EXT_X_DISCONTINUITY"] = ui->checkBox_Skip_EXT_X_DISCONTINUITY->isChecked();
     obj["DebugLog"] = ui->checkBox_DebugLog->isChecked();
     obj["UseServerSideTime"] = ui->checkBox_UseServerSideTime->isChecked();
     obj["UseFirstTsMTime"] = ui->checkBox_UseFirstTsMTime->isChecked();
@@ -312,8 +309,6 @@ void MainWindow::loadUiConfig()
     ui->checkBox_SkipRemoveTs->setChecked(skipRemoveTs);
     bool skipMergeTs = obj["SkipMergeTs"].toBool();
     ui->checkBox_SkipMergeTs->setChecked(skipMergeTs);
-    bool skip_EXT_X_DISCONTINUITY = obj["Skip_EXT_X_DISCONTINUITY"].toBool();
-    ui->checkBox_Skip_EXT_X_DISCONTINUITY->setChecked(skip_EXT_X_DISCONTINUITY);
     bool debugLog = obj["DebugLog"].toBool();
     ui->checkBox_DebugLog->setChecked(debugLog);
     bool useServerSideTime = obj["UseServerSideTime"].toBool();
