@@ -13,7 +13,6 @@
 * download.go 大部分抄自 [llychao/m3u8-downloader](https://github.com/llychao/m3u8-downloader)
 * 使用[gomedia](https://github.com/yapingcat/gomedia) 代替ffmpeg进行格式转换
 * 支持跳过ts文件
-* 支持跳过 #EXT-X-DISCONTINUITY 标签包裹的ts。有的网站会在视频中增加广告，广告内容在 #EXT-X-DISCONTINUITY 直接包裹
 * 程序会在下载保存目录创建:
     * downloading/ 目录, 用于存放正在下载的分段ts视频, 按照m3u8的url进行划分
     * m3u8d_config.json 文件, 用于存放Qt ui的的界面上的配置信息, 只有Windows/Macos的Qt版本会创建此文件
@@ -24,16 +23,15 @@
     然后打开 windows-qt版本的 m3u8d, 点击 "curl 模式"，将复制出来的请求粘贴上去即可
 * 已有功能列表
   * 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
+  * 支持下载aes加密的m3u8, 支持单个m3u8文件内不同ts文件使用不同的加密策略
+  * 内部使用多线程下载ts文件
   * windows、linux、mac都支持转换、合并ts格式为mp4
   * 充分测试后，使用 [gomedia](https://github.com/yapingcat/gomedia) 代替ffmpeg进行格式转换
-  * 支持嵌套m3u8的url
   * 增加openwrt路由器的mipsle二进制
   * 支持从curl命令解析出需要的信息，正如 [cxjava/m3u8-downloader](https://github.com/cxjava/m3u8-downloader) 一样
   * 显示下载速度、合并ts的速度
   * 提供macos的图形化界面
-  * 支持下载aes加密的m3u8
-  * 内部使用多线程下载ts文件
-  * 支持单个m3u8文件内不同ts文件使用不同的加密策略
+  * 支持嵌套m3u8的url
   * ts文件合并优化
     * ts文件列表中的媒体文件可能分辨率、fps不一致，例如第一个文件分辨率为1920x1080, 第二个文件为800x600，直接合并第一第二个文件则会造成合并的mp4无法播放
     * 目前的处理方案是，分析需要合并的ts文件中的第一个文件的分辨率、fps，若后续的ts文件的分辨率、fps与第一个不同则不合并后续的ts文件
