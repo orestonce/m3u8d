@@ -107,7 +107,7 @@ func TestParseSkipTsExpr4(t *testing.T) {
 	}
 }
 
-func TestM3u8Parse4(t *testing.T) {
+func TestParseSkipTsExpr5(t *testing.T) {
 	info, ok := mformat.M3U8Parse([]byte(`#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:6
@@ -138,5 +138,20 @@ func TestM3u8Parse4(t *testing.T) {
 	})
 	if len(after) != 3 || after[0].Seq != 0 || after[1].Seq != 3 || after[2].Seq != 4 {
 		t.Fatal(after)
+	}
+}
+
+func TestParseSkipTsExpr6(t *testing.T) {
+	info, errMsg := ParseSkipTsExpr(`with-skip_log`)
+	if errMsg != "" {
+		t.Fatal(errMsg)
+	}
+	if !info.WithSkipLog {
+		t.Fatal()
+	}
+
+	info, errMsg = ParseSkipTsExpr("")
+	if errMsg != "" || info.WithSkipLog {
+		t.Fatal(errMsg, info.WithSkipLog)
 	}
 }
