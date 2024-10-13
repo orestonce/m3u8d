@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/orestonce/m3u8d"
 	"github.com/orestonce/m3u8d/m3u8dcpp"
@@ -150,6 +151,16 @@ var mergeCmd = &cobra.Command{
 	},
 }
 
+var getTsVideoInfoCmd = &cobra.Command{
+	Use: "getTsVideoInfo",
+	Run: func(cmd *cobra.Command, args []string) {
+		for _, tp := range args {
+			data, _ := json.Marshal(m3u8d.GetTsVideoInfo(tp))
+			fmt.Println(tp, string(data))
+		}
+	},
+}
+
 func init() {
 	downloadCmd.Flags().StringVarP(&gRunReq.M3u8Url, "M3u8Url", "u", "", "M3u8Url")
 	downloadCmd.Flags().BoolVarP(&gRunReq.Insecure, "Insecure", "", false, "是否允许不安全的请求")
@@ -171,6 +182,7 @@ func init() {
 	mergeCmd.Flags().BoolVarP(&gMergeReq.UseFirstTsMTime, "UseFirstTsMTime", "", false, "使用第一个ts文件的修改时间作为输出mp4文件的创建时间")
 	mergeCmd.Flags().BoolVarP(&gMergeReq.SkipBadResolutionFps, "SkipBadResolutionFps", "", true, "跳过分辨率、fps异常的ts文件")
 	rootCmd.AddCommand(mergeCmd)
+	rootCmd.AddCommand(getTsVideoInfoCmd)
 	rootCmd.Version = m3u8d.GetVersion()
 }
 
