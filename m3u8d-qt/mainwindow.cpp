@@ -85,6 +85,7 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.ThreadCount = ui->lineEdit_ThreadCount->text().toInt();
     req.SkipMergeTs = ui->checkBox_SkipMergeTs->isChecked();
     req.DebugLog = ui->checkBox_DebugLog->isChecked();
+    req.WithSkipLog = ui->checkBox_WithSkipLog->isChecked();
     req.UseServerSideTime = ui->checkBox_UseServerSideTime->isChecked();
 
     std::string errMsg = StartDownload(req);
@@ -212,6 +213,7 @@ void MainWindow::updateDownloadUi(bool runing)
     ui->lineEdit_ThreadCount->setEnabled(!runing);
     ui->checkBox_SkipMergeTs->setEnabled(!runing);
     ui->checkBox_DebugLog->setEnabled(!runing);
+    ui->checkBox_WithSkipLog->setEnabled(!runing);
     ui->checkBox_UseServerSideTime->setEnabled(!runing);
 
     if(runing == false)
@@ -249,6 +251,7 @@ void MainWindow::saveUiConfig()
     obj["SkipRemoveTs"] = ui->checkBox_SkipRemoveTs->isChecked();
     obj["SkipMergeTs"] = ui->checkBox_SkipMergeTs->isChecked();
     obj["DebugLog"] = ui->checkBox_DebugLog->isChecked();
+    obj["WithSkipLog"] = ui->checkBox_WithSkipLog->isChecked();
     obj["UseServerSideTime"] = ui->checkBox_UseServerSideTime->isChecked();
     obj["UseFirstTsMTime"] = ui->checkBox_UseFirstTsMTime->isChecked();
     obj["SkipBadResolutionFps"] = ui->checkBox_SkipBadResolutionFps->isChecked();
@@ -319,6 +322,7 @@ void MainWindow::loadUiConfig()
     setupCheckbox(obj, ui->checkBox_SkipRemoveTs, "SkipRemoveTs");
     setupCheckbox(obj, ui->checkBox_SkipMergeTs, "SkipMergeTs");
     setupCheckbox(obj, ui->checkBox_DebugLog, "DebugLog");
+    setupCheckbox(obj, ui->checkBox_WithSkipLog, "WithSkipLog");
     setupCheckbox(obj, ui->checkBox_UseServerSideTime, "UseServerSideTime");
     setupCheckbox(obj, ui->checkBox_UseFirstTsMTime, "UseFirstTsMTime");
     setupCheckbox(obj, ui->checkBox_SkipBadResolutionFps, "SkipBadResolutionFps");

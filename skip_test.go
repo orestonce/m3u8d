@@ -140,18 +140,3 @@ func TestParseSkipTsExpr5(t *testing.T) {
 		t.Fatal(after)
 	}
 }
-
-func TestParseSkipTsExpr6(t *testing.T) {
-	info, errMsg := ParseSkipTsExpr(`with-skip_log`)
-	if errMsg != "" {
-		t.Fatal(errMsg)
-	}
-	if !info.WithSkipLog {
-		t.Fatal()
-	}
-
-	info, errMsg = ParseSkipTsExpr("")
-	if errMsg != "" || info.WithSkipLog {
-		t.Fatal(errMsg, info.WithSkipLog)
-	}
-}

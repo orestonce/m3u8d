@@ -68,6 +68,7 @@ type StartDownload_Req struct {
 	DebugLog          bool                // 调试日志
 	TsTempDir         string              // 临时ts文件目录
 	UseServerSideTime bool                // 使用服务端提供的文件时间
+	WithSkipLog       bool                // 在mp4旁记录跳过ts文件的信息
 }
 
 type DownloadEnv struct {

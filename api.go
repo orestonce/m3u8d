@@ -299,7 +299,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		}
 	}
 
-	if len(resp.skipLogContent) > 0 && skipInfo.WithSkipLog {
+	if len(resp.skipLogContent) > 0 && req.WithSkipLog {
 		saveFileName := name + "_" + logFileName
 		this.logToFile("写入文件" + saveFileName)
 		err = os.WriteFile(saveFileName, resp.skipLogContent, 0666)

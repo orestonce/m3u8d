@@ -28,7 +28,6 @@ type SkipTsInfo struct {
 	SkipByIdxList     []SkipTsUnit
 	IfHttpCodeMergeTs bool
 	SkipByTimeSecList []SkipTsUnit
-	WithSkipLog       bool
 }
 
 func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
@@ -76,9 +75,6 @@ func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
 			}
 		} else if one == `if-http.code-merge_ts` {
 			info.IfHttpCodeMergeTs = true
-			ok = true
-		} else if one == "with-skip_log" {
-			info.WithSkipLog = true
 			ok = true
 		} else if groups = betweenTimeRe.FindStringSubmatch(one); len(groups) > 0 {
 			startSec, err1 := getTimeSecFromStr(groups[2])
