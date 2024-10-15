@@ -13,6 +13,7 @@ import (
 
 // TsInfo 用于保存 ts 文件的下载地址和文件名
 type TsInfo struct {
+	Idx                     uint32 // 从1开始, 每个ts增加1
 	Name                    string
 	Url                     string // 后续填充
 	URI                     string
@@ -93,6 +94,7 @@ func (this *M3U8File) GetTsList() (list []TsInfo) {
 			var seg = part.Segment
 			index++
 			var info = TsInfo{
+				Idx:                     uint32(index),
 				Name:                    fmt.Sprintf("%05d.ts", index), // ts视频片段命名规则
 				URI:                     seg.URI,
 				Url:                     "", // 之后填充

@@ -196,7 +196,7 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 
 	this.status.SetProgressBarTitle("[2/5]获取ts列表")
 	tsList := info.GetTsList()
-	tsList, skipTsList := skipApplyFilter(tsList, skipInfo)
+	tsList, skipTsRecordList := skipApplyFilter(tsList, skipInfo)
 	if len(tsList) <= 0 {
 		this.setErrMsg("需要下载的文件为空")
 		return
@@ -204,12 +204,12 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	// 获取m3u8地址的内容体
 	err = this.updateMedia(req.M3u8Url, tsList)
 	if err != nil {
-		this.setErrMsg("getEncryptInfo: " + err.Error())
+		this.setErrMsg("updateMedia: " + err.Error())
 		return
 	}
 
-	for _, ts := range skipTsList {
-		this.status.setTsNotWriteReason(&ts, "触发跳过表达式")
+	for _, record := range skipTsRecordList {
+		this.status.setTsNotWriteReason(&record.ts, "触发跳过表达式,"+record.reason)
 	}
 
 	// 下载ts

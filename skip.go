@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -19,8 +18,9 @@ import (
 const SkipTimeSecEnd = 99 * 60 * 60
 
 type SkipTsUnit struct {
-	Start uint32 // 包含
-	End   uint32 // 包含
+	Start      uint32 // 包含
+	End        uint32 // 包含
+	OriginExpr string // 原始表达式
 }
 
 type SkipTsInfo struct {
@@ -28,6 +28,7 @@ type SkipTsInfo struct {
 	SkipByIdxList     []SkipTsUnit
 	IfHttpCodeMergeTs bool
 	SkipByTimeSecList []SkipTsUnit
+	KeepByTimeSecList []SkipTsUnit
 }
 
 func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
@@ -50,9 +51,10 @@ func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
 			i, err := strconv.Atoi(groups[1])
 			if err == nil || i > 0 {
 				ok = true
-				info.SkipByIdxList = skipListAddUnit(info.SkipByIdxList, SkipTsUnit{
-					Start: uint32(i),
-					End:   uint32(i),
+				info.SkipByIdxList = append(info.SkipByIdxList, SkipTsUnit{
+					Start:      uint32(i),
+					End:        uint32(i),
+					OriginExpr: one,
 				})
 			}
 		} else if groups = betweenRe.FindStringSubmatch(one); len(groups) > 0 {
@@ -60,9 +62,10 @@ func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
 			i2, err2 := strconv.Atoi(groups[2])
 			if err1 == nil && err2 == nil && i1 > 0 && i2 > 0 && i1 <= i2 {
 				ok = true
-				info.SkipByIdxList = skipListAddUnit(info.SkipByIdxList, SkipTsUnit{
-					Start: uint32(i1),
-					End:   uint32(i2),
+				info.SkipByIdxList = append(info.SkipByIdxList, SkipTsUnit{
+					Start:      uint32(i1),
+					End:        uint32(i2),
+					OriginExpr: one,
 				})
 			}
 		} else if groups = httpCodeRe.FindStringSubmatch(one); len(groups) > 0 {
@@ -82,19 +85,17 @@ func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
 			if err1 == nil && err2 == nil && startSec < endSec {
 				if groups[1] == "time" {
 					ok = true
-					info.SkipByTimeSecList = skipListAddUnit(info.SkipByTimeSecList, SkipTsUnit{
-						Start: startSec,
-						End:   endSec,
+					info.SkipByTimeSecList = append(info.SkipByTimeSecList, SkipTsUnit{
+						Start:      startSec,
+						End:        endSec,
+						OriginExpr: one,
 					})
 				} else if groups[1] == "!time" {
 					ok = true
-					info.SkipByTimeSecList = skipListAddUnit(info.SkipByTimeSecList, SkipTsUnit{
-						Start: 0,
-						End:   startSec,
-					})
-					info.SkipByTimeSecList = skipListAddUnit(info.SkipByTimeSecList, SkipTsUnit{
-						Start: endSec,
-						End:   SkipTimeSecEnd,
+					info.KeepByTimeSecList = append(info.KeepByTimeSecList, SkipTsUnit{
+						Start:      startSec,
+						End:        endSec,
+						OriginExpr: one,
 					})
 				}
 			}
@@ -103,12 +104,17 @@ func ParseSkipTsExpr(expr string) (info SkipTsInfo, errMsg string) {
 			return info, "parse expr part invalid " + strconv.Quote(one)
 		}
 	}
-	sort.Slice(info.SkipByIdxList, func(i, j int) bool {
-		a, b := info.SkipByIdxList[i], info.SkipByIdxList[j]
-		return a.Start < b.Start
-	})
-	sort.Ints(info.HttpCodeList)
 	return info, ""
+}
+
+func (this *SkipTsUnit) IsCoverageFull(begin float64, end float64) bool {
+	return float64(this.Start) <= begin && float64(this.End) >= end
+}
+
+func (this *SkipTsUnit) HasIntersect(begin float64, end float64) bool {
+	newBegin := math.Max(begin, float64(this.Start))
+	newEnd := math.Min(end, float64(this.End))
+	return newBegin <= newEnd
 }
 
 func getTimeSecFromStr(str string) (sec uint32, err error) {
@@ -125,44 +131,6 @@ func getTimeSecFromStr(str string) (sec uint32, err error) {
 	return sec, nil
 }
 
-func maxUint32(a uint32, b uint32) uint32 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func minUint32(a uint32, b uint32) uint32 {
-	if a > b {
-		return b
-	}
-	return a
-}
-
-func skipListAddUnit(skipList []SkipTsUnit, unit SkipTsUnit) (after []SkipTsUnit) {
-	for idx, one := range skipList {
-		// 交集的开始索引
-		jStart := maxUint32(one.Start, unit.Start)
-		// 交集的结束索引
-		jEnd := minUint32(one.End, unit.End)
-		// 有交集, 或者正好拼接为一个大区间10-20,21-30 => 10-30
-		if jStart <= jEnd || jStart == jEnd-1 {
-			unit.Start = minUint32(one.Start, unit.Start)
-			unit.End = maxUint32(one.End, unit.End)
-			var pre, post []SkipTsUnit // 前面部分，后面部分
-			pre = skipList[:idx]
-			if len(skipList) > idx+1 {
-				post = skipList[idx+1:]
-			}
-			skipList = append(pre, post...)
-			return skipListAddUnit(skipList, unit)
-		}
-	}
-	// 都无交集
-	skipList = append(skipList, unit)
-	return skipList
-}
-
 func isSkipByTsTime(beginSec float64, endSec float64, list []SkipTsUnit) bool {
 	for _, unit := range list {
 		newBegin := math.Max(float64(unit.Start), beginSec)
@@ -175,42 +143,120 @@ func isSkipByTsTime(beginSec float64, endSec float64, list []SkipTsUnit) bool {
 	return false
 }
 
-func skipApplyFilter(list []mformat.TsInfo, skipInfo SkipTsInfo) (after []mformat.TsInfo, skipList []mformat.TsInfo) {
-	var hasEmptyExtinf bool
-	for _, ts := range list {
-		if ts.TimeSec < 1e-5 {
-			hasEmptyExtinf = true
+type skipFilterRecord struct {
+	ts     mformat.TsInfo
+	reason string
+}
+
+// skipApplyFilter
+//
+//	策略:
+//		确认每个ts文件都解析到了持续时常。
+//			如果存在没有未解析到时间的ts文件，则不应用"按时间保留"、"按时间跳过"的规则
+//			否则
+//				1. 应用"按时间保留"规则, 把不需要保留的都剔除
+//				2. 应用"按时间跳过"规则, 把需要跳过的都剔除
+//		应用按照编号跳过的规则
+func skipApplyFilter(list []mformat.TsInfo, skipInfo SkipTsInfo) (after []mformat.TsInfo, skipList []skipFilterRecord) {
+	timeRange, ok := calculateTsTimeRange(list)
+
+	if ok {
+		//应用"按时间保留"规则, 把不需要保留的都剔除
+		if len(skipInfo.KeepByTimeSecList) > 0 {
+			var keepIdxList = make([]bool, len(list)) // 每个是否保留
+
+			for _, rule := range skipInfo.KeepByTimeSecList {
+				for idx, tsTime := range timeRange {
+					if keepIdxList[idx] {
+						continue
+					}
+					//规则只要覆盖到了ts, 就要保留
+					if rule.HasIntersect(tsTime.begin, tsTime.end) {
+						keepIdxList[idx] = true
+					}
+				}
+			}
+			var newList []mformat.TsInfo
+			for idx, keep := range keepIdxList {
+				if keep == false {
+					skipList = append(skipList, skipFilterRecord{
+						ts:     list[idx],
+						reason: "不在!time指明的时间范围内",
+					})
+				} else {
+					newList = append(newList, list[idx])
+				}
+			}
+			list = newList
+		}
+
+		//应用"按时间跳过"规则, 把需要跳过的都剔除
+		if len(skipInfo.SkipByTimeSecList) > 0 {
+			var newList []mformat.TsInfo
+
+			for idx, tsTime := range timeRange {
+				var match = false
+				for _, rule := range skipInfo.SkipByTimeSecList {
+					if rule.IsCoverageFull(tsTime.begin, tsTime.end) {
+						skipList = append(skipList, skipFilterRecord{
+							ts:     list[idx],
+							reason: "匹配表达式" + rule.OriginExpr,
+						})
+						match = true
+						break
+					}
+				}
+				if match == false {
+					newList = append(newList, list[idx])
+				}
+			}
+			list = newList
 		}
 	}
-	isSkipByTsIndex := func(idx uint32) bool {
-		for _, unit := range skipInfo.SkipByIdxList {
-			if unit.Start <= idx && idx <= unit.End {
-				return true
+
+	if len(skipInfo.SkipByIdxList) > 0 {
+		var newList []mformat.TsInfo
+		for _, ts := range list {
+			var match = false
+			for _, rule := range skipInfo.SkipByIdxList {
+				if rule.Start <= ts.Idx && ts.Idx <= rule.End {
+					skipList = append(skipList, skipFilterRecord{
+						ts:     ts,
+						reason: "匹配表达式" + rule.OriginExpr,
+					})
+					match = true
+					break
+				}
+			}
+			if match == false {
+				newList = append(newList, ts)
 			}
 		}
-		return false
+		list = newList
 	}
+	return list, skipList
+}
 
-	var timeBegin float64
-	var timeEnd float64
+type tsTimeRangeUnit struct {
+	begin float64
+	end   float64
+}
 
-	for idx, ts := range list {
-		if idx > 0 {
-			timeBegin += list[idx-1].TimeSec
+func calculateTsTimeRange(list []mformat.TsInfo) (timeRangeList []tsTimeRangeUnit, ok bool) {
+	var beginTime float64
+	for _, ts := range list {
+		//有未解析出持续时长的ts片段
+		if ts.TimeSec < 1e-5 {
+			return nil, false
 		}
-		timeEnd += ts.TimeSec
-
-		if isSkipByTsIndex(uint32(idx) + 1) {
-			skipList = append(skipList, ts)
-			continue
-		}
-		if hasEmptyExtinf == false && isSkipByTsTime(timeBegin, timeEnd, skipInfo.SkipByTimeSecList) {
-			skipList = append(skipList, ts)
-			continue
-		}
-		after = append(after, ts)
+		endTime := beginTime + ts.TimeSec
+		timeRangeList = append(timeRangeList, tsTimeRangeUnit{
+			begin: beginTime,
+			end:   endTime,
+		})
+		beginTime = endTime
 	}
-	return after, skipList
+	return timeRangeList, true
 }
 
 type removeSkipListResp struct {

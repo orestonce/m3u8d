@@ -28,17 +28,6 @@ import (
 	"github.com/orestonce/gopool"
 )
 
-// TsInfo 用于保存 ts 文件的下载地址和文件名
-type TsInfo struct {
-	Name                        string
-	Url                         string
-	Seq                         uint64  // 如果是aes加密并且没有iv, 这个seq需要充当iv
-	TimeSec                     float64 // 此ts片段占用多少秒
-	Between_EXT_X_DISCONTINUITY bool
-	SkipByHttpCode              bool
-	HttpCode                    int
-}
-
 type GetStatus_Resp struct {
 	Percent       int
 	Title         string
@@ -104,9 +93,7 @@ func (this *DownloadEnv) updateMedia(m3u8Url string, tsList []mformat.TsInfo) (e
 		}
 		if ts.Key.Method != `` {
 			keyContent, ok := uriToContentMap[ts.Key.KeyURI]
-			if ok {
-				ts.Key.KeyContent = keyContent
-			} else {
+			if ok == false {
 				var keyUrl string
 				keyUrl, errMsg = ResolveRefUrl(m3u8Url, ts.Key.KeyURI)
 				if errMsg != "" {
@@ -123,9 +110,9 @@ func (this *DownloadEnv) updateMedia(m3u8Url string, tsList []mformat.TsInfo) (e
 				if ts.Key.Method == mformat.EncryptMethod_AES128 && len(keyContent) != 16 { // Aes 128
 					return errors.New("invalid key " + strconv.Quote(string(keyContent)))
 				}
-				ts.Key.KeyContent = keyContent
 				uriToContentMap[ts.Key.KeyURI] = keyContent
 			}
+			ts.Key.KeyContent = keyContent
 		}
 	}
 	return nil
