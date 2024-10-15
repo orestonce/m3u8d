@@ -80,42 +80,49 @@ func getHost(Url string) (host string, err error) {
 	return u.Scheme + "://" + u.Host, nil
 }
 
-// updateMedia 更新ts媒体的URL、key的URL、key的内容
-func (this *DownloadEnv) updateMedia(m3u8Url string, tsList []mformat.TsInfo) (err error) {
+func updateTsUrl(m3u8Url string, tsList []mformat.TsInfo) (errMsg string) {
+	for idx := range tsList {
+		ts := &tsList[idx]
+		ts.Url, errMsg = ResolveRefUrl(m3u8Url, ts.URI)
+		if errMsg != "" {
+			return "ts.URI = " + ts.URI + ", error " + errMsg
+		}
+	}
+	return ""
+}
+
+// updateMediaKeyContent 下载ts媒体的加密key的内容
+func (this *DownloadEnv) updateMediaKeyContent(m3u8Url string, tsList []mformat.TsInfo) (errMsg string) {
 	uriToContentMap := map[string][]byte{}
 
 	for idx := range tsList {
 		ts := &tsList[idx]
-		var errMsg string
-		ts.Url, errMsg = ResolveRefUrl(m3u8Url, ts.URI)
-		if errMsg != "" {
-			return errors.New(errMsg)
-		}
 		if ts.Key.Method != `` {
 			keyContent, ok := uriToContentMap[ts.Key.KeyURI]
 			if ok == false {
 				var keyUrl string
 				keyUrl, errMsg = ResolveRefUrl(m3u8Url, ts.Key.KeyURI)
 				if errMsg != "" {
-					return errors.New(errMsg)
+					return "ts.Key.KeyURI = " + ts.Key.KeyURI + ", error " + errMsg
 				}
 				var httpResp *http.Response
+				var err error
 				keyContent, httpResp, err = this.doGetRequest(keyUrl, true)
 				if err != nil {
-					return err
+					return "ts.Key.KeyURI = " + ts.Key.KeyURI + ", http error " + err.Error()
 				}
 				if httpResp.StatusCode != 200 {
-					return errors.New("http code error " + strconv.Itoa(httpResp.StatusCode))
+					return "ts.Key.KeyURI = " + ts.Key.KeyURI + ", http code error " + strconv.Itoa(httpResp.StatusCode)
 				}
 				if ts.Key.Method == mformat.EncryptMethod_AES128 && len(keyContent) != 16 { // Aes 128
-					return errors.New("invalid key " + strconv.Quote(string(keyContent)))
+					return "ts.Key.KeyURI = " + ts.Key.KeyURI + ", invalid key " + strconv.Quote(string(keyContent))
 				}
 				uriToContentMap[ts.Key.KeyURI] = keyContent
 			}
 			ts.Key.KeyContent = keyContent
 		}
 	}
-	return nil
+	return ""
 }
 
 // 下载ts文件

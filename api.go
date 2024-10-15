@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"crypto/tls"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/orestonce/m3u8d/mformat"
 	"net/http"
@@ -51,6 +52,7 @@ func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 	this.status.IsRunning = true
 	go func() {
 		this.runDownload(req, skipInfo)
+		this.logToFile_TsNotWriteReason()
 		this.status.SetProgressBarTitle("下载进度")
 		this.status.DrawProgressBar(1, 0)
 
@@ -157,6 +159,9 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		}
 		this.logToFile("version: " + GetVersion())
 		this.logToFile("origin m3u8 url: " + req.M3u8Url)
+
+		data, _ := json.Marshal(req)
+		this.logToFile("run args: " + string(data))
 	}
 
 	this.status.SetProgressBarTitle("[1/5]嗅探m3u8")
@@ -196,20 +201,27 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 
 	this.status.SetProgressBarTitle("[2/5]获取ts列表")
 	tsList := info.GetTsList()
+
+	//先更新ts的url信息, 方便后续记录url
+	errMsg = updateTsUrl(req.M3u8Url, tsList)
+	if errMsg != "" {
+		this.setErrMsg("updateTsUrl: " + errMsg)
+		return
+	}
+
 	tsList, skipTsRecordList := skipApplyFilter(tsList, skipInfo)
+	for _, record := range skipTsRecordList {
+		this.status.setTsNotWriteReason(&record.ts, "触发跳过表达式,"+record.reason)
+	}
 	if len(tsList) <= 0 {
 		this.setErrMsg("需要下载的文件为空")
 		return
 	}
 	// 获取m3u8地址的内容体
-	err = this.updateMedia(req.M3u8Url, tsList)
-	if err != nil {
-		this.setErrMsg("updateMedia: " + err.Error())
+	errMsg = this.updateMediaKeyContent(req.M3u8Url, tsList)
+	if errMsg != "" {
+		this.setErrMsg("updateMediaKeyContent: " + errMsg)
 		return
-	}
-
-	for _, record := range skipTsRecordList {
-		this.status.setTsNotWriteReason(&record.ts, "触发跳过表达式,"+record.reason)
 	}
 
 	// 下载ts
@@ -217,7 +229,6 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 	this.status.SpeedResetBytes()
 	err = this.downloader(tsList, skipInfo, tsSaveDir, req)
 	this.status.SpeedResetBytes()
-	this.logToFile_TsNotWriteReason()
 	if err != nil {
 		this.setErrMsg("下载ts文件错误: " + err.Error())
 		return
