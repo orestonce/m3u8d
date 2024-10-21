@@ -47,6 +47,7 @@ private:
 
     void saveUiConfig();
     void loadUiConfig();
+    QString getConfigFilePath();
 private:
     Ui::MainWindow *ui;
     RunOnUiThread m_syncUi;

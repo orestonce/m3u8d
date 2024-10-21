@@ -234,8 +234,6 @@ void MainWindow::updateMergeUi(bool runing)
     ui->checkBox_SkipBadResolutionFps->setEnabled(!runing);
 }
 
-static const QString configPath = "m3u8d_config.json";
-
 void MainWindow::saveUiConfig()
 {
     QJsonObject obj;
@@ -259,7 +257,7 @@ void MainWindow::saveUiConfig()
     QJsonDocument doc;
     doc.setObject(obj);
     QByteArray data = doc.toJson();
-    QFile file(configPath);
+    QFile file(getConfigFilePath());
     if(!file.open(QFile::WriteOnly)) {
         return;
     }
@@ -277,7 +275,7 @@ void setupCheckbox(QJsonObject& obj,QCheckBox *box, QString key)
 
 void MainWindow::loadUiConfig()
 {
-    QFile file(configPath);
+    QFile file(getConfigFilePath());
     if(!file.open(QFile::ReadOnly)) {
         return;
     }
@@ -326,6 +324,12 @@ void MainWindow::loadUiConfig()
     setupCheckbox(obj, ui->checkBox_UseServerSideTime, "UseServerSideTime");
     setupCheckbox(obj, ui->checkBox_UseFirstTsMTime, "UseFirstTsMTime");
     setupCheckbox(obj, ui->checkBox_SkipBadResolutionFps, "SkipBadResolutionFps");
+}
+
+QString MainWindow::getConfigFilePath()
+{
+    QString dp =QApplication::applicationDirPath() + QDir::separator() + "m3u8d_config.json";
+    return QDir::cleanPath(dp);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
