@@ -146,28 +146,52 @@ func TestParseSkipTsExpr5(t *testing.T) {
 		t.Fatal()
 	}
 
-	checkCase := func(rawExpr string, resultExpect ...uint32) {
-		list := info.GetTsList()
-		skipInfo, errMsg := ParseSkipTsExpr(rawExpr)
-		if errMsg != "" {
-			t.Fatal(errMsg, rawExpr)
-		}
-		after, _ := skipApplyFilter(list, skipInfo)
-		if len(after) != len(resultExpect) {
-			t.Fatal(rawExpr, len(after), len(resultExpect))
-		}
-		for idx, ts := range after {
-			if ts.Idx != resultExpect[idx] {
-				t.Fatal(rawExpr)
-			}
-		}
+	checkCase(info, "", 1, 2, 3, 4, 5)
+	checkCase(info, "!tag:2-4", 1, 5)
+	checkCase(info, "3, 1", 2, 4, 5)
+	checkCase(info, "!time:00:00:00-00:00:20", 1, 2, 3, 4, 5)
+	checkCase(info, "!time:00:00:05-00:00:10", 1, 2, 3) // 测试“按时间保留”, 会保留边界ts
+	checkCase(info, "!time:00:00:06-00:00:10", 2, 3)    // 测试“按时间保留”, 会保留边界ts
+	checkCase(info, "time:00:00:01-00:00:12", 1, 4, 5)  // 测试“按时间跳过”, 会保留边界ts
+}
+
+func TestParseSkipTsExpr6(t *testing.T) {
+	info, ok := mformat.M3U8Parse([]byte(`#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:6
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-KEY:METHOD=AES-128,URI="key.key"
+# TS001=00:00.00-00:09.59
+# TS002=00:10.00-00:19.59
+# TS003=00:20.00-00:29.59
+#EXTINF:600
+1.ts
+#EXTINF:600
+2.ts
+#EXTINF:600
+3.ts
+#EXT-X-ENDLIST`))
+	if ok == false {
+		t.Fatal()
 	}
 
-	checkCase("", 1, 2, 3, 4, 5)
-	checkCase("2-4", 1, 5)
-	checkCase("3, 1", 2, 4, 5)
-	checkCase("!time:00:00:00-00:00:20", 1, 2, 3, 4, 5)
-	checkCase("!time:00:00:05-00:00:10", 1, 2, 3) // 测试“按时间保留”, 会保留边界ts
-	checkCase("!time:00:00:06-00:00:10", 2, 3)    // 测试“按时间保留”, 会保留边界ts
-	checkCase("time:00:00:01-00:00:12", 1, 4, 5)  // 测试“按时间跳过”, 会保留边界ts
+	checkCase(info, "!time:00:00:05-00:00:10", 1)
+}
+
+func checkCase(info mformat.M3U8File, rawExpr string, resultExpect ...uint32) {
+	list := info.GetTsList()
+	skipInfo, errMsg := ParseSkipTsExpr(rawExpr)
+	if errMsg != "" {
+		panic(errMsg + "\n" + rawExpr)
+	}
+	after, _ := skipApplyFilter(list, skipInfo)
+	if len(after) != len(resultExpect) {
+		panic(rawExpr)
+	}
+	for idx, ts := range after {
+		if ts.Idx != resultExpect[idx] {
+			panic(rawExpr)
+		}
+	}
 }
