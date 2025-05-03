@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/andybalholm/brotli"
 	"github.com/orestonce/m3u8d/mformat"
 	"io"
 	"io/ioutil"
@@ -403,6 +404,8 @@ func (this *DownloadEnv) doGetRequest(urlS string, dumpRespBody bool) (data []by
 	case "deflate":
 		readCloser = flate.NewReader(resp.Body)
 		defer readCloser.Close()
+	case "br":
+		readCloser = io.NopCloser(brotli.NewReader(resp.Body))
 	case "":
 		readCloser = resp.Body
 	default:

@@ -3,6 +3,7 @@ module github.com/orestonce/m3u8d
 go 1.17
 
 require (
+	github.com/andybalholm/brotli v1.1.1
 	github.com/orestonce/go2cpp v0.0.0-20240804085624-460ecb5af956
 	github.com/orestonce/gopool v0.0.0-20220508090328-d7d56d45b171
 	github.com/spf13/cobra v1.8.0
