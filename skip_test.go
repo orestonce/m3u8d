@@ -195,3 +195,39 @@ func checkCase(info mformat.M3U8File, rawExpr string, resultExpect ...uint32) {
 		}
 	}
 }
+
+func TestM3U8Parse7(t *testing.T) {
+	info, ok := mformat.M3U8Parse([]byte(`#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:10
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXT-X-KEY:METHOD=AES-128,URI="../key",IV=0x00000000000000000000000000000000
+#EXTINF:2.166667,
+https://example.io/bk1
+#EXTINF:10.416667,
+https://example.io/bk2
+#EXTINF:10.416667,`))
+	if ok == false {
+		t.Fatal()
+	}
+	list := info.GetTsList()
+	//data, _ := json.Marshal(list)
+	//fmt.Println(string(data))
+
+	errMsg := UpdateMediaKeyContent(`https://www.example.com/1080P.m3u8`, list, func(urlStr string) (content []byte, err error) {
+		return []byte(`ba9ab15653b9fa216d921dd43a08e280`), nil
+	})
+	if errMsg != "" {
+		t.Fatal(errMsg)
+	}
+	//data, _ = json.MarshalIndent(list, "", "\t")
+	//fmt.Println(string(data))
+
+	errMsg = UpdateMediaKeyContent(`https://www.example.com/1080P.m3u8`, list, func(urlStr string) (content []byte, err error) {
+		return []byte(`ba9ab15653b9fa13`), nil
+	})
+	if errMsg != "" {
+		t.Fatal(errMsg)
+	}
+}

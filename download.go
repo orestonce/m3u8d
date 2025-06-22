@@ -5,6 +5,7 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/andybalholm/brotli"
@@ -93,7 +94,7 @@ func updateTsUrl(m3u8Url string, tsList []mformat.TsInfo) (errMsg string) {
 }
 
 // updateMediaKeyContent 下载ts媒体的加密key的内容
-func (this *DownloadEnv) updateMediaKeyContent(m3u8Url string, tsList []mformat.TsInfo) (errMsg string) {
+func (this *DownloadEnv) updateMediaKeyContent(m3u8Url string, tsList []mformat.TsInfo, getFunc func(urlStr string) (content []byte, err error)) (errMsg string) {
 	uriToContentMap := map[string][]byte{}
 
 	for idx := range tsList {
@@ -103,20 +104,77 @@ func (this *DownloadEnv) updateMediaKeyContent(m3u8Url string, tsList []mformat.
 			if ok == false {
 				var keyUrl string
 				keyUrl, errMsg = ResolveRefUrl(m3u8Url, ts.Key.KeyURI)
+				logPrefix := "m3u8Url = " + strconv.Quote(m3u8Url) + ", ts.Key.KeyURI = " + ts.Key.KeyURI
+
 				if errMsg != "" {
-					return "ts.Key.KeyURI = " + ts.Key.KeyURI + ", error " + errMsg
+					return logPrefix + ", error " + errMsg
 				}
 				var httpResp *http.Response
 				var err error
 				keyContent, httpResp, err = this.doGetRequest(keyUrl, true)
 				if err != nil {
-					return "ts.Key.KeyURI = " + ts.Key.KeyURI + ", http error " + err.Error()
+					return logPrefix + ", http error " + err.Error()
 				}
 				if httpResp.StatusCode != 200 {
-					return "ts.Key.KeyURI = " + ts.Key.KeyURI + ", http code error " + strconv.Itoa(httpResp.StatusCode)
+					return logPrefix + ", http code error " + strconv.Itoa(httpResp.StatusCode)
 				}
-				if ts.Key.Method == mformat.EncryptMethod_AES128 && len(keyContent) != 16 { // Aes 128
-					return "ts.Key.KeyURI = " + ts.Key.KeyURI + ", invalid key " + strconv.Quote(string(keyContent))
+				if ts.Key.Method == mformat.EncryptMethod_AES128 { // Aes 128
+					switch len(keyContent) {
+					case 16:
+					case 32:
+						var temp []byte
+						temp, err = hex.DecodeString(string(keyContent))
+						if err == nil && len(temp) == 16 {
+							keyContent = temp
+						}
+						fallthrough
+					default:
+						return logPrefix + ", invalid key " + strconv.Quote(string(keyContent))
+					}
+				}
+				uriToContentMap[ts.Key.KeyURI] = keyContent
+			}
+			ts.Key.KeyContent = keyContent
+		}
+	}
+	return ""
+}
+
+// UpdateMediaKeyContent 更新秘钥(key)的url和内容，方便后续下载
+func UpdateMediaKeyContent(m3u8Url string, tsList []mformat.TsInfo, getFunc func(urlStr string) (content []byte, err error)) (errMsg string) {
+	uriToContentMap := map[string][]byte{}
+
+	for idx := range tsList {
+		ts := &tsList[idx]
+		if ts.Key.Method != `` {
+			keyContent, ok := uriToContentMap[ts.Key.KeyURI]
+			if ok == false {
+				var keyUrl string
+				keyUrl, errMsg = ResolveRefUrl(m3u8Url, ts.Key.KeyURI)
+				logPrefix := "m3u8Url = " + strconv.Quote(m3u8Url) + ", ts.Key.KeyURI = " + ts.Key.KeyURI
+
+				if errMsg != "" {
+					return logPrefix + ", error " + errMsg
+				}
+				var err error
+				keyContent, err = getFunc(keyUrl)
+				if err != nil {
+					return logPrefix + ", http error " + err.Error()
+				}
+				if ts.Key.Method == mformat.EncryptMethod_AES128 { // Aes 128
+					switch len(keyContent) {
+					case 16:
+					case 32:
+						var temp []byte
+						temp, err = hex.DecodeString(string(keyContent))
+						if err == nil && len(temp) == 16 {
+							keyContent = temp
+							break
+						}
+						fallthrough
+					default:
+						return logPrefix + ", invalid key " + strconv.Quote(string(keyContent))
+					}
 				}
 				uriToContentMap[ts.Key.KeyURI] = keyContent
 			}

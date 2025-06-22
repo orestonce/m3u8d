@@ -218,7 +218,17 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 		return
 	}
 	// 获取m3u8地址的内容体
-	errMsg = this.updateMediaKeyContent(req.M3u8Url, tsList)
+	errMsg = UpdateMediaKeyContent(req.M3u8Url, tsList, func(urlStr string) (content []byte, err error) {
+		var httpResp *http.Response
+		content, httpResp, err = this.doGetRequest(urlStr, true)
+		if err != nil {
+			return nil, err
+		}
+		if httpResp.StatusCode != 200 {
+			return nil, fmt.Errorf("http code error " + strconv.Itoa(httpResp.StatusCode))
+		}
+		return content, nil
+	})
 	if errMsg != "" {
 		this.setErrMsg("updateMediaKeyContent: " + errMsg)
 		return
