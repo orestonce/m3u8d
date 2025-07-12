@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_saveConfigTimer = new QTimer(this);
     m_saveConfigTimer->start(3000);
     connect(m_saveConfigTimer, &QTimer::timeout, [this](){
-        saveUiConfig();
+        saveUiConfig(false);
     });
 
     loadUiConfig();
@@ -63,7 +63,7 @@ MainWindow::~MainWindow()
     m_timer->stop();
     m_saveConfigTimer->stop();
     CloseOldEnv();
-    saveUiConfig();
+    saveUiConfig(true);
     delete ui;
 }
 
@@ -234,7 +234,7 @@ void MainWindow::updateMergeUi(bool runing)
     ui->checkBox_SkipBadResolutionFps->setEnabled(!runing);
 }
 
-void MainWindow::saveUiConfig()
+void MainWindow::saveUiConfig(bool force)
 {
     QJsonObject obj;
 
@@ -257,12 +257,27 @@ void MainWindow::saveUiConfig()
     QJsonDocument doc;
     doc.setObject(obj);
     QByteArray data = doc.toJson();
-    QFile file(getConfigFilePath());
-    if(!file.open(QFile::WriteOnly)) {
+
+    if ((force == false) && (data == m_lastSaveConfig)) {
+//        qDebug() << "skip write";
         return;
     }
-    file.write(data);
+
+    QFile file(getConfigFilePath());
+    if(!file.open(QFile::WriteOnly)) {
+//        qDebug() << "write err1";
+        return;
+    }
+    qint64 writeBytes = file.write(data);
+    if(writeBytes != data.length()) {
+//        qDebug() << "write err2";
+        return;
+    }
     file.close();
+
+    m_lastSaveConfig = data;
+
+//    qDebug() << "write ok";
 }
 
 void setupCheckbox(QJsonObject& obj,QCheckBox *box, QString key)

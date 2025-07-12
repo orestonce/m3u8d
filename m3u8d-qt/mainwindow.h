@@ -45,7 +45,7 @@ private:
     void updateDownloadUi(bool runing);
     void updateMergeUi(bool runing);
 
-    void saveUiConfig();
+    void saveUiConfig(bool force);
     void loadUiConfig();
     QString getConfigFilePath();
 private:
@@ -54,6 +54,7 @@ private:
     QTimer *m_timer = nullptr;
     QTimer *m_saveConfigTimer = nullptr;
     std::map<std::string, std::vector<std::string>> m_HeaderMap;
+    QByteArray m_lastSaveConfig;
 
     // QWidget interface
 protected:
