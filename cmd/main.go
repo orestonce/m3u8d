@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -64,6 +65,109 @@ var curlCmd = &cobra.Command{
 		}
 		downloadFromCmd(resp1.DownloadReq)
 	},
+}
+
+// 批量下载相关变量
+var gBatchReq struct {
+	InputFile string
+	SaveDir   string
+}
+
+var batchCmd = &cobra.Command{
+	Use: "batch",
+	Run: func(cmd *cobra.Command, args []string) {
+		if gBatchReq.InputFile == "" {
+			fmt.Println("请指定输入文件路径")
+			cmd.Help()
+			return
+		}
+		batchDownloadFromFile(gBatchReq.InputFile, gBatchReq.SaveDir)
+	},
+}
+
+// 批量下载功能
+func batchDownloadFromFile(inputFile, saveDir string) {
+	// 读取txt文件
+	file, err := os.Open(inputFile)
+	if err != nil {
+		log.Fatalf("无法打开文件 %s: %v", inputFile, err)
+	}
+	defer file.Close()
+
+	var urls []string
+	scanner := bufio.NewScanner(file)
+	lineNum := 0
+	for scanner.Scan() {
+		lineNum++
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue // 跳过空行和注释行
+		}
+		urls = append(urls, line)
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatalf("读取文件时发生错误: %v", err)
+	}
+
+	if len(urls) == 0 {
+		log.Fatalf("文件中没有找到有效的URL")
+	}
+
+	log.Printf("从文件 %s 中读取到 %d 个URL", inputFile, len(urls))
+
+	// 批量下载
+	successCount := 0
+	failCount := 0
+
+	for i, url := range urls {
+		log.Printf("[%d/%d] 开始下载: %s", i+1, len(urls), url)
+
+		// 创建下载请求
+		req := m3u8d.StartDownload_Req{
+			M3u8Url:           url,
+			Insecure:          gRunReq.Insecure,
+			SaveDir:           saveDir,
+			SkipTsExpr:        gRunReq.SkipTsExpr,
+			SetProxy:          gRunReq.SetProxy,
+			SkipRemoveTs:      gRunReq.SkipRemoveTs,
+			ProgressBarShow:   true,
+			ThreadCount:       gRunReq.ThreadCount,
+			SkipMergeTs:       gRunReq.SkipMergeTs,
+			DebugLog:          gRunReq.DebugLog,
+			TsTempDir:         gRunReq.TsTempDir,
+			UseServerSideTime: gRunReq.UseServerSideTime,
+			WithSkipLog:       gRunReq.WithSkipLog,
+		}
+
+		// 执行下载
+		errMsg := m3u8dcpp.StartDownload(req)
+		if errMsg != "" {
+			log.Printf("下载失败: %s", errMsg)
+			failCount++
+			continue
+		}
+
+		resp := m3u8dcpp.WaitDownloadFinish()
+		if resp.ErrMsg != "" {
+			log.Printf("下载失败: %s", resp.ErrMsg)
+			failCount++
+			continue
+		}
+
+		if resp.IsSkipped {
+			log.Printf("已经下载过了: %s", resp.SaveFileTo)
+			successCount++
+		} else if resp.SaveFileTo != "" {
+			log.Printf("下载成功, 保存路径: %s", resp.SaveFileTo)
+			successCount++
+		} else {
+			log.Println("下载成功")
+			successCount++
+		}
+	}
+
+	log.Printf("批量下载完成! 成功: %d, 失败: %d", successCount, failCount)
 }
 
 var gRunReq m3u8d.StartDownload_Req
@@ -178,6 +282,9 @@ func init() {
 	rootCmd.AddCommand(downloadCmd)
 	curlCmd.DisableFlagParsing = true
 	rootCmd.AddCommand(curlCmd)
+	batchCmd.Flags().StringVarP(&gBatchReq.InputFile, "InputFile", "i", "", "输入包含URL的txt文件路径")
+	batchCmd.Flags().StringVarP(&gBatchReq.SaveDir, "SaveDir", "d", "", "批量下载保存路径(默认为当前工作目录)")
+	rootCmd.AddCommand(batchCmd)
 	mergeCmd.Flags().StringVarP(&gMergeReq.InputTsDir, "InputTsDir", "", "", "存放ts文件的目录(默认为当前工作目录)")
 	mergeCmd.Flags().StringVarP(&gMergeReq.OutputMp4Name, "OutputMp4Name", "", "", "输出mp4文件名(默认为输入ts文件的目录下的all.mp4)")
 	mergeCmd.Flags().BoolVarP(&gMergeReq.UseFirstTsMTime, "UseFirstTsMTime", "", false, "使用第一个ts文件的修改时间作为输出mp4文件的创建时间")
