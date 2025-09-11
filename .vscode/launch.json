@@ -26,7 +26,7 @@
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/main.go",
             "env": {},
-            "args": ["batch", "-i", ".vscode/debug/urls.txt", "-d", "./downloads"]
+            "args": ["batch", "-i", "../.vscode/debug/urls.txt", "-d", "./downloads"]
         },
         {
             "name": "Launch m3u8d batch download (custom)",

@@ -5,9 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/orestonce/m3u8d"
-	"github.com/orestonce/m3u8d/m3u8dcpp"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
 	"os"
@@ -15,6 +12,10 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/orestonce/m3u8d"
+	"github.com/orestonce/m3u8d/m3u8dcpp"
+	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -99,7 +100,7 @@ func batchDownloadFromFile(inputFile, saveDir string) {
 		Url      string
 		Filename string
 	}
-	
+
 	var urlList []UrlWithFilename
 	scanner := bufio.NewScanner(file)
 	lineNum := 0
@@ -109,7 +110,7 @@ func batchDownloadFromFile(inputFile, saveDir string) {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue // 跳过空行和注释行
 		}
-		
+
 		// 解析URL和文件名
 		var urlWithFilename UrlWithFilename
 		// 支持格式: url filename 或 url
@@ -121,7 +122,7 @@ func batchDownloadFromFile(inputFile, saveDir string) {
 		} else {
 			urlWithFilename.Url = line
 		}
-		
+
 		if urlWithFilename.Url != "" {
 			urlList = append(urlList, urlWithFilename)
 		}
@@ -142,7 +143,7 @@ func batchDownloadFromFile(inputFile, saveDir string) {
 	failCount := 0
 
 	for i, urlWithFilename := range urlList {
-		log.Printf("[%d/%d] 开始下载: %s", i+1, len(urlList), urlWithFilename.Url)
+		log.Printf("[%d/%d] 开始下载: %s 文件名: %s", i+1, len(urlList), urlWithFilename.Url, urlWithFilename.Filename)
 
 		// 创建下载请求
 		req := m3u8d.StartDownload_Req{
