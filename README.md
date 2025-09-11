@@ -9,6 +9,10 @@
   * 普通下载命令: `./m3u8d download -u https://example.com/index.m3u8`
   * curl模式： `./m3u8d curl 'https://example.com/index.m3u8' -H 'cookie: CONSENT=YES'`
   * 批量下载： `./m3u8d batch -i urls.txt -d ./downloads`
+    * urls.txt 文件格式支持两种方式：
+      * 每行一个URL
+      * URL和文件名用空格分隔：`url filename` （例如：`https://example.com/video.m3u8 video1`）
+      * 支持多个空格分隔
   * 合并某个目录下的ts文件为 mp4: `./m3u8d merge --InputTsDir /root/save --OutputMp4Name save.mp4` 
 ## 实现说明
 * download.go 大部分抄自 [llychao/m3u8-downloader](https://github.com/llychao/m3u8-downloader)
