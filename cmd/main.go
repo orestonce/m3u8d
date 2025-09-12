@@ -5,15 +5,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/orestonce/m3u8d"
-	"github.com/orestonce/m3u8d/m3u8dcpp"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/orestonce/m3u8d"
+	"github.com/orestonce/m3u8d/m3u8dcpp"
+	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -94,7 +96,12 @@ func batchDownloadFromFile(inputFile, saveDir string) {
 	}
 	defer file.Close()
 
-	var urls []string
+	type UrlWithFilename struct {
+		Url      string
+		Filename string
+	}
+
+	var urlList []UrlWithFilename
 	scanner := bufio.NewScanner(file)
 	lineNum := 0
 	for scanner.Scan() {
@@ -103,31 +110,47 @@ func batchDownloadFromFile(inputFile, saveDir string) {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue // 跳过空行和注释行
 		}
-		urls = append(urls, line)
+
+		// 解析URL和文件名
+		var urlWithFilename UrlWithFilename
+		// 支持格式: url filename 或 url
+		// 使用正则表达式分割，支持多个空格
+		parts := regexp.MustCompile(`\s+`).Split(line, 2)
+		if len(parts) == 2 {
+			urlWithFilename.Url = strings.TrimSpace(parts[0])
+			urlWithFilename.Filename = strings.TrimSpace(parts[1])
+		} else {
+			urlWithFilename.Url = line
+		}
+
+		if urlWithFilename.Url != "" {
+			urlList = append(urlList, urlWithFilename)
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Fatalf("读取文件时发生错误: %v", err)
 	}
 
-	if len(urls) == 0 {
+	if len(urlList) == 0 {
 		log.Fatalf("文件中没有找到有效的URL")
 	}
 
-	log.Printf("从文件 %s 中读取到 %d 个URL", inputFile, len(urls))
+	log.Printf("从文件 %s 中读取到 %d 个URL", inputFile, len(urlList))
 
 	// 批量下载
 	successCount := 0
 	failCount := 0
 
-	for i, url := range urls {
-		log.Printf("[%d/%d] 开始下载: %s", i+1, len(urls), url)
+	for i, urlWithFilename := range urlList {
+		log.Printf("[%d/%d] 开始下载: %s 文件名: %s", i+1, len(urlList), urlWithFilename.Url, urlWithFilename.Filename)
 
 		// 创建下载请求
 		req := m3u8d.StartDownload_Req{
-			M3u8Url:           url,
+			M3u8Url:           urlWithFilename.Url,
 			Insecure:          gRunReq.Insecure,
 			SaveDir:           saveDir,
+			FileName:          urlWithFilename.Filename, // 使用指定的文件名
 			SkipTsExpr:        gRunReq.SkipTsExpr,
 			SetProxy:          gRunReq.SetProxy,
 			SkipRemoveTs:      gRunReq.SkipRemoveTs,
