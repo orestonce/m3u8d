@@ -71,6 +71,9 @@ type DownloadEnv struct {
 	status        SpeedStatus
 	logFile       *os.File
 	logFileLocker sync.Mutex
+
+	taskId        string		// 上层用户使用的任务id，DownloadEnv只是原样存取
+	taskIdLocker sync.Mutex
 }
 
 // 获取m3u8地址的host
@@ -91,6 +94,19 @@ func updateTsUrl(m3u8Url string, tsList []mformat.TsInfo) (errMsg string) {
 		}
 	}
 	return ""
+}
+
+func (this *DownloadEnv) SetTaskId(id string) {
+	this.taskIdLocker.Lock()
+	this.taskId = id
+	this.taskIdLocker.Unlock()
+}
+
+func (this *DownloadEnv) GetTaskId() string {
+	this.taskIdLocker.Lock()
+	defer this.taskIdLocker.Unlock()
+
+	return this.taskId
 }
 
 // updateMediaKeyContent 下载ts媒体的加密key的内容
