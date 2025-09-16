@@ -39,7 +39,7 @@ type GetStatus_Resp struct {
 	ErrMsg        string
 	IsSkipped     bool
 	SaveFileTo    string
-	TaskId        string
+	TaskId        string	// 任务id, 库用户自己传入的 StartDownload_Req.TaskId
 }
 
 var PNG_SIGN = []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
@@ -61,7 +61,7 @@ type StartDownload_Req struct {
 	TsTempDir         string              // 临时ts文件目录
 	UseServerSideTime bool                // 使用服务端提供的文件时间
 	WithSkipLog       bool                // 在mp4旁记录跳过ts文件的信息
-	TaskId            string
+	TaskId            string			  // 用户自定义的任务id, GetStatus会原样传回来
 }
 
 type DownloadEnv struct {
