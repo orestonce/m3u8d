@@ -8,6 +8,11 @@
 * 命令行使用教程
   * 普通下载命令: `./m3u8d download -u https://example.com/index.m3u8`
   * curl模式： `./m3u8d curl 'https://example.com/index.m3u8' -H 'cookie: CONSENT=YES'`
+  * 批量下载： `./m3u8d batch -i urls.txt -d ./downloads`
+    * urls.txt 文件格式支持两种方式：
+      * 每行一个URL
+      * URL和文件名用空格分隔：`url filename` （例如：`https://example.com/video.m3u8 video1`）
+      * 支持多个空格分隔
   * 合并某个目录下的ts文件为 mp4: `./m3u8d merge --InputTsDir /root/save --OutputMp4Name save.mp4` 
 ## 实现说明
 * download.go 大部分抄自 [llychao/m3u8-downloader](https://github.com/llychao/m3u8-downloader)
@@ -22,6 +27,7 @@
   * 以windows下的chrome为例，找到对应的m3u8请求记录，然后右键选择 "Copy - Copy as cURL(bash)", 
     然后打开 windows-qt版本的 m3u8d, 点击 "curl 模式"，将复制出来的请求粘贴上去即可
 * 已有功能列表
+  * 支持批量下载：从txt文件读取多个m3u8 URL进行批量下载，支持注释和空行
   * 如果不是m3u8样子的URL，自动下载html下来、搜索其中的m3u8链接进行下载
   * 支持下载aes加密的m3u8, 支持单个m3u8文件内不同ts文件使用不同的加密策略
   * 内部使用多线程下载ts文件
@@ -48,7 +54,7 @@
 ## TODO:
   * [ ] 多线程修改为自适应模式，在下载过程中动态调整线程池大小，以便达到最快的下载速度
   * [ ] 支持多国语言
-  * [ ] 支持从一个txt里读取下载列表，批量下载
+  * [x] 支持从一个txt里读取下载列表，批量下载
 ## 二次开发操作手册:
 * 如果只开发命令行版本, 则只需要修改*.go文件, 然后编译 cmd/main.go 即可
 * 如果涉及到Qt界面打包, 则需要运行 export/main.go 将 *.go导出为Qt界面需要的
