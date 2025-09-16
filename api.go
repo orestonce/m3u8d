@@ -50,6 +50,7 @@ func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 	this.status.ProgressBarShow = req.ProgressBarShow
 	this.ctx, this.cancelFn = context.WithCancel(context.Background())
 	this.status.IsRunning = true
+	this.status.TaskId = req.TaskId
 	go func() {
 		this.runDownload(req, skipInfo)
 		this.logToFile_TsNotWriteReason()
@@ -75,14 +76,16 @@ func (this *DownloadEnv) GetStatus() (resp GetStatus_Resp) {
 	if resp.Title == "" {
 		resp.Title = "正在下载"
 	}
-	{
+	func(){
 		this.status.Locker.Lock()
+		defer this.status.Locker.Unlock()
+
 		resp.IsDownloading = this.status.IsRunning
 		resp.ErrMsg = this.status.errMsg
 		resp.IsSkipped = this.status.isSkipped
 		resp.SaveFileTo = this.status.saveFileTo
-		this.status.Locker.Unlock()
-	}
+		resp.TaskId  = this.status.TaskId
+	}()
 
 	var speed SpeedInfo
 	if resp.IsDownloading {

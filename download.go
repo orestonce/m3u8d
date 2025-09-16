@@ -39,6 +39,7 @@ type GetStatus_Resp struct {
 	ErrMsg        string
 	IsSkipped     bool
 	SaveFileTo    string
+	TaskId        string
 }
 
 var PNG_SIGN = []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
@@ -60,6 +61,7 @@ type StartDownload_Req struct {
 	TsTempDir         string              // 临时ts文件目录
 	UseServerSideTime bool                // 使用服务端提供的文件时间
 	WithSkipLog       bool                // 在mp4旁记录跳过ts文件的信息
+	TaskId            string
 }
 
 type DownloadEnv struct {
@@ -71,9 +73,6 @@ type DownloadEnv struct {
 	status        SpeedStatus
 	logFile       *os.File
 	logFileLocker sync.Mutex
-
-	taskId        string		// 上层用户使用的任务id，DownloadEnv只是原样存取
-	taskIdLocker sync.Mutex
 }
 
 // 获取m3u8地址的host
@@ -96,67 +95,7 @@ func updateTsUrl(m3u8Url string, tsList []mformat.TsInfo) (errMsg string) {
 	return ""
 }
 
-func (this *DownloadEnv) SetTaskId(id string) {
-	this.taskIdLocker.Lock()
-	this.taskId = id
-	this.taskIdLocker.Unlock()
-}
-
-func (this *DownloadEnv) GetTaskId() string {
-	this.taskIdLocker.Lock()
-	defer this.taskIdLocker.Unlock()
-
-	return this.taskId
-}
-
-// updateMediaKeyContent 下载ts媒体的加密key的内容
-func (this *DownloadEnv) updateMediaKeyContent(m3u8Url string, tsList []mformat.TsInfo, getFunc func(urlStr string) (content []byte, err error)) (errMsg string) {
-	uriToContentMap := map[string][]byte{}
-
-	for idx := range tsList {
-		ts := &tsList[idx]
-		if ts.Key.Method != `` {
-			keyContent, ok := uriToContentMap[ts.Key.KeyURI]
-			if ok == false {
-				var keyUrl string
-				keyUrl, errMsg = ResolveRefUrl(m3u8Url, ts.Key.KeyURI)
-				logPrefix := "m3u8Url = " + strconv.Quote(m3u8Url) + ", ts.Key.KeyURI = " + ts.Key.KeyURI
-
-				if errMsg != "" {
-					return logPrefix + ", error " + errMsg
-				}
-				var httpResp *http.Response
-				var err error
-				keyContent, httpResp, err = this.doGetRequest(keyUrl, true)
-				if err != nil {
-					return logPrefix + ", http error " + err.Error()
-				}
-				if httpResp.StatusCode != 200 {
-					return logPrefix + ", http code error " + strconv.Itoa(httpResp.StatusCode)
-				}
-				if ts.Key.Method == mformat.EncryptMethod_AES128 { // Aes 128
-					switch len(keyContent) {
-					case 16:
-					case 32:
-						var temp []byte
-						temp, err = hex.DecodeString(string(keyContent))
-						if err == nil && len(temp) == 16 {
-							keyContent = temp
-						}
-						fallthrough
-					default:
-						return logPrefix + ", invalid key " + strconv.Quote(string(keyContent))
-					}
-				}
-				uriToContentMap[ts.Key.KeyURI] = keyContent
-			}
-			ts.Key.KeyContent = keyContent
-		}
-	}
-	return ""
-}
-
-// UpdateMediaKeyContent 更新秘钥(key)的url和内容，方便后续下载
+// 更新秘钥(key)的url和内容，方便后续下载
 func UpdateMediaKeyContent(m3u8Url string, tsList []mformat.TsInfo, getFunc func(urlStr string) (content []byte, err error)) (errMsg string) {
 	uriToContentMap := map[string][]byte{}
 

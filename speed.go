@@ -13,6 +13,7 @@ import (
 type SpeedStatus struct {
 	Locker    sync.Mutex
 	IsRunning bool
+	TaskId    string
 
 	speedBeginTime  time.Time
 	speedIdAlloc    uint32
