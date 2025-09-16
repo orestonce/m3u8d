@@ -94,97 +94,97 @@ extern __declspec(dllexport) void Go2cppFn_GetVersion(char* in, int inLen, char*
 #endif
 
 
-std::string StartDownload(StartDownload_Req in0){
+bool StartDownload(StartDownload_Req in0){
 	std::string in;
 	{
 		{
-			uint32_t tmp43 = in0.M3u8Url.length();
-			char tmp44[4];
-			tmp44[0] = (uint32_t(tmp43) >> 24) & 0xFF;
-			tmp44[1] = (uint32_t(tmp43) >> 16) & 0xFF;
-			tmp44[2] = (uint32_t(tmp43) >> 8) & 0xFF;
-			tmp44[3] = (uint32_t(tmp43) >> 0) & 0xFF;
-			in.append(tmp44, 4);
+			uint32_t tmp46 = in0.M3u8Url.length();
+			char tmp47[4];
+			tmp47[0] = (uint32_t(tmp46) >> 24) & 0xFF;
+			tmp47[1] = (uint32_t(tmp46) >> 16) & 0xFF;
+			tmp47[2] = (uint32_t(tmp46) >> 8) & 0xFF;
+			tmp47[3] = (uint32_t(tmp46) >> 0) & 0xFF;
+			in.append(tmp47, 4);
 			in.append(in0.M3u8Url);
 		}
 		in.append((char*)(&in0.Insecure), 1);
 		{
-			uint32_t tmp45 = in0.SaveDir.length();
-			char tmp46[4];
-			tmp46[0] = (uint32_t(tmp45) >> 24) & 0xFF;
-			tmp46[1] = (uint32_t(tmp45) >> 16) & 0xFF;
-			tmp46[2] = (uint32_t(tmp45) >> 8) & 0xFF;
-			tmp46[3] = (uint32_t(tmp45) >> 0) & 0xFF;
-			in.append(tmp46, 4);
+			uint32_t tmp48 = in0.SaveDir.length();
+			char tmp49[4];
+			tmp49[0] = (uint32_t(tmp48) >> 24) & 0xFF;
+			tmp49[1] = (uint32_t(tmp48) >> 16) & 0xFF;
+			tmp49[2] = (uint32_t(tmp48) >> 8) & 0xFF;
+			tmp49[3] = (uint32_t(tmp48) >> 0) & 0xFF;
+			in.append(tmp49, 4);
 			in.append(in0.SaveDir);
 		}
 		{
-			uint32_t tmp47 = in0.FileName.length();
-			char tmp48[4];
-			tmp48[0] = (uint32_t(tmp47) >> 24) & 0xFF;
-			tmp48[1] = (uint32_t(tmp47) >> 16) & 0xFF;
-			tmp48[2] = (uint32_t(tmp47) >> 8) & 0xFF;
-			tmp48[3] = (uint32_t(tmp47) >> 0) & 0xFF;
-			in.append(tmp48, 4);
+			uint32_t tmp50 = in0.FileName.length();
+			char tmp51[4];
+			tmp51[0] = (uint32_t(tmp50) >> 24) & 0xFF;
+			tmp51[1] = (uint32_t(tmp50) >> 16) & 0xFF;
+			tmp51[2] = (uint32_t(tmp50) >> 8) & 0xFF;
+			tmp51[3] = (uint32_t(tmp50) >> 0) & 0xFF;
+			in.append(tmp51, 4);
 			in.append(in0.FileName);
 		}
 		{
-			uint32_t tmp49 = in0.SkipTsExpr.length();
-			char tmp50[4];
-			tmp50[0] = (uint32_t(tmp49) >> 24) & 0xFF;
-			tmp50[1] = (uint32_t(tmp49) >> 16) & 0xFF;
-			tmp50[2] = (uint32_t(tmp49) >> 8) & 0xFF;
-			tmp50[3] = (uint32_t(tmp49) >> 0) & 0xFF;
-			in.append(tmp50, 4);
+			uint32_t tmp52 = in0.SkipTsExpr.length();
+			char tmp53[4];
+			tmp53[0] = (uint32_t(tmp52) >> 24) & 0xFF;
+			tmp53[1] = (uint32_t(tmp52) >> 16) & 0xFF;
+			tmp53[2] = (uint32_t(tmp52) >> 8) & 0xFF;
+			tmp53[3] = (uint32_t(tmp52) >> 0) & 0xFF;
+			in.append(tmp53, 4);
 			in.append(in0.SkipTsExpr);
 		}
 		{
-			uint32_t tmp51 = in0.SetProxy.length();
-			char tmp52[4];
-			tmp52[0] = (uint32_t(tmp51) >> 24) & 0xFF;
-			tmp52[1] = (uint32_t(tmp51) >> 16) & 0xFF;
-			tmp52[2] = (uint32_t(tmp51) >> 8) & 0xFF;
-			tmp52[3] = (uint32_t(tmp51) >> 0) & 0xFF;
-			in.append(tmp52, 4);
+			uint32_t tmp54 = in0.SetProxy.length();
+			char tmp55[4];
+			tmp55[0] = (uint32_t(tmp54) >> 24) & 0xFF;
+			tmp55[1] = (uint32_t(tmp54) >> 16) & 0xFF;
+			tmp55[2] = (uint32_t(tmp54) >> 8) & 0xFF;
+			tmp55[3] = (uint32_t(tmp54) >> 0) & 0xFF;
+			in.append(tmp55, 4);
 			in.append(in0.SetProxy);
 		}
 		{
-			uint32_t tmp53 = in0.HeaderMap.size();
-			char tmp54[4];
-			tmp54[0] = (uint32_t(tmp53) >> 24) & 0xFF;
-			tmp54[1] = (uint32_t(tmp53) >> 16) & 0xFF;
-			tmp54[2] = (uint32_t(tmp53) >> 8) & 0xFF;
-			tmp54[3] = (uint32_t(tmp53) >> 0) & 0xFF;
-			in.append(tmp54, 4);
-			for(std::map<std::string, std::vector<std::string>>::iterator tmp55 = in0.HeaderMap.begin(); tmp55 != in0.HeaderMap.end(); ++tmp55) {
+			uint32_t tmp56 = in0.HeaderMap.size();
+			char tmp57[4];
+			tmp57[0] = (uint32_t(tmp56) >> 24) & 0xFF;
+			tmp57[1] = (uint32_t(tmp56) >> 16) & 0xFF;
+			tmp57[2] = (uint32_t(tmp56) >> 8) & 0xFF;
+			tmp57[3] = (uint32_t(tmp56) >> 0) & 0xFF;
+			in.append(tmp57, 4);
+			for(std::map<std::string, std::vector<std::string>>::iterator tmp58 = in0.HeaderMap.begin(); tmp58 != in0.HeaderMap.end(); ++tmp58) {
 				{
-					uint32_t tmp56 = tmp55->first.length();
-					char tmp57[4];
-					tmp57[0] = (uint32_t(tmp56) >> 24) & 0xFF;
-					tmp57[1] = (uint32_t(tmp56) >> 16) & 0xFF;
-					tmp57[2] = (uint32_t(tmp56) >> 8) & 0xFF;
-					tmp57[3] = (uint32_t(tmp56) >> 0) & 0xFF;
-					in.append(tmp57, 4);
-					in.append(tmp55->first);
+					uint32_t tmp59 = tmp58->first.length();
+					char tmp60[4];
+					tmp60[0] = (uint32_t(tmp59) >> 24) & 0xFF;
+					tmp60[1] = (uint32_t(tmp59) >> 16) & 0xFF;
+					tmp60[2] = (uint32_t(tmp59) >> 8) & 0xFF;
+					tmp60[3] = (uint32_t(tmp59) >> 0) & 0xFF;
+					in.append(tmp60, 4);
+					in.append(tmp58->first);
 				}
 				{
-					uint32_t tmp58 = tmp55->second.size();
-					char tmp59[4];
-					tmp59[0] = (uint32_t(tmp58) >> 24) & 0xFF;
-					tmp59[1] = (uint32_t(tmp58) >> 16) & 0xFF;
-					tmp59[2] = (uint32_t(tmp58) >> 8) & 0xFF;
-					tmp59[3] = (uint32_t(tmp58) >> 0) & 0xFF;
-					in.append(tmp59, 4);
-					for (uint32_t tmp60=0; tmp60 < tmp58; ++tmp60) {
+					uint32_t tmp61 = tmp58->second.size();
+					char tmp62[4];
+					tmp62[0] = (uint32_t(tmp61) >> 24) & 0xFF;
+					tmp62[1] = (uint32_t(tmp61) >> 16) & 0xFF;
+					tmp62[2] = (uint32_t(tmp61) >> 8) & 0xFF;
+					tmp62[3] = (uint32_t(tmp61) >> 0) & 0xFF;
+					in.append(tmp62, 4);
+					for (uint32_t tmp63=0; tmp63 < tmp61; ++tmp63) {
 						{
-							uint32_t tmp61 = tmp55->second[tmp60].length();
-							char tmp62[4];
-							tmp62[0] = (uint32_t(tmp61) >> 24) & 0xFF;
-							tmp62[1] = (uint32_t(tmp61) >> 16) & 0xFF;
-							tmp62[2] = (uint32_t(tmp61) >> 8) & 0xFF;
-							tmp62[3] = (uint32_t(tmp61) >> 0) & 0xFF;
-							in.append(tmp62, 4);
-							in.append(tmp55->second[tmp60]);
+							uint32_t tmp64 = tmp58->second[tmp63].length();
+							char tmp65[4];
+							tmp65[0] = (uint32_t(tmp64) >> 24) & 0xFF;
+							tmp65[1] = (uint32_t(tmp64) >> 16) & 0xFF;
+							tmp65[2] = (uint32_t(tmp64) >> 8) & 0xFF;
+							tmp65[3] = (uint32_t(tmp64) >> 0) & 0xFF;
+							in.append(tmp65, 4);
+							in.append(tmp58->second[tmp63]);
 						}
 					}
 				}
@@ -193,45 +193,46 @@ std::string StartDownload(StartDownload_Req in0){
 		in.append((char*)(&in0.SkipRemoveTs), 1);
 		in.append((char*)(&in0.ProgressBarShow), 1);
 		{
-			char tmp63[4];
-			tmp63[0] = (uint32_t(in0.ThreadCount) >> 24) & 0xFF;
-			tmp63[1] = (uint32_t(in0.ThreadCount) >> 16) & 0xFF;
-			tmp63[2] = (uint32_t(in0.ThreadCount) >> 8) & 0xFF;
-			tmp63[3] = (uint32_t(in0.ThreadCount) >> 0) & 0xFF;
-			in.append(tmp63, 4);
+			char tmp66[4];
+			tmp66[0] = (uint32_t(in0.ThreadCount) >> 24) & 0xFF;
+			tmp66[1] = (uint32_t(in0.ThreadCount) >> 16) & 0xFF;
+			tmp66[2] = (uint32_t(in0.ThreadCount) >> 8) & 0xFF;
+			tmp66[3] = (uint32_t(in0.ThreadCount) >> 0) & 0xFF;
+			in.append(tmp66, 4);
 		}
 		in.append((char*)(&in0.SkipCacheCheck), 1);
 		in.append((char*)(&in0.SkipMergeTs), 1);
 		in.append((char*)(&in0.DebugLog), 1);
 		{
-			uint32_t tmp64 = in0.TsTempDir.length();
-			char tmp65[4];
-			tmp65[0] = (uint32_t(tmp64) >> 24) & 0xFF;
-			tmp65[1] = (uint32_t(tmp64) >> 16) & 0xFF;
-			tmp65[2] = (uint32_t(tmp64) >> 8) & 0xFF;
-			tmp65[3] = (uint32_t(tmp64) >> 0) & 0xFF;
-			in.append(tmp65, 4);
+			uint32_t tmp67 = in0.TsTempDir.length();
+			char tmp68[4];
+			tmp68[0] = (uint32_t(tmp67) >> 24) & 0xFF;
+			tmp68[1] = (uint32_t(tmp67) >> 16) & 0xFF;
+			tmp68[2] = (uint32_t(tmp67) >> 8) & 0xFF;
+			tmp68[3] = (uint32_t(tmp67) >> 0) & 0xFF;
+			in.append(tmp68, 4);
 			in.append(in0.TsTempDir);
 		}
 		in.append((char*)(&in0.UseServerSideTime), 1);
 		in.append((char*)(&in0.WithSkipLog), 1);
+		{
+			uint32_t tmp69 = in0.TaskId.length();
+			char tmp70[4];
+			tmp70[0] = (uint32_t(tmp69) >> 24) & 0xFF;
+			tmp70[1] = (uint32_t(tmp69) >> 16) & 0xFF;
+			tmp70[2] = (uint32_t(tmp69) >> 8) & 0xFF;
+			tmp70[3] = (uint32_t(tmp69) >> 0) & 0xFF;
+			in.append(tmp70, 4);
+			in.append(in0.TaskId);
+		}
 	}
 	char *out = NULL;
 	int outLen = 0;
 	Go2cppFn_StartDownload((char *)in.data(), in.length(), &out, &outLen);
-	std::string retValue;
+	bool retValue;
 	int outIdx = 0;
-	{
-		uint32_t tmp66 = 0;
-		uint32_t tmp67 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-		uint32_t tmp68 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-		uint32_t tmp69 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-		uint32_t tmp70 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-		tmp66 = tmp67 | tmp68 | tmp69 | tmp70;
-		outIdx+=4;
-		retValue = std::string(out+outIdx, out+outIdx+tmp66);
-		outIdx+=tmp66;
-	}
+	retValue = (bool) out[outIdx];
+	outIdx++;
 	if (out != NULL) {
 		free(out);
 	}
@@ -257,62 +258,73 @@ GetStatus_Resp GetStatus(){
 	int outIdx = 0;
 	{
 		{
-			uint32_t tmp9 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp10 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp11 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp12 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			retValue.Percent = tmp9 | tmp10 | tmp11 | tmp12;
+			uint32_t tmp10 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp11 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp12 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp13 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			retValue.Percent = tmp10 | tmp11 | tmp12 | tmp13;
 			outIdx+=4;
 		}
 		{
-			uint32_t tmp13 = 0;
-			uint32_t tmp14 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp15 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp16 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp13 = tmp14 | tmp15 | tmp16 | tmp17;
+			uint32_t tmp14 = 0;
+			uint32_t tmp15 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp16 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp18 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp14 = tmp15 | tmp16 | tmp17 | tmp18;
 			outIdx+=4;
-			retValue.Title = std::string(out+outIdx, out+outIdx+tmp13);
-			outIdx+=tmp13;
+			retValue.Title = std::string(out+outIdx, out+outIdx+tmp14);
+			outIdx+=tmp14;
 		}
 		{
-			uint32_t tmp18 = 0;
-			uint32_t tmp19 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp20 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp21 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp22 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp18 = tmp19 | tmp20 | tmp21 | tmp22;
+			uint32_t tmp19 = 0;
+			uint32_t tmp20 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp21 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp22 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp23 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp19 = tmp20 | tmp21 | tmp22 | tmp23;
 			outIdx+=4;
-			retValue.StatusBar = std::string(out+outIdx, out+outIdx+tmp18);
-			outIdx+=tmp18;
+			retValue.StatusBar = std::string(out+outIdx, out+outIdx+tmp19);
+			outIdx+=tmp19;
 		}
 		retValue.IsDownloading = (bool) out[outIdx];
 		outIdx++;
 		retValue.IsCancel = (bool) out[outIdx];
 		outIdx++;
 		{
-			uint32_t tmp23 = 0;
-			uint32_t tmp24 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp25 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp26 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp27 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp23 = tmp24 | tmp25 | tmp26 | tmp27;
+			uint32_t tmp24 = 0;
+			uint32_t tmp25 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp26 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp27 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp28 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp24 = tmp25 | tmp26 | tmp27 | tmp28;
 			outIdx+=4;
-			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp23);
-			outIdx+=tmp23;
+			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp24);
+			outIdx+=tmp24;
 		}
 		retValue.IsSkipped = (bool) out[outIdx];
 		outIdx++;
 		{
-			uint32_t tmp28 = 0;
-			uint32_t tmp29 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp30 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp31 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp32 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp28 = tmp29 | tmp30 | tmp31 | tmp32;
+			uint32_t tmp29 = 0;
+			uint32_t tmp30 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp31 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp32 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp33 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp29 = tmp30 | tmp31 | tmp32 | tmp33;
 			outIdx+=4;
-			retValue.SaveFileTo = std::string(out+outIdx, out+outIdx+tmp28);
-			outIdx+=tmp28;
+			retValue.SaveFileTo = std::string(out+outIdx, out+outIdx+tmp29);
+			outIdx+=tmp29;
+		}
+		{
+			uint32_t tmp34 = 0;
+			uint32_t tmp35 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp36 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp37 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp38 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp34 = tmp35 | tmp36 | tmp37 | tmp38;
+			outIdx+=4;
+			retValue.TaskId = std::string(out+outIdx, out+outIdx+tmp34);
+			outIdx+=tmp34;
 		}
 	}
 	if (out != NULL) {
@@ -330,62 +342,73 @@ GetStatus_Resp WaitDownloadFinish(){
 	int outIdx = 0;
 	{
 		{
-			uint32_t tmp9 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp10 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp11 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp12 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			retValue.Percent = tmp9 | tmp10 | tmp11 | tmp12;
+			uint32_t tmp10 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp11 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp12 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp13 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			retValue.Percent = tmp10 | tmp11 | tmp12 | tmp13;
 			outIdx+=4;
 		}
 		{
-			uint32_t tmp13 = 0;
-			uint32_t tmp14 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp15 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp16 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp13 = tmp14 | tmp15 | tmp16 | tmp17;
+			uint32_t tmp14 = 0;
+			uint32_t tmp15 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp16 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp17 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp18 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp14 = tmp15 | tmp16 | tmp17 | tmp18;
 			outIdx+=4;
-			retValue.Title = std::string(out+outIdx, out+outIdx+tmp13);
-			outIdx+=tmp13;
+			retValue.Title = std::string(out+outIdx, out+outIdx+tmp14);
+			outIdx+=tmp14;
 		}
 		{
-			uint32_t tmp18 = 0;
-			uint32_t tmp19 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp20 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp21 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp22 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp18 = tmp19 | tmp20 | tmp21 | tmp22;
+			uint32_t tmp19 = 0;
+			uint32_t tmp20 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp21 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp22 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp23 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp19 = tmp20 | tmp21 | tmp22 | tmp23;
 			outIdx+=4;
-			retValue.StatusBar = std::string(out+outIdx, out+outIdx+tmp18);
-			outIdx+=tmp18;
+			retValue.StatusBar = std::string(out+outIdx, out+outIdx+tmp19);
+			outIdx+=tmp19;
 		}
 		retValue.IsDownloading = (bool) out[outIdx];
 		outIdx++;
 		retValue.IsCancel = (bool) out[outIdx];
 		outIdx++;
 		{
-			uint32_t tmp23 = 0;
-			uint32_t tmp24 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp25 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp26 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp27 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp23 = tmp24 | tmp25 | tmp26 | tmp27;
+			uint32_t tmp24 = 0;
+			uint32_t tmp25 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp26 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp27 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp28 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp24 = tmp25 | tmp26 | tmp27 | tmp28;
 			outIdx+=4;
-			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp23);
-			outIdx+=tmp23;
+			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp24);
+			outIdx+=tmp24;
 		}
 		retValue.IsSkipped = (bool) out[outIdx];
 		outIdx++;
 		{
-			uint32_t tmp28 = 0;
-			uint32_t tmp29 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp30 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp31 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp32 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp28 = tmp29 | tmp30 | tmp31 | tmp32;
+			uint32_t tmp29 = 0;
+			uint32_t tmp30 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp31 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp32 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp33 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp29 = tmp30 | tmp31 | tmp32 | tmp33;
 			outIdx+=4;
-			retValue.SaveFileTo = std::string(out+outIdx, out+outIdx+tmp28);
-			outIdx+=tmp28;
+			retValue.SaveFileTo = std::string(out+outIdx, out+outIdx+tmp29);
+			outIdx+=tmp29;
+		}
+		{
+			uint32_t tmp34 = 0;
+			uint32_t tmp35 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp36 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp37 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp38 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp34 = tmp35 | tmp36 | tmp37 | tmp38;
+			outIdx+=4;
+			retValue.TaskId = std::string(out+outIdx, out+outIdx+tmp34);
+			outIdx+=tmp34;
 		}
 	}
 	if (out != NULL) {
@@ -421,13 +444,13 @@ std::string GetWd(){
 ParseCurl_Resp ParseCurlStr(std::string in0){
 	std::string in;
 	{
-		uint32_t tmp27 = in0.length();
-		char tmp28[4];
-		tmp28[0] = (uint32_t(tmp27) >> 24) & 0xFF;
-		tmp28[1] = (uint32_t(tmp27) >> 16) & 0xFF;
-		tmp28[2] = (uint32_t(tmp27) >> 8) & 0xFF;
-		tmp28[3] = (uint32_t(tmp27) >> 0) & 0xFF;
-		in.append(tmp28, 4);
+		uint32_t tmp28 = in0.length();
+		char tmp29[4];
+		tmp29[0] = (uint32_t(tmp28) >> 24) & 0xFF;
+		tmp29[1] = (uint32_t(tmp28) >> 16) & 0xFF;
+		tmp29[2] = (uint32_t(tmp28) >> 8) & 0xFF;
+		tmp29[3] = (uint32_t(tmp28) >> 0) & 0xFF;
+		in.append(tmp29, 4);
 		in.append(in0);
 	}
 	char *out = NULL;
@@ -437,121 +460,121 @@ ParseCurl_Resp ParseCurlStr(std::string in0){
 	int outIdx = 0;
 	{
 		{
-			uint32_t tmp29 = 0;
-			uint32_t tmp30 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-			uint32_t tmp31 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-			uint32_t tmp32 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-			uint32_t tmp33 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-			tmp29 = tmp30 | tmp31 | tmp32 | tmp33;
+			uint32_t tmp30 = 0;
+			uint32_t tmp31 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+			uint32_t tmp32 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+			uint32_t tmp33 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+			uint32_t tmp34 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+			tmp30 = tmp31 | tmp32 | tmp33 | tmp34;
 			outIdx+=4;
-			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp29);
-			outIdx+=tmp29;
+			retValue.ErrMsg = std::string(out+outIdx, out+outIdx+tmp30);
+			outIdx+=tmp30;
 		}
 		{
 			{
-				uint32_t tmp34 = 0;
-				uint32_t tmp35 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-				uint32_t tmp36 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-				uint32_t tmp37 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-				uint32_t tmp38 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-				tmp34 = tmp35 | tmp36 | tmp37 | tmp38;
+				uint32_t tmp35 = 0;
+				uint32_t tmp36 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+				uint32_t tmp37 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+				uint32_t tmp38 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+				uint32_t tmp39 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+				tmp35 = tmp36 | tmp37 | tmp38 | tmp39;
 				outIdx+=4;
-				retValue.DownloadReq.M3u8Url = std::string(out+outIdx, out+outIdx+tmp34);
-				outIdx+=tmp34;
+				retValue.DownloadReq.M3u8Url = std::string(out+outIdx, out+outIdx+tmp35);
+				outIdx+=tmp35;
 			}
 			retValue.DownloadReq.Insecure = (bool) out[outIdx];
 			outIdx++;
 			{
-				uint32_t tmp39 = 0;
-				uint32_t tmp40 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-				uint32_t tmp41 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-				uint32_t tmp42 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-				uint32_t tmp43 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-				tmp39 = tmp40 | tmp41 | tmp42 | tmp43;
+				uint32_t tmp40 = 0;
+				uint32_t tmp41 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+				uint32_t tmp42 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+				uint32_t tmp43 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+				uint32_t tmp44 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+				tmp40 = tmp41 | tmp42 | tmp43 | tmp44;
 				outIdx+=4;
-				retValue.DownloadReq.SaveDir = std::string(out+outIdx, out+outIdx+tmp39);
-				outIdx+=tmp39;
+				retValue.DownloadReq.SaveDir = std::string(out+outIdx, out+outIdx+tmp40);
+				outIdx+=tmp40;
 			}
 			{
-				uint32_t tmp44 = 0;
-				uint32_t tmp45 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-				uint32_t tmp46 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-				uint32_t tmp47 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-				uint32_t tmp48 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-				tmp44 = tmp45 | tmp46 | tmp47 | tmp48;
+				uint32_t tmp45 = 0;
+				uint32_t tmp46 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+				uint32_t tmp47 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+				uint32_t tmp48 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+				uint32_t tmp49 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+				tmp45 = tmp46 | tmp47 | tmp48 | tmp49;
 				outIdx+=4;
-				retValue.DownloadReq.FileName = std::string(out+outIdx, out+outIdx+tmp44);
-				outIdx+=tmp44;
+				retValue.DownloadReq.FileName = std::string(out+outIdx, out+outIdx+tmp45);
+				outIdx+=tmp45;
 			}
 			{
-				uint32_t tmp49 = 0;
-				uint32_t tmp50 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-				uint32_t tmp51 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-				uint32_t tmp52 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-				uint32_t tmp53 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-				tmp49 = tmp50 | tmp51 | tmp52 | tmp53;
+				uint32_t tmp50 = 0;
+				uint32_t tmp51 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+				uint32_t tmp52 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+				uint32_t tmp53 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+				uint32_t tmp54 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+				tmp50 = tmp51 | tmp52 | tmp53 | tmp54;
 				outIdx+=4;
-				retValue.DownloadReq.SkipTsExpr = std::string(out+outIdx, out+outIdx+tmp49);
-				outIdx+=tmp49;
+				retValue.DownloadReq.SkipTsExpr = std::string(out+outIdx, out+outIdx+tmp50);
+				outIdx+=tmp50;
 			}
 			{
-				uint32_t tmp54 = 0;
-				uint32_t tmp55 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-				uint32_t tmp56 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-				uint32_t tmp57 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-				uint32_t tmp58 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-				tmp54 = tmp55 | tmp56 | tmp57 | tmp58;
+				uint32_t tmp55 = 0;
+				uint32_t tmp56 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+				uint32_t tmp57 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+				uint32_t tmp58 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+				uint32_t tmp59 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+				tmp55 = tmp56 | tmp57 | tmp58 | tmp59;
 				outIdx+=4;
-				retValue.DownloadReq.SetProxy = std::string(out+outIdx, out+outIdx+tmp54);
-				outIdx+=tmp54;
+				retValue.DownloadReq.SetProxy = std::string(out+outIdx, out+outIdx+tmp55);
+				outIdx+=tmp55;
 			}
 			{
-				uint32_t tmp59 = 0;
-				uint32_t tmp60 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-				uint32_t tmp61 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-				uint32_t tmp62 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-				uint32_t tmp63 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-				tmp59 = tmp60 | tmp61 | tmp62 | tmp63;
+				uint32_t tmp60 = 0;
+				uint32_t tmp61 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+				uint32_t tmp62 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+				uint32_t tmp63 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+				uint32_t tmp64 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+				tmp60 = tmp61 | tmp62 | tmp63 | tmp64;
 				outIdx+=4;
-				for (uint32_t tmp64 = 0; tmp64 < tmp59; tmp64++) {
-					std::string tmp65;
+				for (uint32_t tmp65 = 0; tmp65 < tmp60; tmp65++) {
+					std::string tmp66;
 					{
-						uint32_t tmp66 = 0;
-						uint32_t tmp67 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-						uint32_t tmp68 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-						uint32_t tmp69 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-						uint32_t tmp70 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-						tmp66 = tmp67 | tmp68 | tmp69 | tmp70;
+						uint32_t tmp67 = 0;
+						uint32_t tmp68 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+						uint32_t tmp69 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+						uint32_t tmp70 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+						uint32_t tmp71 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+						tmp67 = tmp68 | tmp69 | tmp70 | tmp71;
 						outIdx+=4;
-						tmp65 = std::string(out+outIdx, out+outIdx+tmp66);
-						outIdx+=tmp66;
+						tmp66 = std::string(out+outIdx, out+outIdx+tmp67);
+						outIdx+=tmp67;
 					}
-					std::vector<std::string> tmp71;
+					std::vector<std::string> tmp72;
 					{
-						uint32_t tmp72 = 0;
-						uint32_t tmp73 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-						uint32_t tmp74 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-						uint32_t tmp75 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-						uint32_t tmp76 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-						tmp72 = tmp73 | tmp74 | tmp75 | tmp76;
+						uint32_t tmp73 = 0;
+						uint32_t tmp74 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+						uint32_t tmp75 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+						uint32_t tmp76 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+						uint32_t tmp77 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+						tmp73 = tmp74 | tmp75 | tmp76 | tmp77;
 						outIdx+=4;
-						for (uint32_t tmp77 = 0; tmp77 < tmp72; tmp77++) {
-							std::string tmp78;
+						for (uint32_t tmp78 = 0; tmp78 < tmp73; tmp78++) {
+							std::string tmp79;
 							{
-								uint32_t tmp79 = 0;
-								uint32_t tmp80 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-								uint32_t tmp81 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-								uint32_t tmp82 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-								uint32_t tmp83 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-								tmp79 = tmp80 | tmp81 | tmp82 | tmp83;
+								uint32_t tmp80 = 0;
+								uint32_t tmp81 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+								uint32_t tmp82 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+								uint32_t tmp83 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+								uint32_t tmp84 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+								tmp80 = tmp81 | tmp82 | tmp83 | tmp84;
 								outIdx+=4;
-								tmp78 = std::string(out+outIdx, out+outIdx+tmp79);
-								outIdx+=tmp79;
+								tmp79 = std::string(out+outIdx, out+outIdx+tmp80);
+								outIdx+=tmp80;
 							}
-							tmp71.push_back(tmp78);
+							tmp72.push_back(tmp79);
 						}
 					}
-					retValue.DownloadReq.HeaderMap[tmp65] = tmp71;
+					retValue.DownloadReq.HeaderMap[tmp66] = tmp72;
 				}
 			}
 			retValue.DownloadReq.SkipRemoveTs = (bool) out[outIdx];
@@ -559,11 +582,11 @@ ParseCurl_Resp ParseCurlStr(std::string in0){
 			retValue.DownloadReq.ProgressBarShow = (bool) out[outIdx];
 			outIdx++;
 			{
-				uint32_t tmp84 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-				uint32_t tmp85 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-				uint32_t tmp86 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-				uint32_t tmp87 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-				retValue.DownloadReq.ThreadCount = tmp84 | tmp85 | tmp86 | tmp87;
+				uint32_t tmp85 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+				uint32_t tmp86 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+				uint32_t tmp87 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+				uint32_t tmp88 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+				retValue.DownloadReq.ThreadCount = tmp85 | tmp86 | tmp87 | tmp88;
 				outIdx+=4;
 			}
 			retValue.DownloadReq.SkipCacheCheck = (bool) out[outIdx];
@@ -573,20 +596,31 @@ ParseCurl_Resp ParseCurlStr(std::string in0){
 			retValue.DownloadReq.DebugLog = (bool) out[outIdx];
 			outIdx++;
 			{
-				uint32_t tmp88 = 0;
-				uint32_t tmp89 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-				uint32_t tmp90 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-				uint32_t tmp91 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-				uint32_t tmp92 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-				tmp88 = tmp89 | tmp90 | tmp91 | tmp92;
+				uint32_t tmp89 = 0;
+				uint32_t tmp90 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+				uint32_t tmp91 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+				uint32_t tmp92 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+				uint32_t tmp93 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+				tmp89 = tmp90 | tmp91 | tmp92 | tmp93;
 				outIdx+=4;
-				retValue.DownloadReq.TsTempDir = std::string(out+outIdx, out+outIdx+tmp88);
-				outIdx+=tmp88;
+				retValue.DownloadReq.TsTempDir = std::string(out+outIdx, out+outIdx+tmp89);
+				outIdx+=tmp89;
 			}
 			retValue.DownloadReq.UseServerSideTime = (bool) out[outIdx];
 			outIdx++;
 			retValue.DownloadReq.WithSkipLog = (bool) out[outIdx];
 			outIdx++;
+			{
+				uint32_t tmp94 = 0;
+				uint32_t tmp95 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+				uint32_t tmp96 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+				uint32_t tmp97 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+				uint32_t tmp98 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+				tmp94 = tmp95 | tmp96 | tmp97 | tmp98;
+				outIdx+=4;
+				retValue.DownloadReq.TaskId = std::string(out+outIdx, out+outIdx+tmp94);
+				outIdx+=tmp94;
+			}
 		}
 	}
 	if (out != NULL) {
@@ -599,93 +633,93 @@ std::string RunDownload_Req_ToCurlStr(StartDownload_Req in0){
 	std::string in;
 	{
 		{
-			uint32_t tmp43 = in0.M3u8Url.length();
-			char tmp44[4];
-			tmp44[0] = (uint32_t(tmp43) >> 24) & 0xFF;
-			tmp44[1] = (uint32_t(tmp43) >> 16) & 0xFF;
-			tmp44[2] = (uint32_t(tmp43) >> 8) & 0xFF;
-			tmp44[3] = (uint32_t(tmp43) >> 0) & 0xFF;
-			in.append(tmp44, 4);
+			uint32_t tmp46 = in0.M3u8Url.length();
+			char tmp47[4];
+			tmp47[0] = (uint32_t(tmp46) >> 24) & 0xFF;
+			tmp47[1] = (uint32_t(tmp46) >> 16) & 0xFF;
+			tmp47[2] = (uint32_t(tmp46) >> 8) & 0xFF;
+			tmp47[3] = (uint32_t(tmp46) >> 0) & 0xFF;
+			in.append(tmp47, 4);
 			in.append(in0.M3u8Url);
 		}
 		in.append((char*)(&in0.Insecure), 1);
 		{
-			uint32_t tmp45 = in0.SaveDir.length();
-			char tmp46[4];
-			tmp46[0] = (uint32_t(tmp45) >> 24) & 0xFF;
-			tmp46[1] = (uint32_t(tmp45) >> 16) & 0xFF;
-			tmp46[2] = (uint32_t(tmp45) >> 8) & 0xFF;
-			tmp46[3] = (uint32_t(tmp45) >> 0) & 0xFF;
-			in.append(tmp46, 4);
+			uint32_t tmp48 = in0.SaveDir.length();
+			char tmp49[4];
+			tmp49[0] = (uint32_t(tmp48) >> 24) & 0xFF;
+			tmp49[1] = (uint32_t(tmp48) >> 16) & 0xFF;
+			tmp49[2] = (uint32_t(tmp48) >> 8) & 0xFF;
+			tmp49[3] = (uint32_t(tmp48) >> 0) & 0xFF;
+			in.append(tmp49, 4);
 			in.append(in0.SaveDir);
 		}
 		{
-			uint32_t tmp47 = in0.FileName.length();
-			char tmp48[4];
-			tmp48[0] = (uint32_t(tmp47) >> 24) & 0xFF;
-			tmp48[1] = (uint32_t(tmp47) >> 16) & 0xFF;
-			tmp48[2] = (uint32_t(tmp47) >> 8) & 0xFF;
-			tmp48[3] = (uint32_t(tmp47) >> 0) & 0xFF;
-			in.append(tmp48, 4);
+			uint32_t tmp50 = in0.FileName.length();
+			char tmp51[4];
+			tmp51[0] = (uint32_t(tmp50) >> 24) & 0xFF;
+			tmp51[1] = (uint32_t(tmp50) >> 16) & 0xFF;
+			tmp51[2] = (uint32_t(tmp50) >> 8) & 0xFF;
+			tmp51[3] = (uint32_t(tmp50) >> 0) & 0xFF;
+			in.append(tmp51, 4);
 			in.append(in0.FileName);
 		}
 		{
-			uint32_t tmp49 = in0.SkipTsExpr.length();
-			char tmp50[4];
-			tmp50[0] = (uint32_t(tmp49) >> 24) & 0xFF;
-			tmp50[1] = (uint32_t(tmp49) >> 16) & 0xFF;
-			tmp50[2] = (uint32_t(tmp49) >> 8) & 0xFF;
-			tmp50[3] = (uint32_t(tmp49) >> 0) & 0xFF;
-			in.append(tmp50, 4);
+			uint32_t tmp52 = in0.SkipTsExpr.length();
+			char tmp53[4];
+			tmp53[0] = (uint32_t(tmp52) >> 24) & 0xFF;
+			tmp53[1] = (uint32_t(tmp52) >> 16) & 0xFF;
+			tmp53[2] = (uint32_t(tmp52) >> 8) & 0xFF;
+			tmp53[3] = (uint32_t(tmp52) >> 0) & 0xFF;
+			in.append(tmp53, 4);
 			in.append(in0.SkipTsExpr);
 		}
 		{
-			uint32_t tmp51 = in0.SetProxy.length();
-			char tmp52[4];
-			tmp52[0] = (uint32_t(tmp51) >> 24) & 0xFF;
-			tmp52[1] = (uint32_t(tmp51) >> 16) & 0xFF;
-			tmp52[2] = (uint32_t(tmp51) >> 8) & 0xFF;
-			tmp52[3] = (uint32_t(tmp51) >> 0) & 0xFF;
-			in.append(tmp52, 4);
+			uint32_t tmp54 = in0.SetProxy.length();
+			char tmp55[4];
+			tmp55[0] = (uint32_t(tmp54) >> 24) & 0xFF;
+			tmp55[1] = (uint32_t(tmp54) >> 16) & 0xFF;
+			tmp55[2] = (uint32_t(tmp54) >> 8) & 0xFF;
+			tmp55[3] = (uint32_t(tmp54) >> 0) & 0xFF;
+			in.append(tmp55, 4);
 			in.append(in0.SetProxy);
 		}
 		{
-			uint32_t tmp53 = in0.HeaderMap.size();
-			char tmp54[4];
-			tmp54[0] = (uint32_t(tmp53) >> 24) & 0xFF;
-			tmp54[1] = (uint32_t(tmp53) >> 16) & 0xFF;
-			tmp54[2] = (uint32_t(tmp53) >> 8) & 0xFF;
-			tmp54[3] = (uint32_t(tmp53) >> 0) & 0xFF;
-			in.append(tmp54, 4);
-			for(std::map<std::string, std::vector<std::string>>::iterator tmp55 = in0.HeaderMap.begin(); tmp55 != in0.HeaderMap.end(); ++tmp55) {
+			uint32_t tmp56 = in0.HeaderMap.size();
+			char tmp57[4];
+			tmp57[0] = (uint32_t(tmp56) >> 24) & 0xFF;
+			tmp57[1] = (uint32_t(tmp56) >> 16) & 0xFF;
+			tmp57[2] = (uint32_t(tmp56) >> 8) & 0xFF;
+			tmp57[3] = (uint32_t(tmp56) >> 0) & 0xFF;
+			in.append(tmp57, 4);
+			for(std::map<std::string, std::vector<std::string>>::iterator tmp58 = in0.HeaderMap.begin(); tmp58 != in0.HeaderMap.end(); ++tmp58) {
 				{
-					uint32_t tmp56 = tmp55->first.length();
-					char tmp57[4];
-					tmp57[0] = (uint32_t(tmp56) >> 24) & 0xFF;
-					tmp57[1] = (uint32_t(tmp56) >> 16) & 0xFF;
-					tmp57[2] = (uint32_t(tmp56) >> 8) & 0xFF;
-					tmp57[3] = (uint32_t(tmp56) >> 0) & 0xFF;
-					in.append(tmp57, 4);
-					in.append(tmp55->first);
+					uint32_t tmp59 = tmp58->first.length();
+					char tmp60[4];
+					tmp60[0] = (uint32_t(tmp59) >> 24) & 0xFF;
+					tmp60[1] = (uint32_t(tmp59) >> 16) & 0xFF;
+					tmp60[2] = (uint32_t(tmp59) >> 8) & 0xFF;
+					tmp60[3] = (uint32_t(tmp59) >> 0) & 0xFF;
+					in.append(tmp60, 4);
+					in.append(tmp58->first);
 				}
 				{
-					uint32_t tmp58 = tmp55->second.size();
-					char tmp59[4];
-					tmp59[0] = (uint32_t(tmp58) >> 24) & 0xFF;
-					tmp59[1] = (uint32_t(tmp58) >> 16) & 0xFF;
-					tmp59[2] = (uint32_t(tmp58) >> 8) & 0xFF;
-					tmp59[3] = (uint32_t(tmp58) >> 0) & 0xFF;
-					in.append(tmp59, 4);
-					for (uint32_t tmp60=0; tmp60 < tmp58; ++tmp60) {
+					uint32_t tmp61 = tmp58->second.size();
+					char tmp62[4];
+					tmp62[0] = (uint32_t(tmp61) >> 24) & 0xFF;
+					tmp62[1] = (uint32_t(tmp61) >> 16) & 0xFF;
+					tmp62[2] = (uint32_t(tmp61) >> 8) & 0xFF;
+					tmp62[3] = (uint32_t(tmp61) >> 0) & 0xFF;
+					in.append(tmp62, 4);
+					for (uint32_t tmp63=0; tmp63 < tmp61; ++tmp63) {
 						{
-							uint32_t tmp61 = tmp55->second[tmp60].length();
-							char tmp62[4];
-							tmp62[0] = (uint32_t(tmp61) >> 24) & 0xFF;
-							tmp62[1] = (uint32_t(tmp61) >> 16) & 0xFF;
-							tmp62[2] = (uint32_t(tmp61) >> 8) & 0xFF;
-							tmp62[3] = (uint32_t(tmp61) >> 0) & 0xFF;
-							in.append(tmp62, 4);
-							in.append(tmp55->second[tmp60]);
+							uint32_t tmp64 = tmp58->second[tmp63].length();
+							char tmp65[4];
+							tmp65[0] = (uint32_t(tmp64) >> 24) & 0xFF;
+							tmp65[1] = (uint32_t(tmp64) >> 16) & 0xFF;
+							tmp65[2] = (uint32_t(tmp64) >> 8) & 0xFF;
+							tmp65[3] = (uint32_t(tmp64) >> 0) & 0xFF;
+							in.append(tmp65, 4);
+							in.append(tmp58->second[tmp63]);
 						}
 					}
 				}
@@ -694,28 +728,38 @@ std::string RunDownload_Req_ToCurlStr(StartDownload_Req in0){
 		in.append((char*)(&in0.SkipRemoveTs), 1);
 		in.append((char*)(&in0.ProgressBarShow), 1);
 		{
-			char tmp63[4];
-			tmp63[0] = (uint32_t(in0.ThreadCount) >> 24) & 0xFF;
-			tmp63[1] = (uint32_t(in0.ThreadCount) >> 16) & 0xFF;
-			tmp63[2] = (uint32_t(in0.ThreadCount) >> 8) & 0xFF;
-			tmp63[3] = (uint32_t(in0.ThreadCount) >> 0) & 0xFF;
-			in.append(tmp63, 4);
+			char tmp66[4];
+			tmp66[0] = (uint32_t(in0.ThreadCount) >> 24) & 0xFF;
+			tmp66[1] = (uint32_t(in0.ThreadCount) >> 16) & 0xFF;
+			tmp66[2] = (uint32_t(in0.ThreadCount) >> 8) & 0xFF;
+			tmp66[3] = (uint32_t(in0.ThreadCount) >> 0) & 0xFF;
+			in.append(tmp66, 4);
 		}
 		in.append((char*)(&in0.SkipCacheCheck), 1);
 		in.append((char*)(&in0.SkipMergeTs), 1);
 		in.append((char*)(&in0.DebugLog), 1);
 		{
-			uint32_t tmp64 = in0.TsTempDir.length();
-			char tmp65[4];
-			tmp65[0] = (uint32_t(tmp64) >> 24) & 0xFF;
-			tmp65[1] = (uint32_t(tmp64) >> 16) & 0xFF;
-			tmp65[2] = (uint32_t(tmp64) >> 8) & 0xFF;
-			tmp65[3] = (uint32_t(tmp64) >> 0) & 0xFF;
-			in.append(tmp65, 4);
+			uint32_t tmp67 = in0.TsTempDir.length();
+			char tmp68[4];
+			tmp68[0] = (uint32_t(tmp67) >> 24) & 0xFF;
+			tmp68[1] = (uint32_t(tmp67) >> 16) & 0xFF;
+			tmp68[2] = (uint32_t(tmp67) >> 8) & 0xFF;
+			tmp68[3] = (uint32_t(tmp67) >> 0) & 0xFF;
+			in.append(tmp68, 4);
 			in.append(in0.TsTempDir);
 		}
 		in.append((char*)(&in0.UseServerSideTime), 1);
 		in.append((char*)(&in0.WithSkipLog), 1);
+		{
+			uint32_t tmp69 = in0.TaskId.length();
+			char tmp70[4];
+			tmp70[0] = (uint32_t(tmp69) >> 24) & 0xFF;
+			tmp70[1] = (uint32_t(tmp69) >> 16) & 0xFF;
+			tmp70[2] = (uint32_t(tmp69) >> 8) & 0xFF;
+			tmp70[3] = (uint32_t(tmp69) >> 0) & 0xFF;
+			in.append(tmp70, 4);
+			in.append(in0.TaskId);
+		}
 	}
 	char *out = NULL;
 	int outLen = 0;
@@ -723,15 +767,15 @@ std::string RunDownload_Req_ToCurlStr(StartDownload_Req in0){
 	std::string retValue;
 	int outIdx = 0;
 	{
-		uint32_t tmp66 = 0;
-		uint32_t tmp67 = uint32_t(uint8_t(out[outIdx+0]) << 24);
-		uint32_t tmp68 = uint32_t(uint8_t(out[outIdx+1]) << 16);
-		uint32_t tmp69 = uint32_t(uint8_t(out[outIdx+2]) << 8);
-		uint32_t tmp70 = uint32_t(uint8_t(out[outIdx+3]) << 0);
-		tmp66 = tmp67 | tmp68 | tmp69 | tmp70;
+		uint32_t tmp71 = 0;
+		uint32_t tmp72 = uint32_t(uint8_t(out[outIdx+0]) << 24);
+		uint32_t tmp73 = uint32_t(uint8_t(out[outIdx+1]) << 16);
+		uint32_t tmp74 = uint32_t(uint8_t(out[outIdx+2]) << 8);
+		uint32_t tmp75 = uint32_t(uint8_t(out[outIdx+3]) << 0);
+		tmp71 = tmp72 | tmp73 | tmp74 | tmp75;
 		outIdx+=4;
-		retValue = std::string(out+outIdx, out+outIdx+tmp66);
-		outIdx+=tmp66;
+		retValue = std::string(out+outIdx, out+outIdx+tmp71);
+		outIdx+=tmp71;
 	}
 	if (out != NULL) {
 		free(out);

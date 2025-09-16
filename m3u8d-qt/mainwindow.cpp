@@ -88,10 +88,8 @@ void MainWindow::on_pushButton_RunDownload_clicked()
     req.WithSkipLog = ui->checkBox_WithSkipLog->isChecked();
     req.UseServerSideTime = ui->checkBox_UseServerSideTime->isChecked();
 
-    std::string errMsg = StartDownload(req);
-    if(!errMsg.empty()) {
-        Toast::Instance()->SetError(QString::fromStdString(errMsg));
-        return;
+    if(StartDownload(req) == false) {
+        return ;
     }
     m_syncUi.AddRunFnOn_OtherThread([=](){
         GetStatus_Resp resp = WaitDownloadFinish();

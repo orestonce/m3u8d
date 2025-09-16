@@ -35,11 +35,7 @@ var downloadCmd = &cobra.Command{
 
 func downloadFromCmd(req m3u8d.StartDownload_Req) {
 	req.ProgressBarShow = true
-	errMsg := m3u8dcpp.StartDownload(req)
-	if errMsg != "" {
-		fmt.Println(errMsg)
-		return
-	}
+	m3u8dcpp.StartDownload(req)
 	resp := m3u8dcpp.WaitDownloadFinish()
 	fmt.Println() // 有进度条,所以需要换行
 	if resp.ErrMsg != "" {
@@ -164,13 +160,7 @@ func batchDownloadFromFile(inputFile, saveDir string) {
 		}
 
 		// 执行下载
-		errMsg := m3u8dcpp.StartDownload(req)
-		if errMsg != "" {
-			log.Printf("下载失败: %s", errMsg)
-			failCount++
-			continue
-		}
-
+		m3u8dcpp.StartDownload(req)
 		resp := m3u8dcpp.WaitDownloadFinish()
 		if resp.ErrMsg != "" {
 			log.Printf("下载失败: %s", resp.ErrMsg)

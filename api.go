@@ -21,28 +21,13 @@ import (
 
 const logFileName = `skip.txt`
 
-func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
+//这个函数只“提交一个下载任务”，报错统一使用后面的GetStatus()函数处理
+func (this *DownloadEnv) StartDownload(req StartDownload_Req) (ok bool) {
 	this.status.Locker.Lock()
 	defer this.status.Locker.Unlock()
 
 	if this.status.IsRunning {
-		errMsg = "正在下载"
-		return errMsg
-	}
-	skipInfo, errMsg := ParseSkipTsExpr(req.SkipTsExpr)
-	if errMsg != "" {
-		return "解析跳过ts的表达式错误: " + errMsg
-	}
-
-	var proxyUrlObj *url.URL
-	req.SetProxy, proxyUrlObj, errMsg = ParseProxyFormat(req.SetProxy)
-	if errMsg != "" {
-		return errMsg
-	}
-	this.setupClient(req, proxyUrlObj)
-	errMsg = this.prepareReqAndHeader(&req)
-	if errMsg != "" {
-		return errMsg
+		return false
 	}
 
 	this.status.clearStatusNoLock()
@@ -52,7 +37,7 @@ func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 	this.status.IsRunning = true
 	this.status.TaskId = req.TaskId
 	go func() {
-		this.runDownload(req, skipInfo)
+		this.runDownload(req)
 		this.logToFile_TsNotWriteReason()
 		this.status.SetProgressBarTitle("下载进度")
 		this.status.DrawProgressBar(1, 0)
@@ -64,7 +49,7 @@ func (this *DownloadEnv) StartDownload(req StartDownload_Req) (errMsg string) {
 
 		this.logFileClose()
 	}()
-	return ""
+	return true
 }
 
 func (this *DownloadEnv) GetStatus() (resp GetStatus_Resp) {
@@ -135,7 +120,25 @@ func (this *DownloadEnv) setSaveFileTo(to string, isSkipped bool) {
 
 var debugLogNo uint32
 
-func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo) {
+func (this *DownloadEnv) runDownload(req StartDownload_Req) {
+	skipInfo, errMsg := ParseSkipTsExpr(req.SkipTsExpr)
+	if errMsg != "" {
+		this.setErrMsg("解析跳过ts的表达式错误: " + errMsg)
+		return
+	}
+
+	var proxyUrlObj *url.URL
+	req.SetProxy, proxyUrlObj, errMsg = ParseProxyFormat(req.SetProxy)
+	if errMsg != "" {
+		this.setErrMsg("parseProxy " + errMsg)
+	}
+	this.setupClient(req, proxyUrlObj)
+	errMsg = this.prepareReqAndHeader(&req)
+	if errMsg != "" {
+		this.setErrMsg("prepareReqAndHeader " + errMsg)
+		return
+	}
+
 	if !strings.HasPrefix(req.M3u8Url, "http") || req.M3u8Url == "" {
 		this.setErrMsg("M3u8Url not valid " + strconv.Quote(req.M3u8Url))
 		return
@@ -169,7 +172,6 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req, skipInfo SkipTsInfo)
 
 	this.status.SetProgressBarTitle("[1/5]嗅探m3u8")
 	var info mformat.M3U8File
-	var errMsg string
 	req.M3u8Url, info, errMsg = this.sniffM3u8(req.M3u8Url)
 	if errMsg != "" {
 		this.setErrMsg("sniffM3u8: " + errMsg)

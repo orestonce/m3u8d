@@ -6,7 +6,7 @@ import (
 
 var gOldEnv m3u8d.DownloadEnv
 
-func StartDownload(req m3u8d.StartDownload_Req) (errMsg string) {
+func StartDownload(req m3u8d.StartDownload_Req) bool {
 	return gOldEnv.StartDownload(req)
 }
 

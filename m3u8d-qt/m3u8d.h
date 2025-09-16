@@ -25,9 +25,10 @@ struct StartDownload_Req{
 	std::string TsTempDir;
 	bool UseServerSideTime;
 	bool WithSkipLog;
+	std::string TaskId;
 	StartDownload_Req(): Insecure(false),SkipRemoveTs(false),ProgressBarShow(false),ThreadCount(0),SkipCacheCheck(false),SkipMergeTs(false),DebugLog(false),UseServerSideTime(false),WithSkipLog(false){}
 };
-std::string StartDownload(StartDownload_Req in0);
+bool StartDownload(StartDownload_Req in0);
 void CloseOldEnv();
 struct GetStatus_Resp{
 	int32_t Percent;
@@ -38,6 +39,7 @@ struct GetStatus_Resp{
 	std::string ErrMsg;
 	bool IsSkipped;
 	std::string SaveFileTo;
+	std::string TaskId;
 	GetStatus_Resp(): Percent(0),IsDownloading(false),IsCancel(false),IsSkipped(false){}
 };
 GetStatus_Resp GetStatus();
