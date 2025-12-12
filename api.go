@@ -149,9 +149,9 @@ func (this *DownloadEnv) runDownload(req StartDownload_Req) {
 		if isDirExists(dir) {
 			continue
 		}
-		err = os.Mkdir(dir, 0755)
+		err = os.MkdirAll(dir, 0755)
 		if err != nil {
-			this.setErrMsg("os.Mkdir " + strconv.Quote(dir) + " error: " + err.Error())
+			this.setErrMsg("os.MkdirAll " + strconv.Quote(dir) + " error: " + err.Error())
 			return
 		}
 	}
